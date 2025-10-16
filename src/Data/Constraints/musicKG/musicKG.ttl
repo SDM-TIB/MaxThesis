@@ -1,0 +1,15 @@
+@prefix ex: <http://example.org/> .
+@prefix exS: <http://example.org/shapes/> .
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+
+exS:BeatlesAlbumGenreConstraint a sh:NodeShape ;
+    sh:sparql [ sh:select """
+     SELECT ($this AS ?this)
+            WHERE {
+                <http://example.org/The_Beatles> <http://example.org/has_Album> $this .
+                FILTER NOT EXISTS {
+                    $this <http://example.org/isGenre> <http://example.org/Rock> .
+                }
+            }
+""" ] ;
+    sh:targetClass ex:Album.

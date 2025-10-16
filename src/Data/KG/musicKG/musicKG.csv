@@ -1,0 +1,126 @@
+The_Beatles,has_Album,Rubber_Soul
+The_Beatles,has_Album,Revolver
+The_Beatles,has_Album,The Beatles(Album)
+The_Beatles,has_Album,Abbey Road
+The_Beatles,has_Album,Let It Be
+,,
+Rubber_Soul,releaseYear,1965
+Revolver,releaseYear,1966
+The Beatles(Album),releaseYear,1968
+Abbey Road,releaseYear,1969
+Let It Be,releaseYear,1970
+,,
+Rubber_Soul,isGenre,Rock
+Revolver,isGenre,Rock
+The Beatles(Album),isGenre,Jazz
+Abbey Road,isGenre,Rock
+Let It Be,isGenre,Rock
+,,
+The Beatles,#type,Band
+Rubber_Soul,#type,Album
+Revolver,#type,Album
+The Beatles(Album),#type,Album
+Abbey Road,#type,Album
+Let It Be,#type,Album
+,,
+,,
+,,
+Dire Straits,has_Album,Dire Straits(Album)
+Dire Straits,has_Album,Communiqué
+Dire Straits,has_Album,Making Movies
+Dire Straits,has_Album,Love Over Gold
+Dire Straits,has_Album,Brothers In Arms
+,,
+Dire Straits(Album),releaseYear,1978
+Communiqué,releaseYear,1979
+Making Movies,releaseYear,1980
+Love Over Gold,releaseYear,1982
+Brothers In Arms,releaseYear,1985
+,,
+Dire Straits(Album),isGenre,Rock
+Communiqué,isGenre,Rock
+Making Movies,isGenre,Rock
+Love Over Gold,isGenre,Rock
+Brothers In Arms,isGenre,Rock
+,,
+Dire Straits,#type,Band
+Dire Straits(Album),#type,Album
+Communiqué,#type,Album
+Making Movies,#type,Album
+Love Over Gold,#type,Album
+Brothers In Arms,#type,Album
+,,
+,,
+,,
+The Police,has_Album,Outlandos D’Amour
+The Police,has_Album,Regatta De Blanc
+The Police,has_Album,Zenyatta Mondatta
+The Police,has_Album,Synchronicity
+The Police,has_Album,Ghost In The Machine
+,,
+Outlandos D’Amour,releaseYear,1978
+Regatta De Blanc,releaseYear,1979
+Zenyatta Mondatta,releaseYear,1980
+Synchronicity,releaseYear,1983
+Ghost In The Machine,releaseYear,1981
+,,
+Outlandos D’Amour,isGenre,Rock
+Regatta De Blanc,isGenre,Rock
+Zenyatta Mondatta,isGenre,Rock
+Synchronicity,isGenre,Rock
+Ghost In The Machine,isGenre,Rock
+,,
+Outlandos D’Amour,isGenre,Punk
+Regatta De Blanc,isGenre,Reggae
+,,
+The Police,#type,Band
+Outlandos D’Amour,#type,Album
+Regatta De Blanc,#type,Album
+Zenyatta Mondatta,#type,Album
+Synchronicity,#type,Album
+Ghost In The Machine,#type,Album
+,,
+,,
+Sting,has_Album,Ten Summoner’s Tales
+,,
+Ten Summoner’s Tales,releaseYear,1993
+,,
+Ten Summoner’s Tales,isGenre,Pop
+,,
+Sting,#type,Solo Artist
+Ten Summoner’s Tales,#type,Album
+,,
+,,
+,,
+Eric Clapton,has_Album,461 Ocean Blvd.
+,,
+461 Ocean Blvd.,releaseYear,1974
+,,
+461 Ocean Blvd.,isGenre,Blues
+,,
+Eric Clapton,#type,Solo Artist
+461 Ocean Blvd.,#type,Album
+,,
+,,
+,,
+TOTO,has_Album,Toto
+TOTO,has_Album,Toto IV
+TOTO,has_Album,The Seventh One
+,,
+Toto,isGenre,Rock
+Toto IV,isGenre,Rock
+The Seventh One,isGenre,Rock
+,,
+TOTO,#type,Band
+Toto,#type,Album
+Toto IV,#type,Album
+The Seventh One,#type,Album
+,,
+,,
+,,
+,,
+,,
+,,
+Sting,collaboratedWith,Dire Straits
+Eric Clapton,collaboratedWith,The Beatles
+The Beatles,collaboratedWith,Eric Clapton

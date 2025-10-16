@@ -1,67 +1,63 @@
-@prefix : <urn:webprotege:ontology:ac9d10b9-9e1c-4a4f-8e8d-713b2e48c268#> .
+@prefix : <http://example.org/> .
 @prefix owl: <http://www.w3.org/2002/07/owl#> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix xml: <http://www.w3.org/XML/1998/namespace> .
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
-@base <urn:webprotege:ontology:ac9d10b9-9e1c-4a4f-8e8d-713b2e48c268> .
-
-<urn:webprotege:ontology:ac9d10b9-9e1c-4a4f-8e8d-713b2e48c268> rdf:type owl:Ontology .
-
-#################################################################
-#    Object Properties
-#################################################################
-
-###  http://webprotege.stanford.edu/R81aNlCqrjVKzTOXQJY81O4
-<http://webprotege.stanford.edu/R81aNlCqrjVKzTOXQJY81O4> rdf:type owl:ObjectProperty ;
-                                                         rdfs:domain <http://webprotege.stanford.edu/R3TSb8RryMqAK97KDliYwT> ;
-                                                         rdfs:range <http://webprotege.stanford.edu/RBwENnGqmphL8hZ4kV1788B> ;
-                                                         rdfs:label "hasAlbum" .
-
-
-###  http://webprotege.stanford.edu/R8QLTu1ebsVlfmZCTrAerOg
-<http://webprotege.stanford.edu/R8QLTu1ebsVlfmZCTrAerOg> rdf:type owl:ObjectProperty ;
-                                                         rdfs:domain <http://webprotege.stanford.edu/RBwENnGqmphL8hZ4kV1788B> ;
-                                                         rdfs:range <http://webprotege.stanford.edu/R85HNKyWz4YVwHfVQJDsAyC> ;
-                                                         rdfs:label "isGenre" .
-
-
-###  http://webprotege.stanford.edu/R9MD1IXheEqTKrXZ2qRMXTo
-<http://webprotege.stanford.edu/R9MD1IXheEqTKrXZ2qRMXTo> rdf:type owl:ObjectProperty ;
-                                                         rdfs:domain <http://webprotege.stanford.edu/R3TSb8RryMqAK97KDliYwT> ;
-                                                         rdfs:range <http://webprotege.stanford.edu/R3TSb8RryMqAK97KDliYwT> ;
-                                                         rdfs:label "isFriendOf" .
 
 
 #################################################################
 #    Classes
 #################################################################
 
-###  http://webprotege.stanford.edu/R3TSb8RryMqAK97KDliYwT
-<http://webprotege.stanford.edu/R3TSb8RryMqAK97KDliYwT> rdf:type owl:Class ;
-                                                        rdfs:label "Artist" .
+<https://example.org/Artist> rdf:type rdfs:Class ;
+                                           rdfs:subClassOf owl:Thing ;
+                                           rdfs:label "Artist"@en .
+
+<https://example.org/Publication> rdf:type rdfs:Class ;
+                                           rdfs:subClassOf owl:Thing ;
+                                           rdfs:label "Publication"@en .
+
+<https://example.org/Genre> rdf:type rdfs:Class ;
+                                           rdfs:subClassOf owl:Thing ;
+                                           rdfs:label "Genre"@en .
+
+<https://example.org/Album> rdf:type rdfs:Class ;
+                                           rdfs:subClassOf <https://example.org/Publication> ;
+                                           rdfs:label "Album"@en .
+
+<https://example.org/Band> rdf:type rdfs:Class ;
+                                           rdfs:subClassOf <https://example.org/Artist> ;
+                                           rdfs:label "Band"@en .
+
+<https://example.org/Solo_Artist> rdf:type rdfs:Class ;
+                                           rdfs:subClassOf <https://example.org/Artist> ;
+                                           rdfs:label "Solo_Artist"@en .
 
 
-###  http://webprotege.stanford.edu/R85HNKyWz4YVwHfVQJDsAyC
-<http://webprotege.stanford.edu/R85HNKyWz4YVwHfVQJDsAyC> rdf:type owl:Class ;
-                                                         rdfs:label "Genre" .
 
 
-###  http://webprotege.stanford.edu/R8EwILApYHC7Iqomjvi0bwq
-<http://webprotege.stanford.edu/R8EwILApYHC7Iqomjvi0bwq> rdf:type owl:Class ;
-                                                         rdfs:subClassOf <http://webprotege.stanford.edu/R3TSb8RryMqAK97KDliYwT> ;
-                                                         rdfs:label "SoloArtist" .
 
+#################################################################
+#    Object Properties
+#################################################################
 
-###  http://webprotege.stanford.edu/RBwENnGqmphL8hZ4kV1788B
-<http://webprotege.stanford.edu/RBwENnGqmphL8hZ4kV1788B> rdf:type owl:Class ;
-                                                         rdfs:label "Album" .
+<https://example.org/hasAlbum> rdf:type owl:ObjectProperty, rdf:Property ;
+                                        rdfs:subPropertyOf owl:topObjectProperty ;
+                                        rdfs:domain <https://example.org/Artist> ;
+                                        rdfs:range <https://example.org/Album> ;
 
+<https://example.org/isGenre> rdf:type owl:ObjectProperty, rdf:Property ;
+                                        rdfs:subPropertyOf owl:topObjectProperty ;
+                                        rdfs:domain <https://example.org/Album> ;
+                                        rdfs:range <https://example.org/Genre> ;
 
-###  http://webprotege.stanford.edu/RDrWD1KrzfSutBXbN09dL3s
-<http://webprotege.stanford.edu/RDrWD1KrzfSutBXbN09dL3s> rdf:type owl:Class ;
-                                                         rdfs:subClassOf <http://webprotege.stanford.edu/R3TSb8RryMqAK97KDliYwT> ;
-                                                         rdfs:label "Band" .
+<https://example.org/releaseYear> rdf:type owl:ObjectProperty, rdf:Property ;
+                                        rdfs:subPropertyOf owl:topObjectProperty ;
+                                        rdfs:domain <https://example.org/Album> ;
+                                        rdfs:range rdfs:literal ;
 
-
-###  Generated by the OWL API (version 4.5.13) https://github.com/owlcs/owlapi
+<https://example.org/collaboratedWith> rdf:type owl:ObjectProperty, rdf:Property ;
+                                        rdfs:subPropertyOf owl:topObjectProperty ;
+                                        rdfs:domain <https://example.org/Artist> ;
+                                        rdfs:range <https://example.org/Artist> ;
