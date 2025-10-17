@@ -112,7 +112,7 @@ if __name__ == '__main__':
 
 
         #MAX
-        mine_rules(transformed_kg, original_predicates, transform_output_dir, ontology_path, prefix, 3, 100)
+        mine_rules(transformed_kg, original_predicates, transform_output_dir, ontology_path, rules_path, prefix, 3, 100)
 
         # Print execution time
         end_time = time.time()

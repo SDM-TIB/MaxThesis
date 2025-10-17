@@ -1,11 +1,12 @@
 from rdflib import Graph, URIRef, BNode, Literal, Namespace
 import json
+import csv
 import numpy as np
 import warnings
 
 
 
-def mine_rules(transformed_kg:Graph, targets:set, transform_output_dir:str, ontology_path:str, prefix:str, max_depth:int=3, set_size:int=100,
+def mine_rules(transformed_kg:Graph, targets:set, transform_output_dir:str, ontology_path:str, rules_file:str, prefix:str, max_depth:int=3, set_size:int=100,
         type_predicate:str="http://www.w3.org/1999/02/22-rdf-syntax-ns#type"):
     """
     Mines rules for all original predicates of a normalized knowledge graph.
@@ -27,7 +28,7 @@ def mine_rules(transformed_kg:Graph, targets:set, transform_output_dir:str, onto
         (but: produces a .csv file containing the mined rules)
     """
 
-    print(f"using {type_predicate} as type predicate.\n")
+    print(f"using <{type_predicate}> as type predicate.\n")
 
     # load predicate mappings
     with open(f"{transform_output_dir}/predicate_mappings.json", "r", encoding="utf-8") as p_map_file:
@@ -40,7 +41,7 @@ def mine_rules(transformed_kg:Graph, targets:set, transform_output_dir:str, onto
 
 
     for p in targets:
-        print(f"creating input sets G and V for target predicate {p}...\n")
+        print(f"creating input sets G and V for target predicate <{p}>...\n")
 
         # getting post normalization instances of target predicate and the negative instances from validation
         predicates = [k for k, v in predicate_mappings.items() if v == p]
@@ -50,6 +51,7 @@ def mine_rules(transformed_kg:Graph, targets:set, transform_output_dir:str, onto
 
         # create positive examples
         filter_p = "||".join(f"?p = <{pred}>" for pred in predicates)
+        g = []
 
         #TODO randomization needed but order by rand is too expensive
         query_g = f""" SELECT ?s ?o
@@ -59,7 +61,6 @@ def mine_rules(transformed_kg:Graph, targets:set, transform_output_dir:str, onto
                     }}
                     LIMIT {set_size}"""
 
-        g = []
         for row in transformed_kg.query(query_g):
             g.append(row)
             
@@ -96,7 +97,7 @@ def mine_rules(transformed_kg:Graph, targets:set, transform_output_dir:str, onto
             else: 
                 not_filter = filter_p.replace("=", "!=")
             # TODO if not enough add more random v-entries, maybe: allow custom input 
-            query_v_fill = f""" SELECT ?s ?o
+            query_v_fill = f""" SELECT ?s ?p ?o
                             WHERE {{
                             ?s ?p ?o .
                             FILTER ({not_filter})
@@ -112,14 +113,21 @@ def mine_rules(transformed_kg:Graph, targets:set, transform_output_dir:str, onto
 
         print("---------------------\n")
 
-        #print(f"mining rules for target predicate {p}...")
-        #result.extend(mine_rules_for_target_predicate(g, v, p, predicates, neg_predicates, transformed_kg, prefix, type_predicate, ontology_path, max_depth))
-        #TODO add result to csvs
+        print(f"mining rules for target predicate <{p}>...\n")
+        result.extend(mine_rules_for_target_predicate(np.array(g), np.array(v), p, predicates, neg_predicates, transformed_kg, prefix, type_predicate, ontology_path, max_depth))
+
+    #TODO add result to csvs
+    with open(rules_file, mode='w', newline='', encoding='utf-8') as datei:
+        writer = csv.writer(datei)
+        writer.writerows(result)
+        print("frjgpwrjgüjg")
+        print(rules_file)
+
 
     # 
     return
 
-def mine_rules_for_target_predicate(g:list, v:list, target:URIRef, predicates:list[str], neg_predicates:list[str],
+def mine_rules_for_target_predicate(g:np.ndarray, v:np.ndarray, target:URIRef, predicates:list[str], neg_predicates:list[str],
                                     transformed_kg:Graph, prefix:str, type_predicate:str, ontology_path:str,  max_depth:int=3):
     """
 
@@ -139,17 +147,13 @@ def mine_rules_for_target_predicate(g:list, v:list, target:URIRef, predicates:li
     """
 
     kg = transformed_kg
-    n = Namespace(prefix)
-    R_out = np.zeros()
+    R_out = []
     frontiers = {}
     candidates = {}
-    #TODO fill sets G and V
-
-
 
 
     #TODO rudik
-    return 
+    return [[], []]
 
 
 #TODO help function get_domain/range
