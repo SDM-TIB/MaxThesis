@@ -6,7 +6,7 @@ exS:BeatlesAlbumGenreConstraint a sh:NodeShape ;
     sh:sparql [ sh:select """
      SELECT ($this AS ?this)
             WHERE {
-                <http://example.org/The_Beatles> <http://example.org/has_Album> $this .
+                <http://example.org/The_Beatles> <http://example.org/hasAlbum> $this .
                 FILTER NOT EXISTS {
                     $this <http://example.org/isGenre> <http://example.org/Rock> .
                 }

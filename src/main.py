@@ -134,8 +134,8 @@ if __name__ == '__main__':
         transformed_kg, transform_output_dir, original_predicates = transform(g,constraints_folder, kg_name)
 
 
-        #MAX {'http://example.org/has_Album'}
-        mine_rules(transformed_kg,  original_predicates, transform_output_dir, ontology_path, rules_path, prefix, 3, 15)
+        #MAX {'http://example.org/hasAlbum'}
+        mine_rules(transformed_kg,  original_predicates, transform_output_dir, ontology_path, rules_path, prefix, 3, 15, 0.5, 0.5)
 
         # Print execution time
         end_time = time.time()

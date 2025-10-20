@@ -7,11 +7,11 @@ Soul,#type,Genre
 Metal,#type,Genre
 ,,
 ,,
-The_Beatles,has_Album,Rubber_Soul
-The_Beatles,has_Album,Revolver
-The_Beatles,has_Album,The Beatles(Album)
-The_Beatles,has_Album,Abbey Road
-The_Beatles,has_Album,Let It Be
+The_Beatles,hasAlbum,Rubber_Soul
+The_Beatles,hasAlbum,Revolver
+The_Beatles,hasAlbum,The Beatles(Album)
+The_Beatles,hasAlbum,Abbey Road
+The_Beatles,hasAlbum,Let It Be
 ,,
 Rubber_Soul,releaseYear,1965
 Revolver,releaseYear,1966
@@ -35,11 +35,11 @@ Let It Be,#type,Album
 ,,
 ,,
 ,,
-Dire Straits,has_Album,Dire Straits(Album)
-Dire Straits,has_Album,Communiqué
-Dire Straits,has_Album,Making Movies
-Dire Straits,has_Album,Love Over Gold
-Dire Straits,has_Album,Brothers In Arms
+Dire Straits,hasAlbum,Dire Straits(Album)
+Dire Straits,hasAlbum,Communiqué
+Dire Straits,hasAlbum,Making Movies
+Dire Straits,hasAlbum,Love Over Gold
+Dire Straits,hasAlbum,Brothers In Arms
 ,,
 Dire Straits(Album),releaseYear,1978
 Communiqué,releaseYear,1979
@@ -50,6 +50,7 @@ Brothers In Arms,releaseYear,1985
 Dire Straits(Album),isGenre,Rock
 Communiqué,isGenre,Rock
 Making Movies,isGenre,Rock
+Making Movies,isGenre,Pop
 Love Over Gold,isGenre,Rock
 Brothers In Arms,isGenre,Rock
 ,,
@@ -92,11 +93,11 @@ Brothers In Arms,#type,Album
 ,,
 ,,
 ,,
-The Police,has_Album,Outlandos D’Amour
-The Police,has_Album,Regatta De Blanc
-The Police,has_Album,Zenyatta Mondatta
-The Police,has_Album,Synchronicity
-The Police,has_Album,Ghost In The Machine
+The Police,hasAlbum,Outlandos D’Amour
+The Police,hasAlbum,Regatta De Blanc
+The Police,hasAlbum,Zenyatta Mondatta
+The Police,hasAlbum,Synchronicity
+The Police,hasAlbum,Ghost In The Machine
 ,,
 Outlandos D’Amour,releaseYear,1978
 Regatta De Blanc,releaseYear,1979
@@ -121,7 +122,7 @@ Synchronicity,#type,Album
 Ghost In The Machine,#type,Album
 ,,
 ,,
-Sting,has_Album,Ten Summoner’s Tales
+Sting,hasAlbum,Ten Summoner’s Tales
 ,,
 Ten Summoner’s Tales,releaseYear,1993
 ,,
@@ -132,7 +133,7 @@ Ten Summoner’s Tales,#type,Album
 ,,
 ,,
 ,,
-Eric Clapton,has_Album,461 Ocean Blvd.
+Eric Clapton,hasAlbum,461 Ocean Blvd.
 ,,
 461 Ocean Blvd.,releaseYear,1974
 ,,
@@ -143,9 +144,9 @@ Eric Clapton,#type,Solo Artist
 ,,
 ,,
 ,,
-TOTO,has_Album,Toto
-TOTO,has_Album,Toto IV
-TOTO,has_Album,The Seventh One
+TOTO,hasAlbum,Toto
+TOTO,hasAlbum,Toto IV
+TOTO,hasAlbum,The Seventh One
 ,,
 Toto,isGenre,Rock
 Toto IV,isGenre,Rock
