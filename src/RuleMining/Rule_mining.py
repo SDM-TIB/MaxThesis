@@ -36,8 +36,7 @@ def mine_rules(transformed_kg:Graph, targets:set, transform_output_dir:str, onto
     with open(f"{transform_output_dir}/no_predicate_mappings.json", "r", encoding="utf-8") as np_map_file:
         neg_predicate_mappings = json.load(np_map_file)
 
-    result = [[]]
-
+    result = []
 
 
     for p in targets:
@@ -46,7 +45,6 @@ def mine_rules(transformed_kg:Graph, targets:set, transform_output_dir:str, onto
         # getting post normalization instances of target predicate and the negative instances from validation
         predicates = [k for k, v in predicate_mappings.items() if v == p]
         neg_predicates = [k for k, v in neg_predicate_mappings.items() if v in predicates]
-
 
 
         # create positive examples
@@ -67,8 +65,6 @@ def mine_rules(transformed_kg:Graph, targets:set, transform_output_dir:str, onto
         len_g = len(g)
         if len_g < set_size:
             warnings.warn(f"There aren't enough positive examples in the graph, proceeding with {len_g} examples.\n", UserWarning)        #create negative examples
-
-
 
         # TODO: maybe enable custom input for extra negative examples
         #create negative examples
@@ -97,7 +93,7 @@ def mine_rules(transformed_kg:Graph, targets:set, transform_output_dir:str, onto
             else: 
                 not_filter = filter_p.replace("=", "!=")
             # TODO if not enough add more random v-entries, maybe: allow custom input 
-            query_v_fill = f""" SELECT ?s ?p ?o
+            query_v_fill = f""" SELECT ?s ?o
                             WHERE {{
                             ?s ?p ?o .
                             FILTER ({not_filter})
@@ -111,16 +107,14 @@ def mine_rules(transformed_kg:Graph, targets:set, transform_output_dir:str, onto
         if len_v < set_size:
             warnings.warn(f"There aren't enough negative examples in the graph, proceeding with {len_v} examples.\n", UserWarning)   
 
-        print("---------------------\n")
-
         print(f"mining rules for target predicate <{p}>...\n")
         result.extend(mine_rules_for_target_predicate(np.array(g), np.array(v), p, predicates, neg_predicates, transformed_kg, prefix, type_predicate, ontology_path, max_depth))
 
+        print(f"----------result--------------\n{result}\n--------------------------------------\n")
     #TODO add result to csvs
     with open(rules_file, mode='w', newline='', encoding='utf-8') as datei:
         writer = csv.writer(datei)
         writer.writerows(result)
-        print("frjgpwrjgüjg")
         print(rules_file)
 
 
@@ -153,11 +147,13 @@ def mine_rules_for_target_predicate(g:np.ndarray, v:np.ndarray, target:URIRef, p
 
 
     #TODO rudik
-    return [[], []]
+    return [["fr", "df", "dg"], ["wf", "fll", "rgnrpg"]]
 
 
 #TODO help function get_domain/range
 
-#TODO help function calc_heuristic; important to isolate for modularity
+#TODO help function weight
+
+#TODO help function coverage, unbounded coverage
 
 #TODO help function expand_frontiers(list of current nodes)

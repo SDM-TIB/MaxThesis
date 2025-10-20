@@ -1,3 +1,12 @@
+Rock,#type,Genre
+Pop,#type,Genre
+Country,#type,Genre
+Jazz,#type,Genre
+Funk,#type,Genre
+Soul,#type,Genre
+Metal,#type,Genre
+,,
+,,
 The_Beatles,has_Album,Rubber_Soul
 The_Beatles,has_Album,Revolver
 The_Beatles,has_Album,The Beatles(Album)
@@ -15,6 +24,7 @@ Revolver,isGenre,Rock
 The Beatles(Album),isGenre,Jazz
 Abbey Road,isGenre,Rock
 Let It Be,isGenre,Rock
+Let It Be,isGenre,Pop
 ,,
 The Beatles,#type,Band
 Rubber_Soul,#type,Album
@@ -42,6 +52,36 @@ Communiqué,isGenre,Rock
 Making Movies,isGenre,Rock
 Love Over Gold,isGenre,Rock
 Brothers In Arms,isGenre,Rock
+,,
+Down To The Waterline,isGenre,Rock
+Water Of Love,isGenre,Country
+Setting Me Up,isGenre,Rock
+Six Blade Knife,isGenre,Rock
+Southbound Again,isGenre,Rock
+Sultans Of Swing,isGenre,Funk
+In The Gallery,isGenre,Rock
+Wild West End,isGenre,Rock
+Lions,isGenre,Rock
+,,
+Down To The Waterline,includedIn,Dire Straits(Album)
+Water Of Love,includedIn,Dire Straits(Album)
+Setting Me Up,includedIn,Dire Straits(Album)
+Six Blade Knife,includedIn,Dire Straits(Album)
+Southbound Again,includedIn,Dire Straits(Album)
+Sultans Of Swing,includedIn,Dire Straits(Album)
+In The Gallery,includedIn,Dire Straits(Album)
+Wild West End,includedIn,Dire Straits(Album)
+Lions,includedIn,Dire Straits(Album)
+,,
+Down To The Waterline,#type,Song
+Water Of Love,#type,Song
+Setting Me Up,#type,Song
+Six Blade Knife,#type,Song
+Southbound Again,#type,Song
+Sultans Of Swing,#type,Song
+In The Gallery,#type,Song
+Wild West End,#type,Song
+Lions,#type,Song
 ,,
 Dire Straits,#type,Band
 Dire Straits(Album),#type,Album
@@ -110,6 +150,39 @@ TOTO,has_Album,The Seventh One
 Toto,isGenre,Rock
 Toto IV,isGenre,Rock
 The Seventh One,isGenre,Rock
+,,
+Rosanna,isGenre,Rock
+Make Beleive,isGenre,Metal
+I Won’t Hold You Back,isGenre,Rock
+Good For You,isGenre,Rock
+It’s a Feeling,isGenre,Soul
+Afraid of Love,isGenre,Rock
+Lovers in the Night,isGenre,Country
+We Made It,isGenre,Rock
+Waiting for Your Love,isGenre,Rock
+Africa,isGenre,Rock
+,,
+Rosanna,includedIn,Toto IV
+Make Beleive,includedIn,Toto IV
+I Won’t Hold You Back,includedIn,Toto IV
+Good For You,includedIn,Toto IV
+It’s a Feeling,includedIn,Toto IV
+Afraid of Love,includedIn,Toto IV
+Lovers in the Night,includedIn,Toto IV
+We Made It,includedIn,Toto IV
+Waiting for Your Love,includedIn,Toto IV
+Africa,includedIn,Toto IV
+,,
+Rosanna,#type,Song
+Make Beleive,#type,Song
+I Won’t Hold You Back,#type,Song
+Good For You,#type,Song
+It’s a Feeling,#type,Song
+Afraid of Love,#type,Song
+Lovers in the Night,#type,Song
+We Made It,#type,Song
+Waiting for Your Love,#type,Song
+Africa,#type,Song
 ,,
 TOTO,#type,Band
 Toto,#type,Album

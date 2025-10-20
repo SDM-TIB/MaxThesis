@@ -1,0 +1,91 @@
+<http://example.org/The_Beatles> <http://example.org/hasAlbum> <http://example.org/The_Beatles(Album)> .
+<http://example.org/The_Beatles> <http://example.org/hasAlbum> <http://example.org/Abbey_Road> .
+<http://example.org/The_Beatles> <http://example.org/hasAlbum> <http://example.org/Rubber_Soul> .
+<http://example.org/The_Beatles> <http://example.org/hasAlbum> <http://example.org/Let_It_Be> .
+<http://example.org/The_Beatles> <http://example.org/hasAlbum> <http://example.org/Revolver> .
+
+<http://example.org/The_Beatles(Album)> <http://example.org/releaseYear> <http://example.org/1968> . 
+<http://example.org/Abbey_Road> <http://example.org/releaseYear> <http://example.org/1969> . 
+<http://example.org/Rubber_Soul> <http://example.org/releaseYear> <http://example.org/1965> . 
+<http://example.org/Let_It_Be> <http://example.org/releaseYear> <http://example.org/1970> . 
+<http://example.org/Revolver> <http://example.org/releaseYear> <http://example.org/1966> . 
+
+<http://example.org/The_Beatles> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://example.org/Band> . 
+<http://example.org/The_Beatles(Album)> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://example.org/Album> . 
+<http://example.org/Abbey_Road> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://example.org/Album> . 
+<http://example.org/Rubber_Soul> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://example.org/Album> . 
+<http://example.org/Let_It_Be> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://example.org/Album> . 
+<http://example.org/Revolver> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://example.org/Album> . 
+
+
+
+
+
+<http://example.org/Dire_Straits> <http://example.org/hasAlbum> <http://example.org/Dire_Straits(Album)> .
+<http://example.org/Communiqué> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://example.org/Album> . 
+<http://example.org/Dire_Straits> <http://example.org/hasAlbum> <http://example.org/Communiqué> .
+<http://example.org/Dire_Straits> <http://example.org/hasAlbum> <http://example.org/Making_Movies> .
+<http://example.org/Dire_Straits> <http://example.org/hasAlbum> <http://example.org/> .
+<http://example.org/Dire_Straits> <http://example.org/hasAlbum> <http://example.org/> .
+
+
+
+<http://example.org/Dire_Straits(Album)> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://example.org/Album> . 
+<http://example.org/Communiqué> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://example.org/Album> . 
+<http://example.org/Making_Movies> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://example.org/Album> . 
+<http://example.org/> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://example.org/Album> . 
+<http://example.org/> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://example.org/Album> . 
+
+
+
+
+
+
+
+
+<http://example.org/Sting> <http://example.org/hasAlbum> <http://example.org/> .
+<http://example.org/Sting> <http://example.org/hasAlbum> <http://example.org/> .
+
+<http://example.org/The_Police> <http://example.org/hasAlbum> <http://example.org/> .
+<http://example.org/The_Police> <http://example.org/hasAlbum> <http://example.org/> .
+<http://example.org/The_Police> <http://example.org/hasAlbum> <http://example.org/> .
+
+<http://example.org/Eric_Clapton> <http://example.org/hasAlbum> <http://example.org/> .
+
+<http://example.org/Queen> <http://example.org/hasAlbum> <http://example.org/> .
+<http://example.org/Queen> <http://example.org/hasAlbum> <http://example.org/> .
+<http://example.org/Queen> <http://example.org/hasAlbum> <http://example.org/> .
+<http://example.org/Queen> <http://example.org/hasAlbum> <http://example.org/> .
+
+<http://example.org/TOTO> <http://example.org/hasAlbum> <http://example.org/> .
+<http://example.org/TOTO> <http://example.org/hasAlbum> <http://example.org/> .
+<http://example.org/TOTO> <http://example.org/hasAlbum> <http://example.org/> .
+<http://example.org/TOTO> <http://example.org/hasAlbum> <http://example.org/> .
+<http://example.org/TOTO> <http://example.org/hasAlbum> <http://example.org/> .
+
+
+
+
+
+<http://example.org/Dire_Straits> <http://example.org/hasCollaboratedWith> <http://example.org/Sting> . 
+<http://example.org/The_Beatles> <http://example.org/hasCollaboratedWith> <http://example.org/Eric_Clapton> . 
+<http://example.org/Eric_Clapton> <http://example.org/hasCollaboratedWith> <http://example.org/The_Police> . 
+<http://example.org/> <http://example.org/hasCollaboratedWith> <http://example.org/> . 
+
+<http://example.org/Sting> <http://example.org/isBandMember> <http://example.org/The_Police> . 
+
+
+
+
+
+
+
+
+
+
+
+
+<http://example.org/> <http://example.org/> <http://example.org/> . 
+
+
+<http://example.org/> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://example.org/Album> . 

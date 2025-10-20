@@ -18,6 +18,10 @@
                                            rdfs:subClassOf owl:Thing ;
                                            rdfs:label "Publication"@en .
 
+<https://example.org/Person> rdf:type rdfs:Class ;
+                                            rdfs:subClassOf owl:thing ;
+                                            rdfs:label "Person"@en .
+
 <https://example.org/Genre> rdf:type rdfs:Class ;
                                            rdfs:subClassOf owl:Thing ;
                                            rdfs:label "Genre"@en .
@@ -26,12 +30,17 @@
                                            rdfs:subClassOf <https://example.org/Publication> ;
                                            rdfs:label "Album"@en .
 
+<https://example.org/Song> rdf:type rdfs:Class ;
+                                           rdfs:subClassOf <https://example.org/Publication> ;
+                                           rdfs:label "Song"@en .
+
 <https://example.org/Band> rdf:type rdfs:Class ;
                                            rdfs:subClassOf <https://example.org/Artist> ;
                                            rdfs:label "Band"@en .
 
 <https://example.org/Solo_Artist> rdf:type rdfs:Class ;
                                            rdfs:subClassOf <https://example.org/Artist> ;
+                                           rdfs:subClassOf <https://example.org/Person> ;
                                            rdfs:label "Solo_Artist"@en .
 
 
@@ -61,3 +70,15 @@
                                         rdfs:subPropertyOf owl:topObjectProperty ;
                                         rdfs:domain <https://example.org/Artist> ;
                                         rdfs:range <https://example.org/Artist> ;
+
+<https://example.org/includedIn> rdf:type owl:ObjectProperty, rdf:Property ;
+                                        rdfs:subPropertyOf owl:topObjectProperty ;
+                                        rdfs:domain <https://example.org/Song> ;
+                                        rdfs:range <https://example.org/Album> ;
+                                   
+<https://example.org/isMemeberOf> rdf:type owl:ObjectProperty, rdf:Property ;
+                                        rdfs:subPropertyOf owl:topObjectProperty ;
+                                        rdfs:domain <https://example.org/Person> ;
+                                        rdfs:range <https://example.org/Band> ;
+                                        
+

@@ -13,3 +13,18 @@ exS:BeatlesAlbumGenreConstraint a sh:NodeShape ;
             }
 """ ] ;
     sh:targetClass ex:Album.
+
+
+
+exS:SongAlbumGenreConstraint a sh:NodeShape ;
+    sh:sparql [ sh:select """
+     SELECT ($this AS ?this)
+            WHERE {
+                $this <http://example.org/includedIn> ?album .
+                $this <http://example.org/isGenre> ?genre .
+                FILTER NOT EXISTS {
+                    ?album <http://example.org/isGenre> ?genre .
+                }
+            }
+""" ] ;
+    sh:targetClass ex:Song.

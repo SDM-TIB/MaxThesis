@@ -6,6 +6,8 @@ from rdflib import Graph, URIRef
 import re
 import os
 import time
+import shutil
+import sys
 from Normalization.Validation import travshacl
 from Normalization.Normalization_transform import transform
 from RuleMining.Rule_mining import mine_rules
@@ -56,6 +58,21 @@ def initialize(input_config):
 
     return prefix, rules_path, rdf_path, kg_path, ontology_path, predictions_folder, constraints_folder, kg_name, pca_threshold
 
+def delete_existing_result(pfad):
+    if os.path.exists(pfad) and os.path.isdir(pfad):
+        i = True
+        while i:
+            user_input = input(f"There already exists a result folder for this knowledge graph at '{pfad}'. Do you want to delete it and resume? (y/n) ").strip().lower()
+            
+            if user_input == 'y':
+                shutil.rmtree(pfad)
+                print("The result folder was deleted. Proceeding...\n")
+                i = False
+            elif user_input == 'n':
+                print("The result folder was kept. Cancelling...\n")
+                sys.exit()
+            else:
+                print("Invalid entry, try again.")
 
 
 if __name__ == '__main__':
@@ -97,6 +114,12 @@ if __name__ == '__main__':
         prefix, rules_path, rdf_path, kg_path, ontology_path, predictions_folder, constraints_folder, kg_name, pca_threshold = initialize(input_config)
 
 
+        #delete result folder
+        #track time for user input
+        user_input_start_time = time.time()
+        result_path = f'{constraints_folder}/result_{kg_name}'
+        delete_existing_result(result_path)
+        user_input_end_time = time.time()
 
         g = Graph()
         g.parse(rdf_path, format='nt')
@@ -111,12 +134,12 @@ if __name__ == '__main__':
         transformed_kg, transform_output_dir, original_predicates = transform(g,constraints_folder, kg_name)
 
 
-        #MAX
-        mine_rules(transformed_kg, original_predicates, transform_output_dir, ontology_path, rules_path, prefix, 3, 100)
+        #MAX {'http://example.org/has_Album'}
+        mine_rules(transformed_kg,  original_predicates, transform_output_dir, ontology_path, rules_path, prefix, 3, 15)
 
         # Print execution time
         end_time = time.time()
-        print(f"\nTotal execution time: {end_time - start_time:.2f} seconds")
+        print(f"\nTotal execution time: {end_time - start_time - (user_input_end_time - user_input_start_time):.2f} seconds")
         print("Process completed successfully!")
 
     except Exception as e:
