@@ -3,6 +3,13 @@ import json
 import csv
 import numpy as np
 import warnings
+from dataclasses import dataclass
+
+@dataclass
+class RuleType:
+    cur_m_weight: float
+    body: list[tuple[str]]
+
 
 
 
@@ -113,7 +120,6 @@ def mine_rules(transformed_kg:Graph, targets:set, transform_output_dir:str, onto
         if len_v < set_size:
             warnings.warn(f"There aren't enough negative examples in the graph, proceeding with {len_v} examples.\n", UserWarning)   
 
-        print(f"----------g--------------\n{g}\n--------------------------------------\n")
 
 
         print(f"mining rules for target predicate <{p}>...\n")
@@ -126,10 +132,9 @@ def mine_rules(transformed_kg:Graph, targets:set, transform_output_dir:str, onto
         writer = csv.writer(datei)
         writer.writerows(result)
 
-
     return
 
-def mine_rules_for_target_predicate(g:np.ndarray, v:np.ndarray, target:str, predicates:set, neg_predicates:set,
+def mine_rules_for_target_predicate(g:set, v:set, target:str, predicates:set, neg_predicates:set,
                                     transformed_kg:Graph, prefix:str, type_predicate:str, ontology_path:str,  max_depth:int=3, alpha:float=0.5, beta:float=0.5):
     
     """
@@ -148,33 +153,71 @@ def mine_rules_for_target_predicate(g:np.ndarray, v:np.ndarray, target:str, pred
     """
     head = ("?a", target, "?b")
     kg = transformed_kg
+
     R_out = []
 
-    #Nf in RuDiK
-    frontiers = set()
+    #stores weight of R_out
+    R_out_weight = -1.0
 
-    #potential (sub)rules (Qr in RuDiK)
-    candidates = []
+    #boolean that marks if R_out has changed since the last calculation of marginal weight
+    R_out_changed = False
 
-    #current rule candidate
-    #TODO r = argmin w R
-    r = [("subject","predicate","object"),("subject","predicate","object")]
+    #TODO Nf in RuDiK
+    frontiers = {t[0] for t in g}
 
 
-    
-    while candidates and m_weight(r) < 0 and cov(g, R_out):
+    #TODO potential (sub)rules (Qr in RuDiK)
+    candidates = expand_ft(frontiers)
+
+    r = RuleType(2.0, [])
+
+
+    # find most promising (sub)rule, the one with the lowest marginal weight
+    for rule in candidates:
+        rule.cur_m_weight = m_weight(rule, R_out, kg, g, v, alpha, beta, R_out_weight)
+        if rule.cur_m_weight < r.cur_m_weight:
+            r.cur_m_weight = rule.cur_m_weight
+            r = rule
+
+
+    # main loop
+    while candidates and r.cur_m_weight < 0 and cov_cardinality(R_out, kg, g):
+        
         candidates = candidates.remove(r)
 
+        # if r is a valid rule, add it to solution
         if is_valid(r):
-            R_out.add(r)
+            R_out.append(r)
+            R_out_changed = True
+
+        # if r is not a valid rule, expand on it
         else:
-            #expand rules
-            if len(r[2]) < max_depth:
+            #expand r
+            if len(r.body) < max_depth:
+                #the last visited nodes in all search paths that correspond to r
                 frontiers = ft(r)
-                candidates.add()
-        #TODO r = argmin w R
-        r = []
-        break
+                new_rules = expand_ft(frontiers)
+                candidates.append(new_rules)
+
+
+        if R_out_changed:
+            # TODO add mweight to head of each rule list
+            r.cur_m_weight, R_out_weight = m_weight(r, R_out, kg, g, v, alpha, beta, R_out_weight)
+            for rule in candidates:
+                rule.cur_m_weight = m_weight(rule, R_out, kg, g, v, alpha, beta, R_out_weight)
+                if rule.cur_m_weight < r.cur_m_weight:
+                    r.cur_m_weight = rule.cur_m_weight
+                    r = rule
+
+        else:
+            for new_rule in new_rules:
+                if m_weight(new_rule, R_out, kg, g, v, alpha, beta, R_out_weight) < m_weight(r, R_out, kg, g, v, alpha, beta, R_out_weight):
+                    r = new_rule
+
+
+
+
+        R_out_changed = False
 
     #TODO rudik
     return R_out
@@ -182,25 +225,56 @@ def mine_rules_for_target_predicate(g:np.ndarray, v:np.ndarray, target:str, pred
 
 
 #TODO check if a (sub)rule is a valid rule
-def is_valid(r:list[str]):
+def is_valid(r:RuleType):
     return True
 
-#TODO help function check type
+#TODO help function check type using ontology
 def fits_domain_range():
     return
 
+# estimated marginal weight
+def est_m_weight(r:RuleType, R_out:list[RuleType], kg:Graph, g:set, v:set, alpha:float, beta:float):
+    cov_r_out_v = cov(R_out, kg, v)
+    return -alpha (len(cov(r, kg, g) - cov(R_out, kg, g))/len(g)) + beta (cov_r_out_v / uncov(R_out.append(r), kg, v) - cov_r_out_v / uncov(R_out, kg, v))
+
+# covarage of rules over set
+def cov(rules:list[RuleType], kg:Graph, set:set):
+    c = {}
+
+    filter = "||".join(f"(?a = <{pred[0]}> && ?b = <{pred[1]}>)" for pred in set)
+
+    rules_q = "UNION".join(f"{{{r_sparql(r)}}}" for r in rules)
+
+    query = f""" SELECT ?a ?b
+                WHERE{{
+                {rules_q}
+                FILTER({filter})
+                }}
+                """
+    
+    for row in kg.query(query):
+        c.add(row)
+
+    return c
+
+# unbounded coverage of rules over set
+def uncov(rules:list[RuleType], kg:Graph, set:set):
+    rules = {unbind(r) for r in rules}
+    return cov(kg, set, rules)
 
 # marginal weight of a (sub)rule
-def m_weight(kg:Graph, r:list[str], R_out:list[list[str]], g:np.ndarray, v:np.ndarray, alpha:float, beta:float):
-    return weight(R_out.append(r), g, v, alpha, beta) - weight(R_out, g, v, alpha, beta)
+# allows for of weight(R_out) to avoid unnessecary commputation
+def m_weight(r:RuleType, R_out:list[RuleType], kg:Graph, g:set, v:set, alpha:float, beta:float, R_out_weight:float=-1.0):
+    if R_out_weight < 0:
+        R_out_weight = weight(R_out, kg, g, v, alpha, beta)
+    return weight(R_out.append(r), kg, g, v, alpha, beta) - R_out_weight, R_out_weight
 
 # weight of a set of rules
-def weight(kg:Graph, rules:list[list[str]], g:np.ndarray, v:np.ndarray, alpha:float, beta:float):
-    alpha * (cov(g, rules)/ len(g)) + beta * (cov(v, rules)/uncov(v, rules))
-    return
-
+def weight(rules:list[RuleType], kg:Graph, g:set, v:set, alpha:float, beta:float):
+    return alpha * (cov_cardinality(rules, kg, g)/ len(g)) + beta * (cov_cardinality(rules, kg, v)/uncov_cardinality(rules, kg, v))
+    
 # returns the cardinality of the coverage 
-def cov(kg:Graph, set:np.ndarray, rules:list[list[str]]):
+def cov_cardinality(rules:list[RuleType], kg:Graph, set:set):
 
     filter = "||".join(f"(?a = <{pred[0]}> && ?b = <{pred[1]}>)" for pred in set)
 
@@ -218,22 +292,22 @@ def cov(kg:Graph, set:np.ndarray, rules:list[list[str]]):
 
     return i
 
-# format a rule for sparql query
-def r_sparql(r:list):
-    return " ".join(f"{t[0]} <{t[1]}> {t[2]} ." for t in r)
+# format a rule for WHERE-bracket of a sparql query
+def r_sparql(r:RuleType):
+    return " ".join(f"{t[0]} <{t[1]}> {t[2]} ." for t in r.body)
 
 # returns the cardinality of the unbounded coverage 
-def uncov(kg:Graph, set:np.ndarray, rules:list[list[str]]):
+def uncov_cardinality(rules:list[RuleType], kg:Graph, set:set):
     rules = {unbind(r) for r in rules}
-    return cov(kg, set, rules)
+    return cov_cardinality(kg, set, rules)
 
 # unbinds a rule body
-def unbind(r:list[str]):
+def unbind(r:RuleType):
     newvar = 99
-    for atom in r:
+    for atom in r.body:
         #remove if no target vars in atom
         if atom[0] != "?a" and atom[0] != "?b" and atom[2] != "?a" and atom[2] != "?b":
-            r.remove(atom)
+            r.body.remove(atom)
         #if one var is non target, replace with unique name
         elif atom[0] != "?a" and atom[0] != "?b":
             atom[0] = f"?{chr(newvar)}"
@@ -243,13 +317,16 @@ def unbind(r:list[str]):
             newvar += 1
     return r
 
-
 #TODO help function expand_frontiers(list of current nodes)
-def expand_ft(r:list[str]):
-    return
+def expand_ft(r:RuleType, frontiers, kg, g):
+    # get all frontier nodes of the rule and edges
+    # return rules generated by this
+
+
+    return 
 
 #TODO calc frontiers of r
-def ft(r:list[str]):
+def ft(r:RuleType):
     return
 
 
