@@ -2,14 +2,14 @@ import json
 import csv
 import numpy as np
 import warnings
-from Classes import Path, Rule, P_map
-from Util import *
+from RuleMining.Util import *
+from RuleMining.Classes import Path, Rule, P_map, IncidenceList, Ontology
 
 
 
 
-def mine_rules(transformed_kg, targets:set, transform_output_dir:str, ontology_path:str, rules_file:str, prefix:str, max_depth:int=3, set_size:int=100, 
-               alpha:float=0.5, type_predicate:str="http://www.w3.org/1999/02/22-rdf-syntax-ns#type"):
+def mine_rules(transformed_kg:IncidenceList, targets:set, transform_output_dir:str, o:Ontology, rules_file:str, prefix:str, max_depth:int=3, set_size:int=100, 
+               alpha:float=0.5, type_predicate:str='http://www.w3.org/1999/02/22-rdf-syntax-ns#type'):
     """
     Mines rules for all original predicates of a normalized knowledge graph.
     
@@ -30,15 +30,16 @@ def mine_rules(transformed_kg, targets:set, transform_output_dir:str, ontology_p
         (but: produces a .csv file containing the mined rules)
     """
 
-    if alpha > 1:
-        raise("alpha must be in [0,1].")
-    
+    if alpha > 1 or alpha < 0:
+        raise ValueError("alpha must be in [0,1].")
     beta = 1 - alpha
-
     print(f"computed beta as {beta}.\n")
     print(f"using <{type_predicate}> as type predicate.\n")
 
-    # load predicate mappings
+    if type_predicate in targets:
+        targets.remove(type_predicate)
+
+    # load predicate mappings 
     with open(f"{transform_output_dir}/predicate_mappings.json", "r", encoding="utf-8") as p_map_file:
         predicate_mappings = json.load(p_map_file)
     with open(f"{transform_output_dir}/no_predicate_mappings.json", "r", encoding="utf-8") as np_map_file:
@@ -50,21 +51,20 @@ def mine_rules(transformed_kg, targets:set, transform_output_dir:str, ontology_p
         print(f"creating input sets G and V for target predicate <{p}>...\n")
 
         # getting post normalization instances of target predicate and the negative instances from validation
-        predicates = new_preds(p, predicate_mappings)
-        neg_predicates = neg_preds(predicates, neg_predicate_mappings)
+        pmap = P_map(p, new_preds(p, predicate_mappings), set() , predicate_mappings, neg_predicate_mappings)
+        pmap.neg_predicates = neg_preds(pmap.predicates, neg_predicate_mappings)
 
-
-        # TODO create positive examples
-        g = {}
+        # create positive examples
+        g = getExamples(transformed_kg, pmap.predicates, set_size)
         len_g = len(g)
         if len_g < set_size:
-            warnings.warn(f"There aren't enough positive examples in the graph, proceeding with {len_g} examples.\n", UserWarning)        #create negative examples
+            warnings.warn(f"There aren't enough positive examples in the graph, proceeding with {len_g} examples.\n", UserWarning)  
 
         # TODO: maybe enable custom input for extra negative examples
         # TODO create negative examples
-        # TODO first, get all constraint violating pairs
+        # first, get all constraint violating triples
 
-        v = {}
+        v = getExamples(transformed_kg, pmap.neg_predicates, set_size)
         len_v = len(v)
         if len_v < set_size:
             warnings.warn(f"{len_v} examples found from constraint violations, selecting remaining {set_size - len_v} examples from graph.\n", UserWarning)
@@ -78,9 +78,9 @@ def mine_rules(transformed_kg, targets:set, transform_output_dir:str, ontology_p
             warnings.warn(f"There aren't enough negative examples in the graph, proceeding with {len_v} examples.\n", UserWarning)   
 
 
-        preds = P_map(p, predicates, neg_predicates, predicate_mappings, neg_predicate_mappings)
+        
         print(f"mining rules for target predicate <{p}>...\n")
-        result.extend(mine_rules_for_target_predicate(np.array(g), np.array(v), preds, g, transformed_kg, prefix, type_predicate, ontology_path, max_depth))
+        result.extend(mine_rules_for_target_predicate(g, v, pmap, g, transformed_kg, prefix, type_predicate, o, max_depth))
 
     #TODO add result to csvs
     with open(rules_file, mode='w', newline='', encoding='utf-8') as datei:
@@ -89,7 +89,7 @@ def mine_rules(transformed_kg, targets:set, transform_output_dir:str, ontology_p
 
     return
 
-def mine_rules_for_target_predicate(g:np.array, v:np.array, p:P_map, transformed_kg:Graph, prefix:str, type_predicate:str, ontology_path:str,  max_depth:int=3, alpha:float=0.5, beta:float=0.5):
+def mine_rules_for_target_predicate(g:set, v:set, p:P_map, transformed_kg:IncidenceList, prefix:str, type_predicate:str, o:Ontology,  max_depth:int=3, alpha:float=0.5, beta:float=0.5):
     
     """
     Args:
@@ -106,11 +106,16 @@ def mine_rules_for_target_predicate(g:np.array, v:np.array, p:P_map, transformed
     Returns:
         R_out -- mined rules for the target predicate
     """
+
+    assert g, "missing genreration exmples"
+    assert v, "missing validation examples"
+
     kg = transformed_kg
 
     R_out = [Rule]
-
-
+    r = Rule()
+    d = {}
+    d[r] = 5
     #boolean that marks if R_out has changed since the last calculation of marginal weight
     R_out_changed = False
 
@@ -166,7 +171,7 @@ def mine_rules_for_target_predicate(g:np.array, v:np.array, p:P_map, transformed
     return R_out
 
 #TODO help function expand_frontiers(list of current nodes)
-def expand_ft(frontiers:set, kg:Graph, g:np.ndarray):
+def expand_ft(frontiers:set, kg, g:np.ndarray):
     # get all frontier nodes of the rule and edges
 
 

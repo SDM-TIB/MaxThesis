@@ -11,6 +11,8 @@ import sys
 from Normalization.Validation import travshacl
 from Normalization.Normalization_transform import transform
 from RuleMining.Rule_mining import mine_rules
+from RuleMining.Util import parseGraph, parseOntology
+from RuleMining.Classes import IncidenceList, Ontology
 
 import logging
 
@@ -131,11 +133,15 @@ if __name__ == '__main__':
 
         # Normalizing enriched KG (enrichedKG obtained from symbolic predictions)
         print("\nTransforming results...")
-        transformed_kg, transform_output_dir, original_predicates = transform(g,constraints_folder, kg_name)
+        transformed_kg, transform_output_dir, original_predicates = transform(g,constraints_folder, prefix, kg_name)
 
 
-        #MAX {'http://example.org/hasAlbum'}
-        mine_rules(transformed_kg,  original_predicates, transform_output_dir, ontology_path, rules_path, prefix, 3, 15, 0.5, 0.5)
+        kg_transformed_i_list = IncidenceList()
+        parseGraph(f"{transform_output_dir}/TransformedKG_{kg_name}.nt", kg_transformed_i_list, prefix)
+        o = Ontology()
+        parseOntology(ontology_path, o, prefix)
+        print(o)
+        mine_rules(kg_transformed_i_list,  original_predicates, transform_output_dir, o, rules_path, prefix, 3, 15, 0.5)
 
         # Print execution time
         end_time = time.time()
