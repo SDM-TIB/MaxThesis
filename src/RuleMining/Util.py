@@ -24,13 +24,9 @@ def parseOntology(ontology_file:str, ontology:Ontology, prefix:str=""):
                         block_end = True
                     block.append(e)
                 if block_end:
-                    print("+++++++++++++++++++++++++++++\n")
                     addOntologyBlock(block, ontology, prefix)
-                    print("********************************\n")
                     block = []
                     block_end = False
-
-    
 
 def checkForType(e):
     return e.__contains__("type")
@@ -127,6 +123,7 @@ def est_m_weight(r:Rule, R_out:list[Rule], kg, g:set, v:set, alpha:float, beta:f
 covarage of rules over set
 """
 def cov(rules:list[Rule], kg, ex_set:set):
+    # TODO
     return 
 
 
@@ -146,7 +143,7 @@ def unbind(r:Rule):
     newvar = 99
     for atom in r.body:
         #remove if no target vars in atom
-
+        # TODO
         #if one var is non target, replace with unique name
         pass
     return r
@@ -159,7 +156,7 @@ def is_valid(r:Rule):
     len_r = len(r.body)
 
     # must connect head entities
-
+    #TODO
 
     #atoms must be transitively connected
 
@@ -250,3 +247,4 @@ def getExamplesLCWA(kg:IncidenceList, preds:set, count:int):
     for _ in range(-diff):
         out.pop()
     return out
+

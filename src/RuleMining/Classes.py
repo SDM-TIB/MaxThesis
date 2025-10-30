@@ -1,25 +1,45 @@
 from hashlib import sha256
-
 """ represents a path in the graph"""
 class Path:
-    def __init__(self, head, body):
+    def __init__(self, head=(), body=set()):
         self.head = head
         self.body = body
         return
     def __repr__(self):
         return f"Path:\nhead: {self.head},\nbody: {self.body}.\n"
+    
+    def rule(self): 
+        # TODO head and body can't be computed seperately
+        head = generalize({self.head})
+        body = (generalize(self.body))
+
+    # TODO needs to map same entities to generalized versions
+        # currently returning original entity names
+        connections = set()
+        for a in self.body:
+            for b in self.body:
+                if a != b:
+                    if a[0] == b[0]:
+                        connections.add((a[0],b[0]))
+                    if a[0] == b[2]:
+                        connections.add((a[0],b[2]))
+                    if a[2] == b[0]:
+                        connections.add((a[2],b[0]))
+                    if a[2] == b[2]:
+                        connections.add((a[2],b[2]))
+        return head, body, connections
+        
 
 """ represents a (sub)rule"""
 class Rule:
-    def __init__(self, head=(), body=[], connections=[]):
+    def __init__(self, head=(), body=set(), connections=set()):
         self.head = head
         self.body = body
         self.connections = connections
     def __key(self):
         return (self.head, self.body, self.connections)
     def __hash__(self):
-        print(sha256(self.__repr__().encode('utf-8')).hexdigest()[:16])
-        return int(sha256(self.__repr__().encode('utf-8')).hexdigest(), 16)
+        return int(sha256(str(self.__key()).encode('utf-8')).hexdigest(), 16)
     def __eq__(self, other):
         if isinstance(other, Rule):
             return self.__key() == other.__key()
@@ -87,7 +107,6 @@ class Ontology:
                 else:
                     self.classes[classname] = set()
             else:
-                print(f"helloooooooooooooooo\n{super}")
                 self.classes[classname].add(super) 
 
     def addProperty(self, prefix, p, d=set(), r=set()):
@@ -144,3 +163,15 @@ def addPrefix(element:str, prefix:str):
 """remove prefix from element"""
 def removePrefix(element:str, prefix:str):
     return element.removeprefix("<").removeprefix(f"{prefix}").removesuffix(">")
+
+def generalize(triples):
+    print(f"----------------{triples}\n")
+    out = set()
+    for triple in triples:
+        s,p,o = triple
+        p_count = 0
+        for t in out:
+            if t[1] == p:
+                p_count += 1
+        out.add((f"?s_{p}{p_count}", p, f"?o_{p}{p_count}"))
+    return out

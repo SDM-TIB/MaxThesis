@@ -5,6 +5,6 @@
   "rules_file": "musicKG.csv",
   "rdf_file": "musicKG.nt",
   "constraints_folder": "musicKG",
-  "ontology_file": "musicKG.ttl",
+  "ontology_file": "musicKGOntology.ttl",
   "pca_threshold": 0.75
 }

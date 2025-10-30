@@ -5,6 +5,8 @@ from rdflib import Graph, URIRef, Namespace
 from rdflib.namespace import SH, RDF
 from typing import Dict, List, Tuple, Set, Optional
 
+from RuleMining.Classes import removePrefix
+
 
 class TriplePattern:
     def __init__(self, predicate: URIRef, object_value: URIRef, in_filter: bool = False, is_not_exists: bool = False):
@@ -168,7 +170,7 @@ def check_pattern_match(graph: Graph, subject: URIRef, pattern: TriplePattern) -
     return not matches if pattern.is_not_exists else matches
 
 
-def transform_predicate_with_object(kg: Graph) -> Tuple[Graph, Dict[str, str]]:
+def transform_predicate_with_object(kg: Graph, prefix) -> Tuple[Graph, Dict[str, str]]:
     """
     Transform the KG by combining predicates with object values
     Returns:
@@ -191,9 +193,9 @@ def transform_predicate_with_object(kg: Graph) -> Tuple[Graph, Dict[str, str]]:
         new_pred = URIRef(new_pred_str)
 
         # Store mapping from new predicate to original predicate
-        predicate_mapping[new_pred_str] = p_str
+        predicate_mapping[removePrefix(new_pred_str, prefix)] = removePrefix(p_str, prefix)
 
-        original_predicates.add(p_str)
+        original_predicates.add(removePrefix(p_str, prefix))
 
         # Add the transformed triple to the new graph
         kg_transform.add((s, new_pred, o))
@@ -233,7 +235,7 @@ def transform_triple(triple: Tuple[URIRef, URIRef, URIRef],
             if pattern.object is None or pattern.object == obj:
                 matching_filter_pattern = pattern
                 
-                prefix = "NO" if not matching_filter_pattern.is_not_exists else ""
+                prefix = "NO_" if not matching_filter_pattern.is_not_exists else ""
                 entity_name = str(obj).split('/')[-1]
 
                 # Create new predicate with 'No' prefix for the object part
@@ -244,7 +246,7 @@ def transform_triple(triple: Tuple[URIRef, URIRef, URIRef],
     return None
 
 
-def transform(kg: Graph, constraints_folder: str,  kg_name: str = None) -> Tuple[Graph, str]:
+def transform(kg: Graph, constraints_folder: str, prefix,  kg_name: str = None) -> Tuple[Graph, str]:
     """
     Transforms a given knowledge graph (KG) based on a series of predicate-object transformations,
     SHACL constraints, and violation reports. The transformation involves modifying triples in the graph as
@@ -271,7 +273,7 @@ def transform(kg: Graph, constraints_folder: str,  kg_name: str = None) -> Tuple
 
         # First perform the predicate-object transformation
         print("Performing initial predicate-object transformation...")
-        kg_transform, predicate_mapping, original_predicates = transform_predicate_with_object(kg)
+        kg_transform, predicate_mapping, original_predicates = transform_predicate_with_object(kg, prefix)
         print(f"Created transformed KG with {len(list(kg_transform))} triples")
 
         # Save the initial transformation

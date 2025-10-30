@@ -106,16 +106,22 @@ def mine_rules_for_target_predicate(g:set, v:set, p:P_map, transformed_kg:Incide
     Returns:
         R_out -- mined rules for the target predicate
     """
-
-    assert g, "missing genreration exmples"
-    assert v, "missing validation examples"
+    # TODO uncomment
+    # assert g, "missing genreration exmples"
+    # assert v, "missing validation examples"
 
     kg = transformed_kg
 
-    R_out = [Rule]
-    r = Rule()
+    R_out = []
+    r = Rule(head=("a", "b"), body={(),("d", "e", "f")})    
+
+    p = Path(head=("w","f","e"),body={("a","p01","c"), ("d","p02","y"), ("e","p03","x"), ("v","p04","e"), ("a","p03","f")})
+
+    print(p)
+    print(p.rule())
     d = {}
     d[r] = 5
+
     #boolean that marks if R_out has changed since the last calculation of marginal weight
     R_out_changed = False
 
@@ -126,7 +132,6 @@ def mine_rules_for_target_predicate(g:set, v:set, p:P_map, transformed_kg:Incide
     #TODO potential (sub)rules (Qr in RuDiK)
     candidates = expand_ft(frontiers, kg, g)
 
-    r = Rule()
 
     # find most promising (sub)rule, the one with the lowest marginal weight
     for rule in candidates:
