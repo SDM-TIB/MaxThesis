@@ -113,12 +113,15 @@ def mine_rules_for_target_predicate(g:set, v:set, p:P_map, transformed_kg:Incide
     kg = transformed_kg
 
     R_out = []
-    r = Rule(head=("a", "b"), body={(),("d", "e", "f")})    
+    r = Rule(head=("a","p1" "b"), body={(),("d", "e", "f")})    
 
-    p = Path(head=("w","f","e"),body={("a","p01","c"), ("d","p02","y"), ("e","p03","x"), ("v","p04","e"), ("a","p03","f")})
+    p = Path(head=("a","p1","b"),graph=IncidenceList(edges={"p1" : {("a","b")}, "p2" : {("a", "c"), ("d", "f")}, "p3" : {("c", "d")}, "p4" : {("e", "c")}} , nodes={"a":{"p1", "p2"}, "b" : {"p1", "p2"}, "c" : {"p2", "p3", "p4"}, "d":{"p2", "p3"}, "e":{"p4"}, "f":{"p2"}}))
 
     print(p)
     print(p.rule())
+
+
+
     d = {}
     d[r] = 5
 

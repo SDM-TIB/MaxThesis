@@ -1,6 +1,10 @@
 import numpy as np
 from RuleMining.Classes import Path, Rule, P_map, IncidenceList, Ontology
 
+########################################
+# filling custom datastructures
+########################################
+
 """parse a graph from nt file into IncidenceList"""
 def parseGraph(ntFilePath, graph:IncidenceList, prefix=""):
     with open(ntFilePath, 'r', encoding='utf-8') as file:
@@ -28,24 +32,31 @@ def parseOntology(ontology_file:str, ontology:Ontology, prefix:str=""):
                     block = []
                     block_end = False
 
+"""help function for parseOntology"""
 def checkForType(e):
     return e.__contains__("type")
 
+"""help function for parseOntology"""
 def checkForClass(e):
     return e.__contains__("Class")
 
+"""help function for parseOntology"""
 def checkForSubClass(e):
     return e.__contains__("subClassOf")
 
+"""help function for parseOntology"""
 def checkForProperty(e):
     return e.__contains__("Property")
 
+"""help function for parseOntology"""
 def checkForRange(e):
     return e.__contains__("range")
 
+"""help function for parseOntology"""
 def checkForDomain(e):
     return e.__contains__("domain")
 
+"""help function to parseOntology"""
 def extractName(e):
     # e is whole uri
     if e[0] == "<":
@@ -61,7 +72,8 @@ def extractName(e):
             
     return
 
-"""classify triple and add to ontology"""
+"""help function for parseOntology;
+classify triple and add to ontology"""
 def addOntologyBlock(block:list[str], ontology, prefix):
     s, p, o = block[0:3]
     if checkForType(p):
@@ -106,10 +118,16 @@ def tripleRemovePrefix(triple:tuple[str], prefix:str):
             triple[1].removeprefix("<").removeprefix(f"{prefix}").removesuffix(">"), 
             triple[2].removeprefix("<").removeprefix(f"{prefix}").removesuffix(">"))
 
-
 """add prefix to triple"""
-def TripleAddPrefix(triple:tuple[str], prefix:str):        
+def tripleAddPrefix(triple:tuple[str], prefix:str):        
     return (f"<{prefix}{triple[0]}>",f"<{prefix}{triple[1]}>",f"<{prefix}{triple[2]}>")
+
+
+
+
+##############################
+# RuDiK util/math
+##############################
 
 
 """estimated marginal weight"""
@@ -135,7 +153,6 @@ def uncov(rules:list[Rule], kg, ex_set:set):
     return cov(kg, ex_set, rules)
 
 
-
 """
 unbinds a rule body
 """
@@ -147,7 +164,6 @@ def unbind(r:Rule):
         #if one var is non target, replace with unique name
         pass
     return r
-
 
 """
 check if a (sub)rule is a valid rule
@@ -162,10 +178,19 @@ def is_valid(r:Rule):
 
     return True
 
+
 #TODO help function check type using ontology
 def fits_domain_range():
     return
 
+
+
+
+
+
+###################################
+# predicate mappings
+###################################
 
 """
  get a predicates predecessor, for a negative_pred get post-normalization positive predicate, for that, get original predicate
@@ -190,6 +215,10 @@ def neg_preds(new_preds:dict, neg_predicate_mappings:dict):
     return {k for k, v in neg_predicate_mappings.items() if v in new_preds}
 
 
+
+#########################################
+# example generation
+#########################################
 
 """get distributed examples for given predicates, limited by count"""
 def getExamples(kg:IncidenceList, preds:set, count:int):

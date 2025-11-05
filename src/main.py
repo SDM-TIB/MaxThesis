@@ -151,5 +151,6 @@ if __name__ == '__main__':
         error_msg = f"Error occurred during execution: {str(e)}"
         print(f"\n{error_msg}")
         if 'logger' in locals():
-            logger.error(error_msg, exc_info=True)  # Logs the full traceback
+            pass
+            # logger.error(error_msg, exc_info=True)  # Logs the full traceback
         raise
