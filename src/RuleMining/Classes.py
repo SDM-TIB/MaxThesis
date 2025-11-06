@@ -74,7 +74,8 @@ class Path:
             entities.remove(current_entity)
             current_triple, current_entity, p_count, head, triple_queue = handle_current_and_get_next(current_triple, current_entity, name_dict, p_count, triple_queue, entities, nodes, edges, head)
 
-
+            edges["2"] = ("hello", "bye")
+            print(self.graph.edges)
 
             print(triple_queue)
             # queue is done
@@ -88,7 +89,6 @@ class Path:
                         print((s, self.head[1], self.head[2]))
 
                         _,head,_ = rename_triple((s, self.head[1], self.head[2]), self.head[2], edges, head,  name_dict, p_count)
-
                 # there must be an error, because there are entities in the path unconnected to head, only head object is allowed to remain
                 else:
                     raise RuntimeError("invalid path, the path contains unconnected triples.")
@@ -201,7 +201,7 @@ def handle_current_and_get_next(current_triple, current_entity, name_dict, p_cou
                 else: 
                     c = tuple[0]
                 
-                t_next = handle_current_and_get_next(tuple, c, name_dict, p_count, [], edges, nodes, head, False) 
+                t_next = handle_current_and_get_next((tuple[0], p, tuple[1]), c, name_dict, p_count, [], entities, nodes, edges, head, False) 
                 pairs.append((tuple, t_next))
             
             
@@ -210,7 +210,7 @@ def handle_current_and_get_next(current_triple, current_entity, name_dict, p_cou
                 # found the order of same predicate instances, rename and add to queue
                 while pairs:
                     pair = min(pairs, key=lambda element: element[1][1])
-                    p_count, head, triple = rename_triple((pair[0][0], p, pair[0][1]), current_entity, edges, name_dict, p_count)
+                    p_count, head, triple = rename_triple((pair[0][0], p, pair[0][1]), current_entity, edges, head, name_dict, p_count)
                     pairs.remove(pair)
                     triple_queue.append(triple)
 

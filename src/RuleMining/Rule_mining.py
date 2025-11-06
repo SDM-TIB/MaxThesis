@@ -115,12 +115,22 @@ def mine_rules_for_target_predicate(g:set, v:set, p:P_map, transformed_kg:Incide
     R_out = []
     r = Rule(head=("a","p1" "b"), body={(),("d", "e", "f")})    
 
-    p = Path(head=("a","p1","b"),graph=IncidenceList(edges={"p1" : {("a","b")}, "p2" : {("a", "c"), ("d", "f")}, "p3" : {("c", "d")}, "p4" : {("e", "c")}} , nodes={"a":{"p1", "p2"}, "b" : {"p1", "p2"}, "c" : {"p2", "p3", "p4"}, "d":{"p2", "p3"}, "e":{"p4"}, "f":{"p2"}}))
-
-    print(p)
-    print(p.rule())
+    p1 = Path(head=("a","p1","b"),graph=IncidenceList(edges={"p1" : {("a","b")}, "p2" : {("a", "c"), ("d", "f"), ("a", "f")}, "p3" : {("c", "d")}, "p4" : {("e", "c")}} , nodes={"a":{"p1", "p2"}, "b" : {"p1", "p2"}, "c" : {"p2", "p3", "p4"}, "d":{"p2", "p3"}, "e":{"p4"}, "f":{"p2"}}))
 
 
+        
+    p2 = Path(head=("m","p1","b"),graph=IncidenceList(edges={"p1" : {("m","b")}, "p2" : {("m", "c"), ("d", "f"), ("m", "f")}, "p3" : {("c", "d"), ("c", "9")}, "p4" : {("9", "c")}} , nodes={"m":{"p1", "p2"}, "b" : {"p1", "p2"}, "c" : {"p2", "p3", "p4"}, "d":{"p2", "p3"}, "9":{"p3", "p4"}, "f":{"p2"}}))
+    print(p1)
+    print(p2)
+    r = p1.rule()
+    r2 = p2.rule()
+    print(r)
+    print(p1)
+    print(r2)
+    print(p2)
+
+
+    exit()
 
     d = {}
     d[r] = 5
