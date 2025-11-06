@@ -10,7 +10,7 @@ def parseGraph(ntFilePath, graph:IncidenceList, prefix=""):
     with open(ntFilePath, 'r', encoding='utf-8') as file:
         for row in file:
             triple = tripleRemovePrefix(row.split()[0:3], prefix)
-            graph.add(triple[1], triple[0], triple[2])
+            graph.add(triple[0], triple[1], triple[2])
 
 """parse a .ttl ontology into Ontology Type"""
 def parseOntology(ontology_file:str, ontology:Ontology, prefix:str=""):

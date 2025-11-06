@@ -115,20 +115,32 @@ def mine_rules_for_target_predicate(g:set, v:set, p:P_map, transformed_kg:Incide
     R_out = []
     r = Rule(head=("a","p1" "b"), body={(),("d", "e", "f")})    
 
-    p1 = Path(head=("a","p1","b"),graph=IncidenceList(edges={"p1" : {("a","b")}, "p2" : {("a", "c"), ("d", "f"), ("a", "f")}, "p3" : {("c", "d")}, "p4" : {("e", "c")}} , nodes={"a":{"p1", "p2"}, "b" : {"p1", "p2"}, "c" : {"p2", "p3", "p4"}, "d":{"p2", "p3"}, "e":{"p4"}, "f":{"p2"}}))
+    p1 = Path()
+    p1.head = ("Sting","hasAlbum","Fields of Gold(Album)")
+    p1.graph.add("Dire Straits","hasAlbum", "Communique")
+    p1.graph.add("Lady Writer", "includedIn", "Communique")
+    p1.graph.add("Sting", "collaboratedWith", "Dire Straits")
+    p1.graph.add("Sting","hasAlbum","Fields of Gold(Album)")
+    p1.graph.add("Shape of my Heart","includedIn","Fields of Gold(Album)")
+    p1.graph.add("Shape of my Heart","isGenre","Pop")
 
+    p2 = Path()
+    p2.head = ("Eric Clapton","hasAlbum","461 Ocean Blvd.")
+    p2.graph.add("Here Comes the Sun","includedIn","Abbey Road")
+    p2.graph.add("I Shot the Sheriff","includedIn","461 Ocean Blvd.")
+    p2.graph.add("Eric Clapton","collaboratedWith","The Beatles")
+    p2.graph.add("I Shot the Sheriff","isGenre","Rock")
+    p2.graph.add("The Beatles","hasAlbum","Abbey Road")
+    p2.graph.add("Eric Clapton","hasAlbum","461 Ocean Blvd.")
 
-        
-    p2 = Path(head=("m","p1","b"),graph=IncidenceList(edges={"p1" : {("m","b")}, "p2" : {("m", "c"), ("d", "f"), ("m", "f")}, "p3" : {("c", "d"), ("c", "9")}, "p4" : {("9", "c")}} , nodes={"m":{"p1", "p2"}, "b" : {"p1", "p2"}, "c" : {"p2", "p3", "p4"}, "d":{"p2", "p3"}, "9":{"p3", "p4"}, "f":{"p2"}}))
     print(p1)
     print(p2)
-    r = p1.rule()
+    r1 = p1.rule()
     r2 = p2.rule()
-    print(r)
-    print(p1)
-    print(r2)
-    print(p2)
 
+
+
+    print(r1._Rule__key() == r2._Rule__key())
 
     exit()
 
