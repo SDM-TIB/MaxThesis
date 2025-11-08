@@ -77,6 +77,15 @@ class Path:
 
         triple_order = dfs(self.graph.nodes, self.graph.edges, head[0], head)     
 
+        # POSSIBLE ADAPTATION
+        # if head can be in middle of body (not everything reachable from head subject)
+        # do dfs from head object and the append to triple order the missing triples according to the resulting order from dfs(head[2]).
+
+
+        if len(triple_order) < sum(len(self.graph.edges[p]) for p in self.graph.edges):
+            print(f" {triple_order} \n{len(triple_order)}\n {self.graph.edges}\n {sum(len(self.graph.edges[p]) for p in self.graph.edges)} \n")
+            raise ValueError("The given path is faulty, all triples must be reachable from head subject.")
+        
         p_count = 0
         for t in triple_order:
             p_count, head = rename_triple(t, head, name_dict, p_count, rule)
@@ -90,7 +99,6 @@ class Path:
 
 """performs a strictly ordered dfs over an Incidence list, starting at  start entity, returns the traversal order of triples"""
 def dfs(nodes, edges, start, triple, visited=None):
-    
 
     def find_min_key(subpaths, visited):
         # true if path one is more favourable than two
@@ -164,6 +172,7 @@ def dfs(nodes, edges, start, triple, visited=None):
                     visited.add(t)
                 del subpaths[min_next]
             return order
+
     return order
 
 
@@ -193,6 +202,13 @@ class Rule:
     
     def __repr__(self):
         return f"Rule:\nhead: {self.head},\nbody: {self.body},\nconnections: {self.connections}.\n"
+    
+    def copy(self):
+        r = Rule()
+        r.head = self.head
+        r.body = self.body.copy()
+        r.connections = self.connections.copy()
+        return r
     
 
 """help function for Path.rule()

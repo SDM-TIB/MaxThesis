@@ -1,5 +1,6 @@
 import numpy as np
-from RuleMining.Classes import Path, Rule, P_map, IncidenceList, Ontology
+from itertools import combinations
+from RuleMining.Classes import Path, Rule, P_map, IncidenceList, Ontology, dfs
 
 ########################################
 # filling custom datastructures
@@ -157,27 +158,76 @@ def uncov(rules:list[Rule], kg, ex_set:set):
 unbinds a rule body
 """
 def unbind(r:Rule):
-    newvar = 99
+    out = Rule()
+    out.head = r.head
+    target_vars = set()
+    s = r.head[0]
+    o = r.head[2]
+    for c in r.connections:
+        if s in c or o in c:
+            out.connections.add(c)
+            for e in c:
+                target_vars.add(e)
+
     for atom in r.body:
-        #remove if no target vars in atom
-        # TODO
-        #if one var is non target, replace with unique name
-        pass
-    return r
+        if atom[0]  in target_vars or atom[2] in target_vars:
+            out.body.add(atom)
+
+    return out
+
 
 """
 check if a (sub)rule is a valid rule
 """
 def is_valid(r:Rule):
-    len_r = len(r.body)
 
-    # must connect head entities
-    #TODO
 
-    #atoms must be transitively connected
+
+    # if head object isn't connected to anything, rule is invalid
+    head_o_connected = False
+    for c in r.connections:
+        if r.head[2] in c:
+            head_o_connected = True
+            break
+
+    if not head_o_connected:
+        return False
+    
+    con = r.connections.copy()
+    body = r.body.copy()
+    first = True
+
+
+    #########
+    # DEFINITION knot: graph entity with more than one triple --> each connection tuple represents one knot
+    #########
+
+
+    for atom in r.body:
+        # TODO test, there are mistakes
+
+        s_c = next((c for c in con if atom[0] in c), None)
+        
+        o_c = next((c for c in con if atom[2] in c ), None)
+        
+        # atom isn't connected to body
+        if not s_c and not o_c:
+            return False
+        
+        if len(con) > 1:
+            # atom connected to two knots, one is already known to be connected
+            if s_c and o_c:
+                con.remove(s_c)
+                con.remove(o_c)
+
+                con.add(tuple(set(s_c).union(set(o_c))))
+
+
+    if len(con) != 1: 
+    # all connected knots are deleted --> there is am unconnected subgraph
+        return False
 
     return True
-
 
 #TODO help function check type using ontology
 def fits_domain_range():
