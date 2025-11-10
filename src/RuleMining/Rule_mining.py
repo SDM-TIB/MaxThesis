@@ -80,7 +80,7 @@ def mine_rules(transformed_kg:IncidenceList, targets:set, transform_output_dir:s
 
         
         print(f"mining rules for target predicate <{p}>...\n")
-        result.extend(mine_rules_for_target_predicate(g, v, pmap, g, transformed_kg, prefix, type_predicate, o, max_depth))
+        result.extend(mine_rules_for_target_predicate(g, v, pmap, transformed_kg, prefix, type_predicate, o, max_depth))
 
     #TODO add result to csvs
     with open(rules_file, mode='w', newline='', encoding='utf-8') as datei:
@@ -146,7 +146,7 @@ def mine_rules_for_target_predicate(g:set, v:set, p:P_map, transformed_kg:Incide
     print(r2)
     print(is_valid(r2))
 
-
+    print(o)
     exit()
 
     d = {}

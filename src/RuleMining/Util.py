@@ -57,7 +57,7 @@ def checkForRange(e):
 def checkForDomain(e):
     return e.__contains__("domain")
 
-"""help function to parseOntology"""
+"""help function for parseOntology"""
 def extractName(e):
     # e is whole uri
     if e[0] == "<":
@@ -181,8 +181,6 @@ check if a (sub)rule is a valid rule
 """
 def is_valid(r:Rule):
 
-
-
     # if head object isn't connected to anything, rule is invalid
     head_o_connected = False
     for c in r.connections:
@@ -230,20 +228,51 @@ def is_valid(r:Rule):
     return True
 
 #TODO help function check type using ontology
-def fits_domain_range():
-    return
+def fits_domain_range(entity, triple, ontology:Ontology, kg:IncidenceList, type_predicate):
+    check_domain = False
+    check_range = False
+    if entity == triple[0]:
+        check_domain = True
+    if entity == triple[2]:
+        check_range = True
+    if entity not in triple:
+        raise ValueError("Entity not in triple.")
+    
+    t = ontology.classes[triple[1]]
+    domain_range = set()
+    while t in ontology.properties:
+        domain_range.add(t)
+        t = ontology.properties[t[1]]
+
+    if type_predicate in ontology.properties:
+        types = kg.edges[type_predicate]
+        entity_type = next((t for t in types if t[0] == entity), None)    
+    else: 
+        return False
+
+
+    if check_domain:
+        return in_domain(ontology, domain_range, entity_type)
+        
+    if check_range:
+        return in_range(ontology, domain_range, entity_type)
+        
 
 
 
 
+def in_domain():
+    pass
 
+def in_range():
+    pass
 
 ###################################
 # predicate mappings
 ###################################
 
 """
- get a predicates predecessor, for a negative_pred get post-normalization positive predicate, for that, get original predicate
+get a predicates predecessor, for a negative_pred get post-normalization positive predicate, for that, get original predicate
 """
 def original_pred(new_pred:str, predicate_mappings:dict):
     if new_pred in predicate_mappings:
