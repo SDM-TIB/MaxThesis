@@ -21,13 +21,16 @@ def parseOntology(ontology_file:str, ontology:Ontology, prefix:str=""):
         for row in file:
             r = row.split()
             if r:
+                # skip prefix declarations and comments
                 if r[0][0] == "@" or r[0][0] == "#":
                    continue
 
                 for e in r:
                     if e == ".":
+                        # all triples for current subject are finished
                         block_end = True
                     block.append(e)
+
                 if block_end:
                     addOntologyBlock(block, ontology, prefix)
                     block = []
@@ -78,8 +81,11 @@ classify triple and add to ontology"""
 def addOntologyBlock(block:list[str], ontology, prefix):
     s, p, o = block[0:3]
     if checkForType(p):
+    # next item is type of s
+
         if checkForClass(o):
-            foundSC = False
+        # s is a class
+
             ontology.addClass(prefix, s)
             for next_i in range(3, len(block)):
                 if checkForSubClass(block[next_i]):
@@ -91,7 +97,7 @@ def addOntologyBlock(block:list[str], ontology, prefix):
                         if not block[next_i + i][len(block[next_i + i])-1] == ",":
                             break
 
-        if o:
+        elif o:
             d, r = set(), set()
             for next_i in range(3, len(block)-1):
                 if checkForDomain(block[next_i]):
@@ -228,7 +234,7 @@ def is_valid(r:Rule):
     return True
 
 #TODO help function check type using ontology
-def fits_domain_range(entity, triple, ontology:Ontology, kg:IncidenceList, type_predicate):
+def fits_domain_range(entity, triple, ontology:Ontology, kg:IncidenceList, pmap:P_map, type_predicate):
     check_domain = False
     check_range = False
     if entity == triple[0]:
@@ -238,34 +244,60 @@ def fits_domain_range(entity, triple, ontology:Ontology, kg:IncidenceList, type_
     if entity not in triple:
         raise ValueError("Entity not in triple.")
     
-    t = ontology.classes[triple[1]]
-    domain_range = set()
-    while t in ontology.properties:
-        domain_range.add(t)
-        t = ontology.properties[t[1]]
+    type_predicates = set()
+    for k in pmap.predicate_mappings:
+        if pmap.predicate_mappings[k] == type_predicate:
+            type_predicates.add(k)
+    entity_type_predicates = type_predicates.intersection(kg.nodes[entity])
 
-    if type_predicate in ontology.properties:
-        types = kg.edges[type_predicate]
-        entity_type = next((t for t in types if t[0] == entity), None)    
-    else: 
+    print(ontology)
+    print(type_predicates)
+    print(entity_type_predicates)
+    if not entity_type_predicates:
+        # entity is missing type
         return False
+    
+    entity_types = set()
+    for etp in entity_type_predicates:
+        if etp in kg.edges:
+            for e in kg.edges[etp]:
+                if e[0] == entity:
+                    entity_types.add(e[1])
 
 
-    if check_domain:
-        return in_domain(ontology, domain_range, entity_type)
+
+    print(entity_types)
+
+
+    domain_range = ontology.properties[triple[1]]
+
+
+    types = set()
+    if check_domain:  
+        types.update(domain_range[0])
+
         
     if check_range:
-        return in_range(ontology, domain_range, entity_type)
+        types.update(domain_range[1])
         
+    print(types)
 
 
+    # derive and add supertypes of entity
+    all_entity_types = set()
+    while entity_types:
+        t = entity_types.pop()
+        all_entity_types.add(t)
+        if t in ontology.classes:
+            print(ontology.classes[t])
+            entity_types.update(ontology.classes[t])
+        
+    print(all_entity_types)
+    if types.intersection(all_entity_types):
+        return True
+    return False
 
 
-def in_domain():
-    pass
-
-def in_range():
-    pass
 
 ###################################
 # predicate mappings

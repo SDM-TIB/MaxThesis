@@ -8,7 +8,7 @@ from RuleMining.Classes import Path, Rule, P_map, IncidenceList, Ontology
 
 
 
-def mine_rules(transformed_kg:IncidenceList, targets:set, transform_output_dir:str, o:Ontology, rules_file:str, prefix:str, max_depth:int=3, set_size:int=100, 
+def mine_rules(transformed_kg:IncidenceList, targets:set, transform_output_dir:str, ontology:Ontology, rules_file:str, prefix:str, max_depth:int=3, set_size:int=100, 
                alpha:float=0.5, type_predicate:str='http://www.w3.org/1999/02/22-rdf-syntax-ns#type'):
     """
     Mines rules for all original predicates of a normalized knowledge graph.
@@ -80,7 +80,7 @@ def mine_rules(transformed_kg:IncidenceList, targets:set, transform_output_dir:s
 
         
         print(f"mining rules for target predicate <{p}>...\n")
-        result.extend(mine_rules_for_target_predicate(g, v, pmap, transformed_kg, prefix, type_predicate, o, max_depth))
+        result.extend(mine_rules_for_target_predicate(g, v, pmap, transformed_kg, prefix, type_predicate, ontology, max_depth))
 
     #TODO add result to csvs
     with open(rules_file, mode='w', newline='', encoding='utf-8') as datei:
@@ -89,7 +89,7 @@ def mine_rules(transformed_kg:IncidenceList, targets:set, transform_output_dir:s
 
     return
 
-def mine_rules_for_target_predicate(g:set, v:set, p:P_map, transformed_kg:IncidenceList, prefix:str, type_predicate:str, o:Ontology,  max_depth:int=3, alpha:float=0.5, beta:float=0.5):
+def mine_rules_for_target_predicate(g:set, v:set, pmap:P_map, transformed_kg:IncidenceList, prefix:str, type_predicate:str, ontology:Ontology,  max_depth:int=3, alpha:float=0.5, beta:float=0.5):
     
     """
     Args:
@@ -116,23 +116,23 @@ def mine_rules_for_target_predicate(g:set, v:set, p:P_map, transformed_kg:Incide
     r = Rule(head=("a","p1" "b"), body={("d", "e", "f")}, connections={("a", "d"), ("b", "f")})    
 
     p1 = Path()
-    p1.head = ("Shape of my Heart","isGenre","Pop")
-    p1.graph.add("Dire Straits","hasAlbum", "Communique")
-    p1.graph.add("Lady Writer", "includedIn", "Communique")
-    p1.graph.add("Sting", "collaboratedWith", "Dire Straits")
-    p1.graph.add("Sting","hasAlbum","Fields of Gold(Album)")
-    p1.graph.add("Shape of my Heart","includedIn","Fields of Gold(Album)")
-    p1.graph.add("Shape of my Heart","isGenre","Pop")
-    p1.graph.add("Shape of my Heart","writer","Sting")
+    p1.head = ("Shape_of_my_Heart","isGenre","Pop")
+    p1.graph.add("Dire_Straits","hasAlbum", "Communique")
+    p1.graph.add("Lady_Writer", "includedIn", "Communique")
+    p1.graph.add("Sting", "collaboratedWith", "Dire_Straits")
+    p1.graph.add("Sting","hasAlbum","Fields_of_Gold(Album)")
+    p1.graph.add("Shape_of_my_Heart","includedIn","Fields_of_Gold(Album)")
+    p1.graph.add("Shape_of_my_Heart","isGenre","Pop")
+    p1.graph.add("Shape_of_my_Heart","writer","Sting")
 
     p2 = Path()
-    p2.head = ("I Shot the Sheriff","isGenre","Rock")
-    p2.graph.add("Here Comes the Sun","includedIn","Abbey Road")
-    p2.graph.add("I Shot the Sheriff","includedIn","461 Ocean Blvd.")
-    p2.graph.add("Eric Clapton","collaboratedWith","The Beatles")
-    p2.graph.add("I Shot the Sheriff","isGenre","Rock")
-    p2.graph.add("The Beatles","hasAlbum","Abbey Road")
-    p2.graph.add("Eric Clapton","hasAlbum","461 Ocean Blvd.")
+    p2.head = ("I_Shot_the_Sheriff","isGenre","Rock")
+    p2.graph.add("Here_Comes_the_Sun","includedIn","Abbey_Road")
+    p2.graph.add("I_Shot_the_Sheriff","includedIn","461_Ocean_Blvd.")
+    p2.graph.add("Eric_Clapton","collaboratedWith","The_Beatles")
+    p2.graph.add("I_Shot_the_Sheriff","isGenre","Rock")
+    p2.graph.add("The_Beatles","hasAlbum","Abbey_Road")
+    p2.graph.add("Eric_Clapton","hasAlbum","461_Ocean_Blvd.")
 
     print(p1)
     print(p2)
@@ -146,7 +146,7 @@ def mine_rules_for_target_predicate(g:set, v:set, p:P_map, transformed_kg:Incide
     print(r2)
     print(is_valid(r2))
 
-    print(o)
+    print(fits_domain_range("Abbey_Road", ("Abbey_Road","hasAlbum","461_Ocean_Blvd."), ontology, kg, pmap, type_predicate))
     exit()
 
     d = {}
