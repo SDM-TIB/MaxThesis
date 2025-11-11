@@ -77,10 +77,6 @@ class Path:
 
         triple_order = dfs(self.graph.nodes, self.graph.edges, head[0], head)     
 
-        # POSSIBLE ADAPTATION
-        # if head can be in middle of body (not everything reachable from head subject)
-        # do dfs from head object and the append to triple order the missing triples according to the resulting order from dfs(head[2]).
-
 
         if len(triple_order) < sum(len(self.graph.edges[p]) for p in self.graph.edges):
             print(f" {triple_order} \n{len(triple_order)}\n {self.graph.edges}\n {sum(len(self.graph.edges[p]) for p in self.graph.edges)} \n")
@@ -242,23 +238,56 @@ def rename_triple(triple, head, name_dict, p_count, rule:Rule):
     if is_head:
         head = (s_var, head[1], o_var)
         rule.head = head
-    rule.body.add((s_var,p,o_var))
+    else:
+        rule.body.add((s_var,p,o_var))
     return p_count, head
 
 
 """represents information from an ontology.
    namely the class hierarchy and domain and range for properties."""
 class Ontology:
-    def __init__(self, classes=None, properties=None):
+    def __init__(self, classes=None, object_properties=None, datatype_properties=None):
         if classes == None:
             classes = dict()
-        if properties == None:
-            properties = dict()
+        if object_properties == None:
+            object_properties = dict()
+        if datatype_properties == None:
+            datatype_properties = dict()
         self.classes = classes
-        self.properties = properties
+        self.object_properties = object_properties
+        self.datatype_properties = datatype_properties
+
+        # hierarchy from https://www.w3.org/TR/xmlschema11-2/type-hierarchy-201104.longdesc.html
+        self.literal_hierarchy =  {
+            "anyType": {"anySimpleType"},
+            "anySimpleType": {"anyAtomicType", "ENTITIES", "IDREFS", "NMTOKENS"},
+            "anyAtomicType": {
+                "anyURI", "base64Binary", "boolean", "date", "dateTime", "decimal",
+                "double", "duration", "float", "gDay", "gMonth", "gMonthDay",
+                "gYear", "gYearMonth", "hexBinary", "NOTATION", "QName", "string",
+                "time"
+            },
+            "dateTime": {"dateTimeStamp"},
+            "decimal": {"integer"},
+            "integer": {"long", "nonNegativeInteger", "nonPositiveInteger"},
+            "long": {"int"},
+            "int": {"short"},
+            "short": {"byte"},
+            "nonNegativeInteger": {"positiveInteger", "unsignedLong"},
+            "unsignedLong": {"unsignedInt"},
+            "unsignedInt": {"unsignedShort"},
+            "unsignedShort": {"unsignedByte"},
+            "nonPositiveInteger": {"negativeInteger"},
+            "duration": {"dayTimeDuration", "yearMonthDuration"},
+            "string": {"normalizedString"},
+            "normalizedString": {"token"},
+            "token": {"language", "Name", "NMTOKEN"},
+            "Name": {"NCName"},
+            "NCName": {"ENTITY", "ID", "IDREF"}
+        }
 
     def __repr__(self):
-        return f"Ontology:\nclasses: {self.classes},\nproperties: {self.properties}.\n"
+        return f"Ontology:\nclasses: {self.classes},\nObject Properties: {self.object_properties}\nDatatype Properties: {self.datatype_properties} .\n"
 
     def addClass(self, prefix, c:str, super:str=""):
             classname = removePrefix(c, prefix)
@@ -270,12 +299,19 @@ class Ontology:
             else:
                 self.classes[classname].add(super) 
 
-    def addProperty(self, prefix, p, d=None, r=None):
+    def addObjectProperty(self, prefix, p, d=None, r=None):
         if d == None:
             d = set()
         if r == None:
             r = set()
-        self.properties[removePrefix(p, prefix)] = (d, r)
+        self.object_properties[removePrefix(p, prefix)] = (d, r)
+
+    def addDatatypeProperty(self, prefix, p, d=None, r=None):
+        if d == None:
+            d = set()
+        if r == None:
+            r = set()
+        self.datatype_properties[removePrefix(p, prefix)] = (d, r)
  
 """class that holds all information on predicate mappings for a kg and specific target"""
 class P_map:

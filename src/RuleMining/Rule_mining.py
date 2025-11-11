@@ -145,8 +145,8 @@ def mine_rules_for_target_predicate(g:set, v:set, pmap:P_map, transformed_kg:Inc
     print(r1._Rule__key() == r2._Rule__key())
     print(r2)
     print(is_valid(r2))
-
-    print(fits_domain_range("Abbey_Road", ("Abbey_Road","hasAlbum","461_Ocean_Blvd."), ontology, kg, pmap, type_predicate))
+    print(ontology)
+    print(fits_domain_range("\"1969\"", ("Abbey_Road","releaseYear","\"1969\""), ontology, kg, pmap, type_predicate))
     exit()
 
     d = {}

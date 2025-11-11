@@ -53,6 +53,14 @@ def checkForProperty(e):
     return e.__contains__("Property")
 
 """help function for parseOntology"""
+def checkForObjectProperty(e):
+    return e.__contains__("ObjectProperty")
+
+"""help function for parseOntology"""
+def checkForDatatypeProperty(e):
+    return e.__contains__("DatatypeProperty")
+
+"""help function for parseOntology"""
 def checkForRange(e):
     return e.__contains__("range")
 
@@ -97,7 +105,7 @@ def addOntologyBlock(block:list[str], ontology, prefix):
                         if not block[next_i + i][len(block[next_i + i])-1] == ",":
                             break
 
-        elif o:
+        if checkForProperty(o):
             d, r = set(), set()
             for next_i in range(3, len(block)-1):
                 if checkForDomain(block[next_i]):
@@ -116,8 +124,10 @@ def addOntologyBlock(block:list[str], ontology, prefix):
                         i += 1
                         if not block[next_i + i][len(block[next_i + i])-1] == ",":
                             break
-            ontology.addProperty(prefix, s, {extractName(e) for e in d}, {extractName(e) for e in r})
-
+            if checkForObjectProperty(o):
+                ontology.addObjectProperty(prefix, s, {extractName(e) for e in d}, {extractName(e) for e in r})
+            if checkForDatatypeProperty(o):
+                ontology.addDatatypeProperty(prefix, s, {extractName(e) for e in d}, {extractName(e) for e in r})
 
 """remove prefix from triple"""
 def tripleRemovePrefix(triple:tuple[str], prefix:str):        
@@ -233,69 +243,155 @@ def is_valid(r:Rule):
 
     return True
 
-#TODO help function check type using ontology
+# checks if an entity is allowed in a certain triple using ontology 
 def fits_domain_range(entity, triple, ontology:Ontology, kg:IncidenceList, pmap:P_map, type_predicate):
     check_domain = False
     check_range = False
+    literal = False
+    if isLiteral(entity):
+        literal = True
     if entity == triple[0]:
+        if literal:
+            # subject cannot be literal
+            print("256")
+            return False
         check_domain = True
     if entity == triple[2]:
         check_range = True
     if entity not in triple:
         raise ValueError("Entity not in triple.")
     
-    type_predicates = set()
-    for k in pmap.predicate_mappings:
-        if pmap.predicate_mappings[k] == type_predicate:
-            type_predicates.add(k)
-    entity_type_predicates = type_predicates.intersection(kg.nodes[entity])
 
-    print(ontology)
-    print(type_predicates)
-    print(entity_type_predicates)
-    if not entity_type_predicates:
-        # entity is missing type
+
+
+
+
+
+
+    if literal:
+        literal_type = literalType(entity)
+        if triple[1] in ontology.datatype_properties:
+            types_r = ontology.datatype_properties[triple[1]][1]
+        else:
+            print("275")
+            return False
+        print(types_r)
+        print(literal_type)
+        for t in types_r:
+            print(t)
+            if derivable(literal_type, t, ontology.literal_hierarchy):
+                return True
+        print("281")    
         return False
+
+
+    else:
+
+            # get type predicate(s) the entity has    
+        type_predicates = set()
+        for k in pmap.predicate_mappings:
+            if pmap.predicate_mappings[k] == type_predicate:
+                type_predicates.add(k)
+        if entity in kg.nodes:
+            entity_type_predicates = type_predicates.intersection(kg.nodes[entity])
+        else:
+            raise ValueError("Entity is not in knowledge graph.")
+
+
+
+        # get domain and/or range
+        if triple[1] in ontology.object_properties:
+            domain_range = ontology.object_properties[triple[1]]
+        elif triple[1] in ontology.datatype_properties and check_domain and not check_range:
+            domain_range = ontology.datatype_properties[triple[1]]
+        else:
+            print("304")
+            return False
+        if check_domain: 
+            types_d = set()
+            types_d.update(domain_range[0])
+
+        if check_range:
+            types_r = set()
+            types_r.update(domain_range[1])
     
-    entity_types = set()
-    for etp in entity_type_predicates:
-        if etp in kg.edges:
-            for e in kg.edges[etp]:
-                if e[0] == entity:
-                    entity_types.add(e[1])
-
-
-
-    print(entity_types)
-
-
-    domain_range = ontology.properties[triple[1]]
-
-
-    types = set()
-    if check_domain:  
-        types.update(domain_range[0])
-
+        if not entity_type_predicates:
+            # entity is missing type
+            print("316")
+            return False
         
-    if check_range:
-        types.update(domain_range[1])
-        
-    print(types)
+        # get entity's types
+        entity_types = set()
+        for etp in entity_type_predicates:
+            if etp in kg.edges:
+                for e in kg.edges[etp]:
+                    if e[0] == entity:
+                        entity_types.add(e[1])
 
 
-    # derive and add supertypes of entity
-    all_entity_types = set()
-    while entity_types:
-        t = entity_types.pop()
-        all_entity_types.add(t)
-        if t in ontology.classes:
-            print(ontology.classes[t])
-            entity_types.update(ontology.classes[t])
-        
-    print(all_entity_types)
-    if types.intersection(all_entity_types):
+
+        # derive and add supertypes of entity
+        all_entity_types = set()
+        while entity_types:
+            t = entity_types.pop()
+            all_entity_types.add(t)
+            if t in ontology.classes:
+                entity_types.update(ontology.classes[t])
+
+        if check_domain:
+            if not types_d.intersection(all_entity_types):
+                print("340")
+                return False
+        if check_range:
+            if not types_r.intersection(all_entity_types):
+                print("344")
+                return False
         return True
-    return False
+
+        
+
+"""help function for fits_domain_range()"""
+def literalType(l:str):
+    temp = l.split("\"")[2]
+    if temp:
+        if temp.__contains__("<"):
+            # with uri
+            split = temp.split("/")
+            return split[len(split)-1]
+        else:
+            if temp.__contains__(":"):
+                # with prefix abbreviation
+                return temp.split(":")[1]
+    
+    # no xsd type given
+    return "anyType"
+
+   
+"""help function for fits_domain_range()"""
+def isLiteral(e:str):
+    # TODO make this check better
+    return e.__contains__("\"")
+        
+"""help function for fits_domain_range()
+checks if literal_type can be derived from from t according to the Type hierachy provided."""
+def derivable(literal_type, t, hierarchy):
+    print(f"call derivable with {literal_type}, {t}")
+    if literal_type == t:
+        return True
+    out = False
+
+    if t in hierarchy:
+        print(f"hier t {hierarchy[t]}")
+        for st in hierarchy[t]:
+            print(st)
+            out = out or derivable(literal_type, st, hierarchy)
+            if out:
+                break
+
+    print(f"CLOSE derivable with {literal_type}, {t}")
+
+    return out
+
 
 
 
