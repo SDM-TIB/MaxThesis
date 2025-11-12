@@ -253,7 +253,6 @@ def fits_domain_range(entity, triple, ontology:Ontology, kg:IncidenceList, pmap:
     if entity == triple[0]:
         if literal:
             # subject cannot be literal
-            print("256")
             return False
         check_domain = True
     if entity == triple[2]:
@@ -273,21 +272,16 @@ def fits_domain_range(entity, triple, ontology:Ontology, kg:IncidenceList, pmap:
         if triple[1] in ontology.datatype_properties:
             types_r = ontology.datatype_properties[triple[1]][1]
         else:
-            print("275")
             return False
-        print(types_r)
-        print(literal_type)
         for t in types_r:
-            print(t)
             if derivable(literal_type, t, ontology.literal_hierarchy):
                 return True
-        print("281")    
         return False
 
 
     else:
 
-            # get type predicate(s) the entity has    
+        # get type predicate(s) the entity has    
         type_predicates = set()
         for k in pmap.predicate_mappings:
             if pmap.predicate_mappings[k] == type_predicate:
@@ -305,7 +299,6 @@ def fits_domain_range(entity, triple, ontology:Ontology, kg:IncidenceList, pmap:
         elif triple[1] in ontology.datatype_properties and check_domain and not check_range:
             domain_range = ontology.datatype_properties[triple[1]]
         else:
-            print("304")
             return False
         if check_domain: 
             types_d = set()
@@ -317,7 +310,6 @@ def fits_domain_range(entity, triple, ontology:Ontology, kg:IncidenceList, pmap:
     
         if not entity_type_predicates:
             # entity is missing type
-            print("316")
             return False
         
         # get entity's types
@@ -340,11 +332,9 @@ def fits_domain_range(entity, triple, ontology:Ontology, kg:IncidenceList, pmap:
 
         if check_domain:
             if not types_d.intersection(all_entity_types):
-                print("340")
                 return False
         if check_range:
             if not types_r.intersection(all_entity_types):
-                print("344")
                 return False
         return True
 
@@ -433,6 +423,9 @@ def getExamples(kg:IncidenceList, preds:set, count:int):
     eligible_preds = preds.copy()
     diff = count - len(out)
 
+
+    # go through all predicates, get mean examples per predicate if possible
+    # repeat with all predicates that still have unused instances left until count is met
     while len(out) < count and eligible_preds:
         max_i = int(diff/len(eligible_preds) + 1)  
 
@@ -440,9 +433,10 @@ def getExamples(kg:IncidenceList, preds:set, count:int):
         for p in eligible_preds_copy:
             l = len(kg.edges[p])
             if l <= (max_i + 1):
+                # if all instances of predicate will be used, remove
                 eligible_preds.remove(p)
             
-            # add even share of elements per predicate
+            # add even share of elements per predicate, if possible
             i = 0
             for n in kg.edges[p]:
                 out.add(n)
@@ -457,22 +451,41 @@ def getExamples(kg:IncidenceList, preds:set, count:int):
     return out
 
 """get negative examples for given predicates that satisfy the local closed world assumption, limited by count"""
-def getExamplesLCWA(kg:IncidenceList, preds:set, count:int):
+def getExamplesLCWA(kg:IncidenceList, ontology:Ontology, pmap:P_map, count:int):
+
+    preds = pmap.predicates
     out = set()
     eligible_preds = preds.copy()
+
     diff = count - len(out)
 
+
+    original = original_pred(next(iter(preds)), pmap)
+
+        # get domain and/or range
+    if original in ontology.object_properties:
+        d = ontology.object_properties[original][0]
+        r = ontology.object_properties[original][0]
+    elif original in ontology.datatype_properties:
+        d = ontology.datatype_properties[original][0]
+        r = ontology.datatype_properties[original][0]
+
     while len(out) < count and eligible_preds:
-        max_i = int(diff/len(eligible_preds) + 1)  
+        max_i = int(diff / 2 * len(eligible_preds) + 1) 
 
         eligible_preds_copy = eligible_preds.copy()
         for p in eligible_preds_copy:
+            l = len(kg.edges[p])
+            if l <= (max_i):
+                # if all instances of predicate will be used, remove
+                eligible_preds.remove(p)
 
-            
             i = 0
             for n in kg.edges[p]:
 
                 # TODO find object in neighbourhood that fits domain but doesnt have the relation with subject
+                # n = (s, o) find s' and o' s.t. not exists p(s, o') and p(s', o)
+
 
                 i += 1
                 if i > max_i:
