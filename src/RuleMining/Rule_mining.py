@@ -69,7 +69,8 @@ def mine_rules(transformed_kg:IncidenceList, targets:set, transform_output_dir:s
         if len_v < set_size:
             warnings.warn(f"{len_v} examples found from constraint violations, selecting remaining {set_size - len_v} examples from graph.\n", UserWarning)
             # TODO incorporate LCWA --> negative examples must have the target predicate with other entities   
-            v.extend(getExamplesLCWA(transformed_kg, ontology, pmap, set_size - len_v))
+            v.update(getExamplesLCWA(transformed_kg, ontology, pmap, set_size - len_v, type_predicate))
+
             # TODO if not enough add more random v-entries, maybe: allow custom input 
 
 
@@ -146,7 +147,7 @@ def mine_rules_for_target_predicate(g:set, v:set, pmap:P_map, transformed_kg:Inc
     print(r2)
     print(is_valid(r2))
     print(ontology)
-    print(fits_domain_range("\"1969\"", ("Abbey_Road","releaseYear","\"1969\""), ontology, kg, pmap, type_predicate))
+    print(fits_domain_range("\"1969\"", ("Abbey_Road","releaseYear_1969","\"1969\""), ontology, kg, pmap, type_predicate))
     exit()
 
     d = {}

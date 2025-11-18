@@ -41,24 +41,23 @@ def checkForType(e):
     return e.__contains__("type")
 
 """help function for parseOntology"""
-def checkForClass(e):
-    return e.__contains__("Class")
+def checkForClass(types):
+    for t in types:
+        if t.__contains__("Class"):
+            return True
+    return False
 
 """help function for parseOntology"""
 def checkForSubClass(e):
     return e.__contains__("subClassOf")
 
 """help function for parseOntology"""
-def checkForProperty(e):
-    return e.__contains__("Property")
+def checkForProperty(types):
+    for t in types:
+        if t.__contains__("Property"):
+            return True
+    return False
 
-"""help function for parseOntology"""
-def checkForObjectProperty(e):
-    return e.__contains__("ObjectProperty")
-
-"""help function for parseOntology"""
-def checkForDatatypeProperty(e):
-    return e.__contains__("DatatypeProperty")
 
 """help function for parseOntology"""
 def checkForRange(e):
@@ -86,16 +85,25 @@ def extractName(e):
 
 """help function for parseOntology;
 classify triple and add to ontology"""
-def addOntologyBlock(block:list[str], ontology, prefix):
+def addOntologyBlock(block:list[str], ontology:Ontology, prefix):
     s, p, o = block[0:3]
     if checkForType(p):
     # next item is type of s
 
-        if checkForClass(o):
+        types = set()
+        types.add(o)
+        for next_i in range(3, len(block)):
+            if block[next_i] == ";":
+                break
+            if block[next_i] == ",":
+                continue
+            types.add(block[next_i])
+
+        if checkForClass(types):
         # s is a class
 
             ontology.addClass(prefix, s)
-            for next_i in range(3, len(block)):
+            for next_i in range(3 + len(types), len(block)):
                 if checkForSubClass(block[next_i]):
                     i = 1
                     # add all objects given for subClassOf
@@ -105,9 +113,9 @@ def addOntologyBlock(block:list[str], ontology, prefix):
                         if not block[next_i + i][len(block[next_i + i])-1] == ",":
                             break
 
-        if checkForProperty(o):
+        if checkForProperty(types):
             d, r = set(), set()
-            for next_i in range(3, len(block)-1):
+            for next_i in range(3 + len(types), len(block)-1):
                 if checkForDomain(block[next_i]):
                     i = 1
                     # add all objects given for domain
@@ -118,16 +126,15 @@ def addOntologyBlock(block:list[str], ontology, prefix):
                             break
                 if checkForRange(block[next_i]):
                     i = 1
-                    # add all objects given for domain
+                    # add all objects given for range
                     while True:
                         r.add(block[next_i + i])
                         i += 1
                         if not block[next_i + i][len(block[next_i + i])-1] == ",":
                             break
-            if checkForObjectProperty(o):
-                ontology.addObjectProperty(prefix, s, {extractName(e) for e in d}, {extractName(e) for e in r})
-            if checkForDatatypeProperty(o):
-                ontology.addDatatypeProperty(prefix, s, {extractName(e) for e in d}, {extractName(e) for e in r})
+
+            
+            ontology.addProperty(prefix, s, {extractName(e) for e in d}, {extractName(e) for e in r})
 
 """remove prefix from triple"""
 def tripleRemovePrefix(triple:tuple[str], prefix:str):        
@@ -167,6 +174,7 @@ unbounded coverage of rules over set
 """
 def uncov(rules:list[Rule], kg, ex_set:set):
     rules = {unbind(r) for r in rules}
+    # TODO 
     return cov(kg, ex_set, rules)
 
 
@@ -260,19 +268,20 @@ def fits_domain_range(entity, triple, ontology:Ontology, kg:IncidenceList, pmap:
     if entity not in triple:
         raise ValueError("Entity not in triple.")
     
+    original = original_pred(triple[1], pmap)
 
-
-
-
-
-
+    if triple[1] in ontology.properties:
+        domain_range = ontology.properties[triple[1]]
+    elif original in ontology.properties:
+        domain_range = ontology.properties[original]
+    else:
+        return False
+        
 
     if literal:
+        types_r = domain_range[1]
         literal_type = literalType(entity)
-        if triple[1] in ontology.datatype_properties:
-            types_r = ontology.datatype_properties[triple[1]][1]
-        else:
-            return False
+
         for t in types_r:
             if derivable(literal_type, t, ontology.literal_hierarchy):
                 return True
@@ -281,7 +290,7 @@ def fits_domain_range(entity, triple, ontology:Ontology, kg:IncidenceList, pmap:
 
     else:
 
-        # get type predicate(s) the entity has    
+        # get type predicate(s) the entity has 
         type_predicates = set()
         for k in pmap.predicate_mappings:
             if pmap.predicate_mappings[k] == type_predicate:
@@ -291,15 +300,6 @@ def fits_domain_range(entity, triple, ontology:Ontology, kg:IncidenceList, pmap:
         else:
             raise ValueError("Entity is not in knowledge graph.")
 
-
-
-        # get domain and/or range
-        if triple[1] in ontology.object_properties:
-            domain_range = ontology.object_properties[triple[1]]
-        elif triple[1] in ontology.datatype_properties and check_domain and not check_range:
-            domain_range = ontology.datatype_properties[triple[1]]
-        else:
-            return False
         if check_domain: 
             types_d = set()
             types_d.update(domain_range[0])
@@ -392,25 +392,33 @@ def derivable(literal_type, t, hierarchy):
 """
 get a predicates predecessor, for a negative_pred get post-normalization positive predicate, for that, get original predicate
 """
-def original_pred(new_pred:str, predicate_mappings:dict):
-    if new_pred in predicate_mappings:
-        return predicate_mappings[new_pred]
+def original_pred(new_pred:str, pmap:P_map):
+    if new_pred in pmap.predicate_mappings:
+        return pmap.predicate_mappings[new_pred]
+    if new_pred in pmap.neg_predicate_mappings:
+        return pmap.predicate_mappings[pmap.neg_predicate_mappings[new_pred]]
     return ""
 
 
 """
 get post normalization predicates from their pre-normalization predecessor
 """
-def new_preds(original_pred:str, predicate_mappings:dict):
-    return {k for k, v in predicate_mappings.items() if v == original_pred}
+def new_preds(original_pred:str, pmap):
+    if type(pmap) == P_map:
+        return {k for k, v in pmap.predicate_mappings.items() if v == original_pred}
+    # pmap is predicate mappings dict
+    return {k for k, v in pmap.items() if v == original_pred}
+
 
 
 """
 get existing negative variants of post-normalization predicates
 """
-def neg_preds(new_preds:dict, neg_predicate_mappings:dict):
-    return {k for k, v in neg_predicate_mappings.items() if v in new_preds}
-
+def neg_preds(new_preds:dict, pmap):
+    if type(pmap) == P_map:
+        return {k for k, v in pmap.neg_predicate_mappings.items() if v in new_preds}
+    # pmap is predicate mappings dict
+    return {k for k, v in pmap.items() if v in new_preds}
 
 
 #########################################
@@ -451,24 +459,17 @@ def getExamples(kg:IncidenceList, preds:set, count:int):
     return out
 
 """get negative examples for given predicates that satisfy the local closed world assumption, limited by count"""
-def getExamplesLCWA(kg:IncidenceList, ontology:Ontology, pmap:P_map, count:int):
-
+def getExamplesLCWA(kg:IncidenceList, ontology:Ontology, pmap:P_map, count:int, type_predicate:str):
     preds = pmap.predicates
     out = set()
     eligible_preds = preds.copy()
+    eligible_edges = set()
+    for p in preds:
+        eligible_edges.update(kg.edges[p])
+
+    pri = True
 
     diff = count - len(out)
-
-
-    original = original_pred(next(iter(preds)), pmap)
-
-        # get domain and/or range
-    if original in ontology.object_properties:
-        d = ontology.object_properties[original][0]
-        r = ontology.object_properties[original][0]
-    elif original in ontology.datatype_properties:
-        d = ontology.datatype_properties[original][0]
-        r = ontology.datatype_properties[original][0]
 
     while len(out) < count and eligible_preds:
         max_i = int(diff / 2 * len(eligible_preds) + 1) 
@@ -481,11 +482,22 @@ def getExamplesLCWA(kg:IncidenceList, ontology:Ontology, pmap:P_map, count:int):
                 eligible_preds.remove(p)
 
             i = 0
-            for n in kg.edges[p]:
-
+            for e in eligible_edges:
+                # print(f"hello{e}\n")
                 # TODO find object in neighbourhood that fits domain but doesnt have the relation with subject
                 # n = (s, o) find s' and o' s.t. not exists p(s, o') and p(s', o)
+                s = e[0]
+                o = e[1]
+                for f in eligible_edges:
+                
+                    if (s, f[1]) not in eligible_edges and (s, f[1]) not in out and fits_domain_range(f[1], (s,p,f[1]), ontology, kg, pmap, type_predicate):
+                        out.add((s, f[1]))
+                        break
 
+                for f in eligible_edges:
+                    if (f[0], o) not in eligible_edges and (f[0], o) not in out and fits_domain_range(f[0], (f[0],p,s), ontology, kg, pmap, type_predicate):
+                        out.add((f[0], o))
+                        break
 
                 i += 1
                 if i > max_i:
@@ -495,5 +507,6 @@ def getExamplesLCWA(kg:IncidenceList, ontology:Ontology, pmap:P_map, count:int):
 
     for _ in range(-diff):
         out.pop()
+    print(f"out {out}")
     return out
 

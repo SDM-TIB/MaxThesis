@@ -246,16 +246,14 @@ def rename_triple(triple, head, name_dict, p_count, rule:Rule):
 """represents information from an ontology.
    namely the class hierarchy and domain and range for properties."""
 class Ontology:
-    def __init__(self, classes=None, object_properties=None, datatype_properties=None):
+    def __init__(self, classes=None, properties=None):
         if classes == None:
             classes = dict()
-        if object_properties == None:
-            object_properties = dict()
-        if datatype_properties == None:
-            datatype_properties = dict()
+        if properties == None:
+            properties = dict()
+
         self.classes = classes
-        self.object_properties = object_properties
-        self.datatype_properties = datatype_properties
+        self.properties = properties
 
         # hierarchy from https://www.w3.org/TR/xmlschema11-2/type-hierarchy-201104.longdesc.html
         self.literal_hierarchy =  {
@@ -287,7 +285,7 @@ class Ontology:
         }
 
     def __repr__(self):
-        return f"Ontology:\nclasses: {self.classes},\nObject Properties: {self.object_properties}\nDatatype Properties: {self.datatype_properties} .\n"
+        return f"Ontology:\nclasses: {self.classes},\nProperties: {self.properties}.\n"
 
     def addClass(self, prefix, c:str, super:str=""):
             classname = removePrefix(c, prefix)
@@ -299,20 +297,14 @@ class Ontology:
             else:
                 self.classes[classname].add(super) 
 
-    def addObjectProperty(self, prefix, p, d=None, r=None):
+    def addProperty(self, prefix, p, d=None, r=None):
         if d == None:
             d = set()
         if r == None:
             r = set()
-        self.object_properties[removePrefix(p, prefix)] = (d, r)
+        self.properties[removePrefix(p, prefix)] = (d, r)
 
-    def addDatatypeProperty(self, prefix, p, d=None, r=None):
-        if d == None:
-            d = set()
-        if r == None:
-            r = set()
-        self.datatype_properties[removePrefix(p, prefix)] = (d, r)
- 
+
 """class that holds all information on predicate mappings for a kg and specific target"""
 class P_map:
     def __init__(self, target, predicates, neg_predicates, predicate_mappings, neg_predicate_mappings):
