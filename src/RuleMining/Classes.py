@@ -54,6 +54,52 @@ class IncidenceList:
 
     def triples(self):
         return {(pair[0], p, pair[1])  for p in self.edges for pair in self.edges[p]}
+"""class that holds all information on predicate mappings for a kg and specific target"""
+
+
+class P_map:
+    def __init__(self, target, predicates, neg_predicates, predicate_mappings, neg_predicate_mappings):
+        self.target = target
+        self.predicates = predicates
+        self.neg_predicates = neg_predicates
+        self.predicate_mappings = predicate_mappings
+        self.neg_predicate_mappings = neg_predicate_mappings
+
+    def __repr__(self) -> str:
+        return f"{type(self).__name__}(target={self.target}, predicates={self.predicates}, neg_predicates={self.neg_predicates}, predicate_mappings={self.predicate_mappings}, neg_predicate_mappings={self.neg_predicate_mappings})"
+
+    def addPrefix(self, prefix):
+        self.target = addPrefix(self.target, prefix)
+        s = set()
+        for p in self.predicates:
+            s.add(addPrefix(p, prefix))
+        self.predicates = s
+        s = set()
+        for p in self.neg_predicates:
+            s.add(addPrefix(p, prefix))
+        self.neg_predicates = s
+
+        for p in self.predicate_mappings:
+            pass # TODO
+        for p in self.neg_predicate_mappings:
+            pass # TODO
+    
+    def removePrefix(self, prefix):
+        self.target = removePrefix(self.target, prefix)
+        s = set()
+        for p in self.predicates:
+            s.add(removePrefix(p, prefix))
+        self.predicates = s
+        s = set()
+        for p in self.neg_predicates:
+            s.add(removePrefix(p, prefix))
+        self.neg_predicates = s
+            
+        for p in self.predicate_mappings:
+            pass
+        for p in self.neg_predicate_mappings:
+            pass # TODO
+
 
 """ represents a path in the graph"""
 class Path:
@@ -68,7 +114,7 @@ class Path:
     
 
     """returns a rule object corresponding to the paths' structure."""
-    def rule(self): 
+    def rule(self, pmap:P_map): 
         name_dict = {}
         p_count = 0
         rule = Rule()
@@ -84,7 +130,7 @@ class Path:
         
         p_count = 0
         for t in triple_order:
-            p_count, head = rename_triple(t, head, name_dict, p_count, rule)
+            p_count, head = rename_triple(t, head, name_dict, p_count, rule, pmap)
 
         rule.connections = {tuple(name_dict[key]) for key in name_dict if len(name_dict[key]) > 1}    
 
@@ -209,7 +255,7 @@ class Rule:
 
 """help function for Path.rule()
 renames triple subject and object with unique variables and adds them to name dict."""
-def rename_triple(triple, head, name_dict, p_count, rule:Rule):
+def rename_triple(triple, head, name_dict, p_count, rule:Rule, pmap:P_map):
 
     # increments p counter and generates a unique variable 
     def generate_var(p_count):
@@ -234,7 +280,7 @@ def rename_triple(triple, head, name_dict, p_count, rule:Rule):
     add_to_set_dict(name_dict, s, s_var)
     add_to_set_dict(name_dict, o, o_var)
     
-
+    # TODO generalize head 1 and p
     if is_head:
         head = (s_var, head[1], o_var)
         rule.head = head
@@ -304,50 +350,6 @@ class Ontology:
             r = set()
         self.properties[removePrefix(p, prefix)] = (d, r)
 
-
-"""class that holds all information on predicate mappings for a kg and specific target"""
-class P_map:
-    def __init__(self, target, predicates, neg_predicates, predicate_mappings, neg_predicate_mappings):
-        self.target = target
-        self.predicates = predicates
-        self.neg_predicates = neg_predicates
-        self.predicate_mappings = predicate_mappings
-        self.neg_predicate_mappings = neg_predicate_mappings
-
-    def __repr__(self) -> str:
-        return f"{type(self).__name__}(target={self.target}, predicates={self.predicates}, neg_predicates={self.neg_predicates}, predicate_mappings={self.predicate_mappings}, neg_predicate_mappings={self.neg_predicate_mappings})"
-
-    def addPrefix(self, prefix):
-        self.target = addPrefix(self.target, prefix)
-        s = set()
-        for p in self.predicates:
-            s.add(addPrefix(p, prefix))
-        self.predicates = s
-        s = set()
-        for p in self.neg_predicates:
-            s.add(addPrefix(p, prefix))
-        self.neg_predicates = s
-
-        for p in self.predicate_mappings:
-            pass # TODO
-        for p in self.neg_predicate_mappings:
-            pass # TODO
-    
-    def removePrefix(self, prefix):
-        self.target = removePrefix(self.target, prefix)
-        s = set()
-        for p in self.predicates:
-            s.add(removePrefix(p, prefix))
-        self.predicates = s
-        s = set()
-        for p in self.neg_predicates:
-            s.add(removePrefix(p, prefix))
-        self.neg_predicates = s
-            
-        for p in self.predicate_mappings:
-            pass
-        for p in self.neg_predicate_mappings:
-            pass # TODO
 
 
 

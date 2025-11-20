@@ -107,48 +107,13 @@ def mine_rules_for_target_predicate(g:set, v:set, pmap:P_map, transformed_kg:Inc
     Returns:
         R_out -- mined rules for the target predicate
     """
-    # TODO uncomment
-    # assert g, "missing genreration exmples"
-    # assert v, "missing validation examples"
+    assert g, "missing genreration exmples"
+    assert v, "missing validation examples"
 
     kg = transformed_kg
 
     R_out = []
     r = Rule(head=("a","p1" "b"), body={("d", "e", "f")}, connections={("a", "d"), ("b", "f")})    
-
-    p1 = Path()
-    p1.head = ("Shape_of_my_Heart","isGenre","Pop")
-    p1.graph.add("Dire_Straits","hasAlbum", "Communique")
-    p1.graph.add("Lady_Writer", "includedIn", "Communique")
-    p1.graph.add("Sting", "collaboratedWith", "Dire_Straits")
-    p1.graph.add("Sting","hasAlbum","Fields_of_Gold(Album)")
-    p1.graph.add("Shape_of_my_Heart","includedIn","Fields_of_Gold(Album)")
-    p1.graph.add("Shape_of_my_Heart","isGenre","Pop")
-    p1.graph.add("Shape_of_my_Heart","writer","Sting")
-
-    p2 = Path()
-    p2.head = ("I_Shot_the_Sheriff","isGenre","Rock")
-    p2.graph.add("Here_Comes_the_Sun","includedIn","Abbey_Road")
-    p2.graph.add("I_Shot_the_Sheriff","includedIn","461_Ocean_Blvd.")
-    p2.graph.add("Eric_Clapton","collaboratedWith","The_Beatles")
-    p2.graph.add("I_Shot_the_Sheriff","isGenre","Rock")
-    p2.graph.add("The_Beatles","hasAlbum","Abbey_Road")
-    p2.graph.add("Eric_Clapton","hasAlbum","461_Ocean_Blvd.")
-
-    print(p1)
-    print(p2)
-    r1 = p1.rule()
-
-    r2 = p2.rule()
-
-
-
-    print(r1._Rule__key() == r2._Rule__key())
-    print(r2)
-    print(is_valid(r2))
-    print(ontology)
-    print(fits_domain_range("\"1969\"", ("Abbey_Road","releaseYear_1969","\"1969\""), ontology, kg, pmap, type_predicate))
-    exit()
 
     d = {}
     d[r] = 5

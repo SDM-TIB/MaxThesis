@@ -58,7 +58,6 @@ def checkForProperty(types):
             return True
     return False
 
-
 """help function for parseOntology"""
 def checkForRange(e):
     return e.__contains__("range")
@@ -97,6 +96,7 @@ def addOntologyBlock(block:list[str], ontology:Ontology, prefix):
                 break
             if block[next_i] == ",":
                 continue
+          
             types.add(block[next_i])
 
         if checkForClass(types):
@@ -153,31 +153,6 @@ def tripleAddPrefix(triple:tuple[str], prefix:str):
 # RuDiK util/math
 ##############################
 
-
-"""estimated marginal weight"""
-def est_m_weight(r:Rule, R_out:list[Rule], kg, g:set, v:set, alpha:float, beta:float):
-    cov_r_out_v = cov(R_out, kg, v)
-
-    return -alpha * (len(cov([r], kg, g) - cov(R_out, kg, g))/len(g)) + beta * (cov_r_out_v / uncov(R_out.append(r), kg, v) - cov_r_out_v / uncov(R_out, kg, v))
-
-
-"""
-covarage of rules over set
-"""
-def cov(rules:list[Rule], kg, ex_set:set):
-    # TODO
-    return 
-
-
-"""
-unbounded coverage of rules over set
-"""
-def uncov(rules:list[Rule], kg, ex_set:set):
-    rules = {unbind(r) for r in rules}
-    # TODO 
-    return cov(kg, ex_set, rules)
-
-
 """
 unbinds a rule body
 """
@@ -194,10 +169,146 @@ def unbind(r:Rule):
                 target_vars.add(e)
 
     for atom in r.body:
-        if atom[0]  in target_vars or atom[2] in target_vars:
+        if atom[0] in target_vars or atom[2] in target_vars:
             out.body.add(atom)
 
     return out
+
+
+"""
+checks if a rule where some variables are already instanciated, can be fully instanciated over the kg
+"""
+def instanciable(rule:Rule, kg:IncidenceList, entity_dict, pmap):
+
+    for triple in rule.body:
+        # find dangling triple
+        t1 = triple[0] in entity_dict
+        if t1 != triple[2] in entity_dict:
+
+            preds = new_preds(triple[1], pmap)
+            if preds == None:
+                raise ValueError("unknown predicate in rule.")
+
+            # find all instances for var that is not instanciated yet and recurse
+            if t1:
+                s = entity_dict[triple[0]]
+                edges = set()
+                for p in preds:
+                    edges.update(kg.edges[p]) 
+
+                possible_o = {pair[1] for pair in edges if pair[0] == s} 
+
+                # if no instances for triple, rule is not instantiable along current path
+                if not possible_o:
+                    return False
+                
+                # get o-connections
+                c = {triple[2]}
+                for con in rule.connections:
+                    if triple[2] in con:
+                        c = con
+                        break
+                
+                for o in possible_o:
+                    new_entity_dict = dict(entity_dict)
+                    for var in c:
+                        new_entity_dict[var] = o
+                    return instanciable(rule, kg, new_entity_dict)
+                
+            else:
+                o = entity_dict[triple[2]]
+                possible_s = {pair[0] for pair in kg.edges[triple[1]] if pair[1] == s} 
+
+                # if no instances for triple, rule is not instantiable along current path
+                if not possible_s:
+                    return False
+                
+                # get s-connections
+                c = {triple[0]}
+                for  con in rule.connections:
+                    if triple[0] in con:
+                        c = con
+                        break
+
+                for s in possible_s:
+                    new_entity_dict = dict(entity_dict)
+                    for var in c:
+                        new_entity_dict[var] = s
+                    return instanciable(rule, kg, new_entity_dict)
+
+    # no dangling triples, all instanciated -> assumes body is completely connected 
+    return True
+    
+
+
+"""
+ckecks if a rules body covers a given example (pair of entities)
+"""
+def covers(r:Rule, kg, ex, pmap):
+
+    # get occurences of target vars
+    t_1 = r.head[0]
+    t_2 = r.head[2]
+    entity_dict = {}
+    for c in r.connections:
+        if t_1 in c:
+            t1 = c
+            for var in c:
+                entity_dict[var] = ex[0]
+        if t_2 in c:
+            t2 = c
+            for var in c:
+                entity_dict[var] = ex[1]
+
+    return instanciable(r, kg, entity_dict, pmap)
+
+"""
+covarage of a rule/rules over set
+"""
+def cov(r, kg, ex_set:set):
+    # TODO
+    cov = []
+    if type(r) == Rule:
+        for ex in ex_set:
+            if covers(r, kg, ex):
+                cov.append(ex)
+    if type(r) == list[Rule]:
+        pass 
+    raise ValueError("r must be type Rule or list[Rule]")
+
+
+"""
+coverage of r over g
+"""
+def cov_g(R_out, g):
+    # TODO special case, just check dict entries for each rule and see the heads of the paths and compare to g
+    pass
+
+
+"""
+unbounded coverage of r over g
+"""
+def uncov_g(R_out, g):
+    # TODO special case, just check dict entries for each rule and see the heads of the paths and compare to g
+    pass
+
+
+"""
+unbounded coverage of rules over set
+"""
+def uncov(r, kg, ex_set:set):
+    if type(r) == Rule:
+        rules = unbind(r)
+    if type(r) == list[Rule]:
+        rules = [unbind(rule) for rule in r]
+    return cov(kg, ex_set, rules)
+
+
+"""estimated marginal weight"""
+def est_m_weight(r:Rule, R_out:list[Rule], kg, g:set, v:set, alpha:float, beta:float):
+    cov_r_out_v = cov(R_out, kg, v)
+    # TODO check if still correct
+    return -alpha * (len(cov([r], kg, g) - cov(R_out, kg, g))/len(g)) + beta * (cov_r_out_v / uncov(R_out.append(r), kg, v) - cov_r_out_v / uncov(R_out, kg, v))
 
 
 """
@@ -388,7 +499,7 @@ def derivable(literal_type, t, hierarchy):
 ###################################
 # predicate mappings
 ###################################
-
+# TODO make these functions of P_map Object
 """
 get a predicates predecessor, for a negative_pred get post-normalization positive predicate, for that, get original predicate
 """
@@ -407,18 +518,22 @@ def new_preds(original_pred:str, pmap):
     if type(pmap) == P_map:
         return {k for k, v in pmap.predicate_mappings.items() if v == original_pred}
     # pmap is predicate mappings dict
-    return {k for k, v in pmap.items() if v == original_pred}
+    if type(pmap) == dict:
+        return {k for k, v in pmap.items() if v == original_pred}
+    return None
 
 
 
 """
 get existing negative variants of post-normalization predicates
 """
-def neg_preds(new_preds:dict, pmap):
+def neg_preds(new_preds:set, pmap):
     if type(pmap) == P_map:
         return {k for k, v in pmap.neg_predicate_mappings.items() if v in new_preds}
-    # pmap is predicate mappings dict
-    return {k for k, v in pmap.items() if v in new_preds}
+    # pmap is neg predicate mappings dict
+    if type(pmap) == dict:
+        return {k for k, v in pmap.items() if v in new_preds}
+    return None
 
 
 #########################################
