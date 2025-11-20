@@ -101,6 +101,38 @@ class P_map:
             pass # TODO
 
 
+    """
+    get a predicates predecessor, for a negative_pred get post-normalization positive predicate, for that, get original predicate
+    """
+    def original_pred(self, new_pred:str):
+        if new_pred in self.predicate_mappings:
+            return self.predicate_mappings[new_pred]
+        if new_pred in self.neg_predicate_mappings:
+            return self.predicate_mappings[self.neg_predicate_mappings[new_pred]]
+        return ""
+
+
+    """
+    get post normalization predicates from their pre-normalization predecessor
+    """
+    def new_preds(self, original_pred:str):
+        return {k for k, v in self.predicate_mappings.items() if v == original_pred}
+
+
+
+
+    """
+    get existing negative variants of post-normalization predicates
+    """
+    def neg_preds(new_preds:set, pmap):
+        return {k for k, v in pmap.neg_predicate_mappings.items() if v in new_preds}
+
+
+
+
+    
+
+
 """ represents a path in the graph"""
 class Path:
     def __init__(self, head=(), graph=None):

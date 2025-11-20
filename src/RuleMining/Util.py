@@ -175,22 +175,42 @@ def unbind(r:Rule):
     return out
 
 
-"""
-checks if a rule where some variables are already instanciated, can be fully instanciated over the kg
-"""
-def instanciable(rule:Rule, kg:IncidenceList, entity_dict, pmap):
+def instantiate(rule:Rule, kg:IncidenceList, entity_dict, pmap):
+    # TODO similar to instantiable(), but form and return paths here
+    pass
+ 
 
+"""
+checks if a rule where some variables may already be instantiated, can be fully instantiated over the kg
+"""
+def instantiable(rule:Rule, kg:IncidenceList, pmap, entity_dict):
+    if not entity_dict:
+        s,p,o = next(iter(rule.body))
+        c = {s}
+        for con in rule.connections:
+            if s in con:
+                c = con
+                break
+
+        possible_s = {pair[0] for pair in kg.edges[p]} 
+        for s in possible_s:
+            entity_dict = {}
+            for var in c:
+                entity_dict[var] = s
+            return instantiable(rule, kg, pmap, entity_dict)
+
+        
     for triple in rule.body:
         # find dangling triple
         t1 = triple[0] in entity_dict
         if t1 != triple[2] in entity_dict:
-
             preds = new_preds(triple[1], pmap)
             if preds == None:
                 raise ValueError("unknown predicate in rule.")
 
-            # find all instances for var that is not instanciated yet and recurse
+            # find all instances for var that is not instantiated yet and recurse
             if t1:
+            # need to instantiate object
                 s = entity_dict[triple[0]]
                 edges = set()
                 for p in preds:
@@ -213,11 +233,12 @@ def instanciable(rule:Rule, kg:IncidenceList, entity_dict, pmap):
                     new_entity_dict = dict(entity_dict)
                     for var in c:
                         new_entity_dict[var] = o
-                    return instanciable(rule, kg, new_entity_dict)
+                    return instantiable(rule, kg, pmap, new_entity_dict)
                 
             else:
+            # need to instantiate subject
                 o = entity_dict[triple[2]]
-                possible_s = {pair[0] for pair in kg.edges[triple[1]] if pair[1] == s} 
+                possible_s = {pair[0] for pair in kg.edges[triple[1]] if pair[1] == o} 
 
                 # if no instances for triple, rule is not instantiable along current path
                 if not possible_s:
@@ -234,11 +255,10 @@ def instanciable(rule:Rule, kg:IncidenceList, entity_dict, pmap):
                     new_entity_dict = dict(entity_dict)
                     for var in c:
                         new_entity_dict[var] = s
-                    return instanciable(rule, kg, new_entity_dict)
+                    return instantiable(rule, kg, pmap, new_entity_dict)
 
-    # no dangling triples, all instanciated -> assumes body is completely connected 
-    return True
-    
+        # no dangling triples, all instanciated -> assumes body is completely connected 
+        return True
 
 
 """
@@ -260,7 +280,8 @@ def covers(r:Rule, kg, ex, pmap):
             for var in c:
                 entity_dict[var] = ex[1]
 
-    return instanciable(r, kg, entity_dict, pmap)
+    # check if instantiation is possible with example pair as targets 
+    return instantiable(r, kg, pmap, entity_dict)
 
 """
 covarage of a rule/rules over set
@@ -272,9 +293,16 @@ def cov(r, kg, ex_set:set):
         for ex in ex_set:
             if covers(r, kg, ex):
                 cov.append(ex)
-    if type(r) == list[Rule]:
-        pass 
-    raise ValueError("r must be type Rule or list[Rule]")
+    elif type(r) == list[Rule]:
+        ex_set_copy = ex.copy()
+        for rule in r:
+            cov.extend(cov(rule, kg, ex_set_copy))
+
+            # remove examples that are already covered, to avoid checking them again
+            ex_set_copy = ex_set_copy - cov
+    else:
+        raise ValueError("r must be type Rule or list[Rule]")
+    return cov
 
 
 """
@@ -379,7 +407,7 @@ def fits_domain_range(entity, triple, ontology:Ontology, kg:IncidenceList, pmap:
     if entity not in triple:
         raise ValueError("Entity not in triple.")
     
-    original = original_pred(triple[1], pmap)
+    original = pmap.original_pred(triple[1])
 
     if triple[1] in ontology.properties:
         domain_range = ontology.properties[triple[1]]
@@ -448,8 +476,7 @@ def fits_domain_range(entity, triple, ontology:Ontology, kg:IncidenceList, pmap:
             if not types_r.intersection(all_entity_types):
                 return False
         return True
-
-        
+    
 
 """help function for fits_domain_range()"""
 def literalType(l:str):
@@ -495,44 +522,26 @@ def derivable(literal_type, t, hierarchy):
 
 
 
-
 ###################################
 # predicate mappings
 ###################################
-# TODO make these functions of P_map Object
 """
-get a predicates predecessor, for a negative_pred get post-normalization positive predicate, for that, get original predicate
+get post normalization predicates from their pre-normalization predecessor via dict
 """
-def original_pred(new_pred:str, pmap:P_map):
-    if new_pred in pmap.predicate_mappings:
-        return pmap.predicate_mappings[new_pred]
-    if new_pred in pmap.neg_predicate_mappings:
-        return pmap.predicate_mappings[pmap.neg_predicate_mappings[new_pred]]
-    return ""
-
-
-"""
-get post normalization predicates from their pre-normalization predecessor
-"""
-def new_preds(original_pred:str, pmap):
-    if type(pmap) == P_map:
-        return {k for k, v in pmap.predicate_mappings.items() if v == original_pred}
-    # pmap is predicate mappings dict
-    if type(pmap) == dict:
-        return {k for k, v in pmap.items() if v == original_pred}
+def new_preds(original_pred:str, map:dict):
+    # map should be predicate mappings dict
+    if type(map) == dict:
+        return {k for k, v in map.items() if v == original_pred}
     return None
 
 
-
 """
-get existing negative variants of post-normalization predicates
+get existing negative variants of post-normalization predicates via dict
 """
-def neg_preds(new_preds:set, pmap):
-    if type(pmap) == P_map:
-        return {k for k, v in pmap.neg_predicate_mappings.items() if v in new_preds}
-    # pmap is neg predicate mappings dict
-    if type(pmap) == dict:
-        return {k for k, v in pmap.items() if v in new_preds}
+def neg_preds(new_preds:set, map):
+    # map should be neg predicate mappings dict
+    if type(map) == dict:
+        return {k for k, v in map.items() if v in new_preds}
     return None
 
 
