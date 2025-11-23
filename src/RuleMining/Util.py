@@ -1,3 +1,4 @@
+import random
 import numpy as np
 from itertools import combinations
 from RuleMining.Classes import Path, Rule, P_map, IncidenceList, Ontology, dfs
@@ -184,7 +185,10 @@ def instantiate(rule:Rule, kg:IncidenceList, entity_dict, pmap):
 checks if a rule where some variables may already be instantiated, can be fully instantiated over the kg
 """
 def instantiable(rule:Rule, kg:IncidenceList, pmap, entity_dict):
+    print(f"CALL instantiable with {entity_dict}")
+    
     if not entity_dict:
+        print("DANGER DANGER")
         s,p,o = next(iter(rule.body))
         c = {s}
         for con in rule.connections:
@@ -192,7 +196,13 @@ def instantiable(rule:Rule, kg:IncidenceList, pmap, entity_dict):
                 c = con
                 break
 
-        possible_s = {pair[0] for pair in kg.edges[p]} 
+        preds = pmap.new_preds(p)
+        if preds == None:
+                raise ValueError("unknown predicate in rule.")
+            
+        possible_s = set()
+        for pr in preds:
+            possible_s.update(pair[0] for pair in kg.edges[pr])
         for s in possible_s:
             entity_dict = {}
             for var in c:
@@ -202,24 +212,30 @@ def instantiable(rule:Rule, kg:IncidenceList, pmap, entity_dict):
         
     for triple in rule.body:
         # find dangling triple
-        t1 = triple[0] in entity_dict
-        if t1 != triple[2] in entity_dict:
-            preds = new_preds(triple[1], pmap)
+        is_s = triple[0] in entity_dict
+        is_o = triple[2] in entity_dict
+
+
+        if is_s != is_o:
+            preds = pmap.new_preds(triple[1])
             if preds == None:
                 raise ValueError("unknown predicate in rule.")
+            
+            edges = set()
+            for pr in preds:
+                edges.update(kg.edges[pr]) 
+
 
             # find all instances for var that is not instantiated yet and recurse
-            if t1:
+            if is_s:
             # need to instantiate object
+
                 s = entity_dict[triple[0]]
-                edges = set()
-                for p in preds:
-                    edges.update(kg.edges[p]) 
-
                 possible_o = {pair[1] for pair in edges if pair[0] == s} 
-
+                print(f"possible o {possible_o} wwith s as {s} p is {triple[1]}")
                 # if no instances for triple, rule is not instantiable along current path
                 if not possible_o:
+                    print(f"1RETURN FALSE instantiable with {entity_dict}")
                     return False
                 
                 # get o-connections
@@ -228,20 +244,26 @@ def instantiable(rule:Rule, kg:IncidenceList, pmap, entity_dict):
                     if triple[2] in con:
                         c = con
                         break
+
+                # TODO need to uipdate possible o here to respect the connections, for the connecting variables resulting triples must be checked if they exist
                 
                 for o in possible_o:
                     new_entity_dict = dict(entity_dict)
                     for var in c:
                         new_entity_dict[var] = o
-                    return instantiable(rule, kg, pmap, new_entity_dict)
+                    if instantiable(rule, kg, pmap, new_entity_dict):
+                        return True
+                return False
                 
             else:
             # need to instantiate subject
                 o = entity_dict[triple[2]]
-                possible_s = {pair[0] for pair in kg.edges[triple[1]] if pair[1] == o} 
+                possible_s = {pair[0] for pair in edges if pair[1] == o} 
+                print(f"possible s {possible_s} wwith o as {o} p is {triple[1]}")
 
                 # if no instances for triple, rule is not instantiable along current path
                 if not possible_s:
+                    print(f"2RETURN FALSE instantiable with {entity_dict}")
                     return False
                 
                 # get s-connections
@@ -255,10 +277,12 @@ def instantiable(rule:Rule, kg:IncidenceList, pmap, entity_dict):
                     new_entity_dict = dict(entity_dict)
                     for var in c:
                         new_entity_dict[var] = s
-                    return instantiable(rule, kg, pmap, new_entity_dict)
-
-        # no dangling triples, all instanciated -> assumes body is completely connected 
-        return True
+                    if instantiable(rule, kg, pmap, new_entity_dict):
+                        return True
+                return False
+    # no dangling triples, all instanciated -> assumes body is completely connected 
+    print(f"RETURN TRUE with  {entity_dict}")
+    return True
 
 
 """
@@ -269,16 +293,23 @@ def covers(r:Rule, kg, ex, pmap):
     # get occurences of target vars
     t_1 = r.head[0]
     t_2 = r.head[2]
+    b1 = False
+    b2 = False
     entity_dict = {}
     for c in r.connections:
-        if t_1 in c:
+        if not b1 and  t_1 in c:
+            b1 = True
             t1 = c
             for var in c:
                 entity_dict[var] = ex[0]
-        if t_2 in c:
+        if not b2 and t_2 in c:
+            b2 = True
             t2 = c
             for var in c:
                 entity_dict[var] = ex[1]
+
+        if b1 and b2:
+            break
 
     # check if instantiation is possible with example pair as targets 
     return instantiable(r, kg, pmap, entity_dict)
@@ -286,23 +317,23 @@ def covers(r:Rule, kg, ex, pmap):
 """
 covarage of a rule/rules over set
 """
-def cov(r, kg, ex_set:set):
-    # TODO
-    cov = []
+def cov(r, kg, ex_set:set, pmap:P_map):
+    c = set()
     if type(r) == Rule:
         for ex in ex_set:
-            if covers(r, kg, ex):
-                cov.append(ex)
+            print("--------------------------------------")
+            if covers(r, kg, ex, pmap):
+                c.add(ex)
     elif type(r) == list[Rule]:
         ex_set_copy = ex.copy()
         for rule in r:
-            cov.extend(cov(rule, kg, ex_set_copy))
+            c.update(cov(rule, kg, ex_set_copy))
 
             # remove examples that are already covered, to avoid checking them again
-            ex_set_copy = ex_set_copy - cov
+            ex_set_copy = ex_set_copy - c
     else:
         raise ValueError("r must be type Rule or list[Rule]")
-    return cov
+    return c
 
 
 """
@@ -365,7 +396,6 @@ def is_valid(r:Rule):
 
 
     for atom in r.body:
-        # TODO test, there are mistakes
 
         s_c = next((c for c in con if atom[0] in c), None)
         
@@ -503,7 +533,6 @@ def isLiteral(e:str):
 """help function for fits_domain_range()
 checks if literal_type can be derived from from t according to the Type hierachy provided."""
 def derivable(literal_type, t, hierarchy):
-    print(f"call derivable with {literal_type}, {t}")
     if literal_type == t:
         return True
     out = False
@@ -516,7 +545,6 @@ def derivable(literal_type, t, hierarchy):
             if out:
                 break
 
-    print(f"CLOSE derivable with {literal_type}, {t}")
 
     return out
 
@@ -584,6 +612,7 @@ def getExamples(kg:IncidenceList, preds:set, count:int):
 
 """get negative examples for given predicates that satisfy the local closed world assumption, limited by count"""
 def getExamplesLCWA(kg:IncidenceList, ontology:Ontology, pmap:P_map, count:int, type_predicate:str):
+    # TODO is there a mistake, doesn't vanilla create new negative entity? here maybe thinking only predicate is negated
     preds = pmap.predicates
     out = set()
     eligible_preds = preds.copy()
@@ -608,7 +637,7 @@ def getExamplesLCWA(kg:IncidenceList, ontology:Ontology, pmap:P_map, count:int, 
             i = 0
             for e in eligible_edges:
                 # print(f"hello{e}\n")
-                # TODO find object in neighbourhood that fits domain but doesnt have the relation with subject
+                # find object in neighbourhood that fits domain but doesnt have the relation with subject
                 # n = (s, o) find s' and o' s.t. not exists p(s, o') and p(s', o)
                 s = e[0]
                 o = e[1]
@@ -631,6 +660,33 @@ def getExamplesLCWA(kg:IncidenceList, ontology:Ontology, pmap:P_map, count:int, 
 
     for _ in range(-diff):
         out.pop()
-    print(f"out {out}")
     return out
 
+"""get random pairs of entities that don't have target predicate"""
+def getRandomNegExamples(kg:IncidenceList, preds:set, count:int, v=set()):
+    ct = 1
+    fact = 1
+
+    # finding set size where |set X set| > count
+    while fact <= count:
+        ct+=1
+        fact *= ct
+
+    # this is somewhat arbitrary, goal is to remove some bias by having more entities in the set while managing computational work --> not going trhough all kg.nodes
+    ct *= 2
+
+    entities = []
+
+    for e in kg.nodes:
+
+        entities.append(e)
+        ct += 1
+        if ct >= count:
+            break
+
+    out = set()
+    for i in range(count):
+        pair = (random.choice(entities), random.choice(entities))
+        if pair not in v:
+            out.add(pair)
+    return out

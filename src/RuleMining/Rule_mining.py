@@ -58,26 +58,34 @@ def mine_rules(transformed_kg:IncidenceList, targets:set, transform_output_dir:s
         g = getExamples(transformed_kg, pmap.predicates, set_size)
         len_g = len(g)
         if len_g < set_size:
-            warnings.warn(f"There aren't enough positive examples in the graph, proceeding with {len_g} examples.\n", UserWarning)  
+            print(f"There aren't enough positive examples in the graph, proceeding with {len_g} examples.\n")  
 
-        # TODO: maybe enable custom input for extra negative examples
-        # TODO create negative examples
         # first, get all constraint violating triples
-
         v = getExamples(transformed_kg, pmap.neg_predicates, set_size)
+
+        # if not enough in v fill with lcwa-conform examples
         len_v = len(v)
         if len_v < set_size:
-            warnings.warn(f"{len_v} examples found from constraint violations, selecting remaining {set_size - len_v} examples from graph.\n", UserWarning)
-            # TODO incorporate LCWA --> negative examples must have the target predicate with other entities   
+            print(f"{len_v} examples found from constraint violations, selecting remaining {set_size - len_v} examples from graph.\n")
             v.update(getExamplesLCWA(transformed_kg, ontology, pmap, set_size - len_v, type_predicate))
 
-            # TODO if not enough add more random v-entries, maybe: allow custom input 
+        # if not enough in v fill with random examples
+        len_v = len(v)
+        if len_v < set_size:
+            print(f"There aren't enough negative examples in the graph, choosing {len_v} random examples.\n")  
+            v.update(getRandomNegExamples(transformed_kg, pmap.predicates, set_size - len_v, v)) 
 
 
         len_v = len(v)
         if len_v < set_size:
-            warnings.warn(f"There aren't enough negative examples in the graph, proceeding with {len_v} examples.\n", UserWarning)   
+            print(f"There aren't enough negative examples in the graph, proceeding with {len_v} examples.\n")   
 
+        if not g:
+            warnings.warn(f"There are no generation examples for {pmap.target}. No rule-mining possible \n", UserWarning)   
+            return []    
+        if not v:
+            warnings.warn(f"There are no validation examples for {pmap.target}. No rule-mining possible \n", UserWarning)   
+            return []
 
         
         print(f"mining rules for target predicate <{p}>...\n")
@@ -107,14 +115,23 @@ def mine_rules_for_target_predicate(g:set, v:set, pmap:P_map, transformed_kg:Inc
     Returns:
         R_out -- mined rules for the target predicate
     """
-    assert g, "missing genreration exmples"
-    assert v, "missing validation examples"
 
     kg = transformed_kg
 
     R_out = []
-    r = Rule(head=("a","p1" "b"), body={("d", "e", "f")}, connections={("a", "d"), ("b", "f")})    
 
+    
+    isGenre_g = {('Ten_Summoner%27s_Tales', 'Pop'), ('Dire_Straits(Album)', 'Rock'), ('Rubber_Soul', 'Rock'), ('Making_Movies', 'Pop'), ('Outlandos_D%27Amour', 'Punk'), ('In_The_Gallery', 'Rock'), ('461_Ocean_Blvd.', 'Blues'), ('Water_Of_Love', 'Country'), ('Make_Beleive', 'Metal'), ('The_Beatles(Album)', 'Jazz'), ('It%27s_a_Feeling', 'Soul'), ('Regatta_De_Blanc', 'Reggae'), ('Let_It_Be', 'Pop'), ('Sultans_Of_Swing', 'Funk'), ('Lovers_in_the_Night', 'Country')}
+    print(isGenre_g)
+    #valid rule
+    r = Rule(head=("?VAR1","isGenre", "?VAR2"), 
+             body={("?VAR3", "collaboratedWith", "?VAR4"), ("?VAR5", "hasAlbum", "?VAR6"), ("?VAR7", "isGenre", "?VAR8"), 
+                   ("?VAR9", "hasAlbum", "?VAR10")}, 
+                   connections={("?VAR1", "?VAR6"), ("?VAR2", "?VAR8"), ("?VAR5", "?VAR3"), ("?VAR4", "?VAR9"),("?VAR10", "?VAR7")}) 
+    if pmap.target == "isGenre":
+        print(is_valid(r))
+        print(cov(r,kg,isGenre_g, pmap))
+        exit()
     d = {}
     d[r] = 5
 

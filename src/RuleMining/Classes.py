@@ -79,11 +79,22 @@ class P_map:
             s.add(addPrefix(p, prefix))
         self.neg_predicates = s
 
+        d = {}
         for p in self.predicate_mappings:
-            pass # TODO
+            p1 = addPrefix(p, prefix)
+            d[p1] = set()
+            for np in self.predicate_mappings[p]:
+                d[p1].add(addPrefix(np, prefix))
+        self.predicate_mappings = d
+
+        d = {}
         for p in self.neg_predicate_mappings:
-            pass # TODO
-    
+            p1 = addPrefix(p, prefix)
+            d[p1] = set()
+            for np in self.neg_predicate_mappings[p]:
+                d[p1].add(addPrefix(np, prefix))
+        self.neg_predicate_mappings = d
+
     def removePrefix(self, prefix):
         self.target = removePrefix(self.target, prefix)
         s = set()
@@ -95,11 +106,21 @@ class P_map:
             s.add(removePrefix(p, prefix))
         self.neg_predicates = s
             
+        d = {}
         for p in self.predicate_mappings:
-            pass
-        for p in self.neg_predicate_mappings:
-            pass # TODO
+            p1 = removePrefix(p, prefix)
+            d[p1] = set()
+            for np in self.predicate_mappings[p]:
+                d[p1].add(removePrefix(np, prefix))
+        self.predicate_mappings = d
 
+        d = {}
+        for p in self.neg_predicate_mappings:
+            p1 = removePrefix(p, prefix)
+            d[p1] = set()
+            for np in self.neg_predicate_mappings[p]:
+                d[p1].add(removePrefix(np, prefix))
+        self.neg_predicate_mappings = d
 
     """
     get a predicates predecessor, for a negative_pred get post-normalization positive predicate, for that, get original predicate
