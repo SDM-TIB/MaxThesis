@@ -11,8 +11,9 @@ from RuleMining.Classes import Path, Rule, P_map, IncidenceList, Ontology, dfs
 def parseGraph(ntFilePath, graph:IncidenceList, prefix=""):
     with open(ntFilePath, 'r', encoding='utf-8') as file:
         for row in file:
-            triple = tripleRemovePrefix(row.split()[0:3], prefix)
+            triple = row.split()[0:3]
             graph.add(triple[0], triple[1], triple[2])
+
 
 """parse a .ttl ontology into Ontology Type"""
 def parseOntology(ontology_file:str, ontology:Ontology, prefix:str=""):
@@ -681,9 +682,9 @@ def getExamplesLCWA(kg:IncidenceList, ontology:Ontology, pmap:P_map, count:int, 
     eligible_edges = set()
     for p in preds:
         eligible_edges.update(kg.edges[p])
+        print(kg.edges[p])
 
     diff = count - len(out)
-
     while len(out) < count and eligible_preds:
         max_i = int(diff /( 2 * len(eligible_preds)) + 1) 
         eligible_preds_copy = eligible_preds.copy()
@@ -716,7 +717,7 @@ def getExamplesLCWA(kg:IncidenceList, ontology:Ontology, pmap:P_map, count:int, 
                 
         diff = count - len(out)
     print(diff)
-    print(out)
+    #print(out)
     for _ in range(-diff):
         out.pop()
     return out

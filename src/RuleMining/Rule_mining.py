@@ -180,7 +180,7 @@ def mine_rules_for_target_predicate(g:set, v:set, pmap:P_map, transformed_kg:Inc
 
 
 
-
+    print(isLiteral("\"1970\"^^<http://www.w3.org/2001/XMLSchema#/int>"))
 
 
 
