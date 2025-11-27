@@ -61,6 +61,11 @@
                                         rdfs:domain <http://example.org/Album> ;
                                         rdfs:range <http://example.org/Genre> .
 
+<http://example.org/writer> rdf:type owl:ObjectProperty, rdf:Property ;
+                                        rdfs:subPropertyOf owl:topObjectProperty ;
+                                        rdfs:domain <http://example.org/Artist> ;
+                                        rdfs:range <http://example.org/Song> .
+
 <http://example.org/releaseYear> rdf:type owl:DatatypeProperty, rdf:Property ;
                                         rdfs:subPropertyOf owl:topObjectProperty ;
                                         rdfs:domain <http://example.org/Album> ;

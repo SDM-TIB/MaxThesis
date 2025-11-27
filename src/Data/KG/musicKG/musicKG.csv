@@ -199,3 +199,17 @@ Sting,isMemberOf,The Police
 Sting,collaboratedWith,Dire Straits
 Eric Clapton,collaboratedWith,The Beatles
 The Beatles,collaboratedWith,Eric Clapton
+,,
+,,
+,,
+Shape of my Heart,writer,Sting
+Shape of my Heart,isGenre,Pop
+Dire Straits,hasAlbum,Communiqué
+Lady Writer,includedIn,Communiqué
+Sting,collaboratedWith,Dire Straits
+Sting,hasAlbum,Fields_of_Gold(Album)
+Shape_of_my_Heart,includedIn,Fields_of_Gold(Album)
+Shape_of_my_Heart,isGenre,Pop
+Here_Comes_the_Sun,includedIn,Abbey_Road
+I_Shot_the_Sheriff,includedIn,461_Ocean_Blvd.
+Solid Rock,includedIn,Making Movies

@@ -181,14 +181,56 @@ def instantiate(rule:Rule, kg:IncidenceList, entity_dict, pmap):
     pass
  
 
+# checks if triples that result from instanciating a certain entity are in the kg
+def fitting_triples(e, c, r:Rule, entity_dict, pmap:P_map, kg:IncidenceList):
+    # TODO adapt to allow literal comparisons
+    print(f"+++++++\n CALL fiiting triples with e {e}, c{c}, dict {entity_dict}")
+    for var in c:
+        if var in r.head:
+            continue
+        found = False
+        # next is ok to use b/c there is only one appearance per var
+        triple = next(t for t in r.body if var in t)
+
+        if triple[0] == var:
+            # check only if triple will be completed by instantiating entity
+            if triple[2] in entity_dict:
+                pair = (e, entity_dict[triple[2]])
+            else:
+                continue
+
+
+        else:
+            # check only if triple will be completed by instantiating entity
+            if triple[0] in entity_dict:
+                pair = (entity_dict[triple[0]], e)
+            else:
+                continue
+
+
+        for p in pmap.new_preds(triple[1]):
+            
+            if  pair in kg.edges[p]:
+                # triple exists for current var
+                found = True
+                break
+
+        if not found:
+            print("False fitting triples")
+            return False
+    print("True fitting triples")
+    return True
+
+
+
 """
 checks if a rule where some variables may already be instantiated, can be fully instantiated over the kg
 """
-def instantiable(rule:Rule, kg:IncidenceList, pmap, entity_dict):
+def instantiable(rule:Rule, kg:IncidenceList, pmap:P_map, entity_dict):
     print(f"CALL instantiable with {entity_dict}")
+    # TODO adapt to allow literal comparisons
     
     if not entity_dict:
-        print("DANGER DANGER")
         s,p,o = next(iter(rule.body))
         c = {s}
         for con in rule.connections:
@@ -232,7 +274,6 @@ def instantiable(rule:Rule, kg:IncidenceList, pmap, entity_dict):
 
                 s = entity_dict[triple[0]]
                 possible_o = {pair[1] for pair in edges if pair[0] == s} 
-                print(f"possible o {possible_o} wwith s as {s} p is {triple[1]}")
                 # if no instances for triple, rule is not instantiable along current path
                 if not possible_o:
                     print(f"1RETURN FALSE instantiable with {entity_dict}")
@@ -244,26 +285,28 @@ def instantiable(rule:Rule, kg:IncidenceList, pmap, entity_dict):
                     if triple[2] in con:
                         c = con
                         break
-
-                # TODO need to uipdate possible o here to respect the connections, for the connecting variables resulting triples must be checked if they exist
                 
                 for o in possible_o:
+                    if not fitting_triples(o, c, rule, entity_dict, pmap, kg):
+                        continue
                     new_entity_dict = dict(entity_dict)
                     for var in c:
                         new_entity_dict[var] = o
                     if instantiable(rule, kg, pmap, new_entity_dict):
+                        print(f"1RETURN TRUE instantiable with {entity_dict}")
                         return True
+                    
+                print(f"2RETURN FALSE instantiable with {entity_dict}")
                 return False
                 
             else:
             # need to instantiate subject
                 o = entity_dict[triple[2]]
                 possible_s = {pair[0] for pair in edges if pair[1] == o} 
-                print(f"possible s {possible_s} wwith o as {o} p is {triple[1]}")
 
                 # if no instances for triple, rule is not instantiable along current path
                 if not possible_s:
-                    print(f"2RETURN FALSE instantiable with {entity_dict}")
+                    print(f"3RETURN FALSE instantiable with {entity_dict}")
                     return False
                 
                 # get s-connections
@@ -274,14 +317,18 @@ def instantiable(rule:Rule, kg:IncidenceList, pmap, entity_dict):
                         break
 
                 for s in possible_s:
+                    if not fitting_triples(s, c, rule, entity_dict, pmap, kg):
+                        continue
                     new_entity_dict = dict(entity_dict)
                     for var in c:
                         new_entity_dict[var] = s
                     if instantiable(rule, kg, pmap, new_entity_dict):
+                        print(f"2RETURN TRUE instantiable with {entity_dict}")
                         return True
+                print(f"4RETURN FALSE instantiable with {entity_dict}")
                 return False
     # no dangling triples, all instanciated -> assumes body is completely connected 
-    print(f"RETURN TRUE with  {entity_dict}")
+    print(f"3RETURN TRUE with  {entity_dict}")
     return True
 
 
@@ -296,17 +343,24 @@ def covers(r:Rule, kg, ex, pmap):
     b1 = False
     b2 = False
     entity_dict = {}
+    # TODO insert fitting triples check
     for c in r.connections:
         if not b1 and  t_1 in c:
             b1 = True
-            t1 = c
+            if b2:
+                if not fitting_triples(ex[0], c, r, entity_dict, pmap, kg):
+                    return False
             for var in c:
                 entity_dict[var] = ex[0]
+            
         if not b2 and t_2 in c:
             b2 = True
-            t2 = c
+            if b1:
+                if not fitting_triples(ex[1], c, r, entity_dict, pmap, kg):
+                    return False
             for var in c:
                 entity_dict[var] = ex[1]
+
 
         if b1 and b2:
             break
@@ -317,7 +371,7 @@ def covers(r:Rule, kg, ex, pmap):
 """
 covarage of a rule/rules over set
 """
-def cov(r, kg, ex_set:set, pmap:P_map):
+def cov(r:Rule, kg, ex_set:set, pmap:P_map):
     c = set()
     if type(r) == Rule:
         for ex in ex_set:
@@ -339,7 +393,7 @@ def cov(r, kg, ex_set:set, pmap:P_map):
 """
 coverage of r over g
 """
-def cov_g(R_out, g):
+def cov_g(R_out:list[Rule], g):
     # TODO special case, just check dict entries for each rule and see the heads of the paths and compare to g
     pass
 
@@ -355,7 +409,7 @@ def uncov_g(R_out, g):
 """
 unbounded coverage of rules over set
 """
-def uncov(r, kg, ex_set:set):
+def uncov(r:Rule, kg, ex_set:set):
     if type(r) == Rule:
         rules = unbind(r)
     if type(r) == list[Rule]:
@@ -385,6 +439,8 @@ def is_valid(r:Rule):
     if not head_o_connected:
         return False
     
+
+    # idea: 
     con = r.connections.copy()
     body = r.body.copy()
     first = True
@@ -409,8 +465,8 @@ def is_valid(r:Rule):
             # atom connected to two knots, one is already known to be connected
             if s_c and o_c:
                 con.remove(s_c)
-                con.remove(o_c)
-
+                if s_c != o_c:
+                    con.remove(o_c)
                 con.add(tuple(set(s_c).union(set(o_c))))
 
 
@@ -422,6 +478,7 @@ def is_valid(r:Rule):
 
 # checks if an entity is allowed in a certain triple using ontology 
 def fits_domain_range(entity, triple, ontology:Ontology, kg:IncidenceList, pmap:P_map, type_predicate):
+    # TODO adapt to allow literal comparisons
     check_domain = False
     check_range = False
     literal = False
@@ -538,9 +595,7 @@ def derivable(literal_type, t, hierarchy):
     out = False
 
     if t in hierarchy:
-        print(f"hier t {hierarchy[t]}")
         for st in hierarchy[t]:
-            print(st)
             out = out or derivable(literal_type, st, hierarchy)
             if out:
                 break
@@ -586,9 +641,13 @@ def getExamples(kg:IncidenceList, preds:set, count:int):
 
     # go through all predicates, get mean examples per predicate if possible
     # repeat with all predicates that still have unused instances left until count is met
+
+    test = 0
     while len(out) < count and eligible_preds:
         max_i = int(diff/len(eligible_preds) + 1)  
-
+        test += 1
+        if test == 5:
+            exit()
         eligible_preds_copy = eligible_preds.copy()
         for p in eligible_preds_copy:
             l = len(kg.edges[p])
@@ -599,8 +658,9 @@ def getExamples(kg:IncidenceList, preds:set, count:int):
             # add even share of elements per predicate, if possible
             i = 0
             for n in kg.edges[p]:
-                out.add(n)
-                i += 1
+                if n not in out:
+                    out.add(n)
+                    i += 1
                 if i > max_i:
                     break
                 
@@ -616,17 +676,16 @@ def getExamplesLCWA(kg:IncidenceList, ontology:Ontology, pmap:P_map, count:int, 
     preds = pmap.predicates
     out = set()
     eligible_preds = preds.copy()
+
+    # will hold all instances of target predicate, search from the connected entities
     eligible_edges = set()
     for p in preds:
         eligible_edges.update(kg.edges[p])
 
-    pri = True
-
     diff = count - len(out)
 
     while len(out) < count and eligible_preds:
-        max_i = int(diff / 2 * len(eligible_preds) + 1) 
-
+        max_i = int(diff /( 2 * len(eligible_preds)) + 1) 
         eligible_preds_copy = eligible_preds.copy()
         for p in eligible_preds_copy:
             l = len(kg.edges[p])
@@ -636,13 +695,12 @@ def getExamplesLCWA(kg:IncidenceList, ontology:Ontology, pmap:P_map, count:int, 
 
             i = 0
             for e in eligible_edges:
-                # print(f"hello{e}\n")
                 # find object in neighbourhood that fits domain but doesnt have the relation with subject
                 # n = (s, o) find s' and o' s.t. not exists p(s, o') and p(s', o)
                 s = e[0]
                 o = e[1]
                 for f in eligible_edges:
-                
+                    # TODO ask if this is ok, recombining entities that have the relation, rather than combining one entity that has relation with one that may or may NOT have it
                     if (s, f[1]) not in eligible_edges and (s, f[1]) not in out and fits_domain_range(f[1], (s,p,f[1]), ontology, kg, pmap, type_predicate):
                         out.add((s, f[1]))
                         break
@@ -657,7 +715,8 @@ def getExamplesLCWA(kg:IncidenceList, ontology:Ontology, pmap:P_map, count:int, 
                     break
                 
         diff = count - len(out)
-
+    print(diff)
+    print(out)
     for _ in range(-diff):
         out.pop()
     return out

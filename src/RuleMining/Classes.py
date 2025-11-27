@@ -335,10 +335,14 @@ def rename_triple(triple, head, name_dict, p_count, rule:Rule, pmap:P_map):
     
     # TODO generalize head 1 and p
     if is_head:
-        head = (s_var, head[1], o_var)
+        head = (s_var, pmap.original_pred(head[1]), o_var)
         rule.head = head
     else:
-        rule.body.add((s_var,p,o_var))
+        if is_literal_comp(p):
+            rule.body.add((s_var,p,o_var))
+
+        else:
+            rule.body.add((s_var,pmap.original_pred(p),o_var))
     return p_count, head
 
 
@@ -418,3 +422,8 @@ def addPrefix(element:str, prefix:str):
 def removePrefix(element:str, prefix:str):
     return element.removeprefix("<").removeprefix(f"{prefix}").removesuffix(">")
 
+"""checks if predicate is a literral comparison"""
+def is_literal_comp(p):
+    if p == "=" or p=="<":
+        return True
+    return False
