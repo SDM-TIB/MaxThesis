@@ -140,47 +140,50 @@ def mine_rules_for_target_predicate(g:set, v:set, pmap:P_map, transformed_kg:Inc
 
 
 
-#     p1 = Path()
-#     p1.head = ("Shape_of_my_Heart","isGenre_Pop","Pop")
-#     p1.graph.add("Dire_Straits","hasAlbum_Making_Movies", "Making_Movies")
-#     p1.graph.add("Solid_Rock", "includedIn_Making_Movies", "Making_Movies")
-#     p1.graph.add("Sting", "collaboratedWith_Dire_Straits", "Dire_Straits")
-#     p1.graph.add("Sting","hasAlbum_Fields_of_Gold(Album)","Fields_of_Gold(Album)")
-#     p1.graph.add("Shape_of_my_Heart","includedIn_Fields_of_Gold(Album)","Fields_of_Gold(Album)")
-#     p1.graph.add("Shape_of_my_Heart","isGenre_Pop","Pop")
-#     p1.graph.add("Making_Movies","isGenre_Pop","Pop")
-#     p1.graph.add("Pop","=","Pop")
-#    # p1.graph.add("Shape_of_my_Heart","writer_Sting","Sting")
+    p1 = Path()
+    p1.head = ("Shape_of_my_Heart","isGenre_Pop","Pop")
+    p1.graph.add("Dire_Straits","hasAlbum_Making_Movies", "Making_Movies")
+    p1.graph.add("Solid_Rock", "includedIn_Making_Movies", "Making_Movies")
+    p1.graph.add("Sting", "collaboratedWith_Dire_Straits", "Dire_Straits")
+    p1.graph.add("Sting","hasAlbum_Ten_Summoner%27s_Tales","Ten_Summoner%27s_Tales")
+    p1.graph.add("Shape_of_my_Heart","includedIn_Ten_Summoner%27s_Tales","Ten_Summoner%27s_Tales")
+    p1.graph.add("Shape_of_my_Heart","isGenre_Pop","Pop")
+    p1.graph.add("Making_Movies","isGenre_Pop","Pop")
+    p1.graph.add("Pop","=","Pop")
+    p1.graph.add("Ten_Summoner%27s_Tales","releaseYear_1993","\"1993\"^^<http://www.w3.org/2001/XMLSchema#/int>")
+    p1.graph.add("Making_Movies.","releaseYear_1980","\"1980\"^^<http://www.w3.org/2001/XMLSchema#/int>")
+    p1.graph.add("\"1993\"^^<http://www.w3.org/2001/XMLSchema#/int>","<","\"1980\"^^<http://www.w3.org/2001/XMLSchema#/int>")
+   # p1.graph.add("Shape_of_my_Heart","writer_Sting","Sting")
 
-#     p2 = Path()
-#     p2.head = ("I_Shot_the_Sheriff","isGenre_Rock","Rock")
-#     p2.graph.add("Here_Comes_the_Sun","includedIn_Abbey_Road","Abbey_Road")
-#     p2.graph.add("I_Shot_the_Sheriff","includedIn_461_Ocean_Blvd.","461_Ocean_Blvd.")
-#     p2.graph.add("Eric_Clapton","collaboratedWith_The_Beatles","The_Beatles")
-#     p2.graph.add("I_Shot_the_Sheriff","isGenre_Rock","Rock")
-#     p2.graph.add("The_Beatles","hasAlbum_Abbey_Road","Abbey_Road")
-#     p2.graph.add("Eric_Clapton","hasAlbum_461_Ocean_Blvd.","461_Ocean_Blvd.")
+    p2 = Path()
+    p2.head = ("I_Shot_the_Sheriff","isGenre_Rock","Rock")
+    p2.graph.add("Here_Comes_the_Sun","includedIn_Abbey_Road","Abbey_Road")
+    #p2.graph.add("Here_Comes_the_Sun","releaseYear_1969","\"1969\"^^<http://www.w3.org/2001/XMLSchema#/int>")
+    #p2.graph.add("461_Ocean_Blvd.","releaseYear_1974","\"1974\"^^<http://www.w3.org/2001/XMLSchema#/int>")
+    #p2.graph.add("\"1969\"^^<http://www.w3.org/2001/XMLSchema#/int>","<","\"1974\"^^<http://www.w3.org/2001/XMLSchema#/int>")
+    p2.graph.add("I_Shot_the_Sheriff","includedIn_461_Ocean_Blvd.","461_Ocean_Blvd.")
+    p2.graph.add("Eric_Clapton","collaboratedWith_The_Beatles","The_Beatles")
+    p2.graph.add("Here_Comes_the_Sun","isGenre_Rock","Rock")
+    p2.graph.add("The_Beatles","hasAlbum_Abbey_Road","Abbey_Road")
+    p2.graph.add("Eric_Clapton","hasAlbum_461_Ocean_Blvd.","461_Ocean_Blvd.")
 
-#     print(p1)
-#     print(p2)
-#     r1 = p1.rule(pmap)
+    print(p1)
+    print(p2)
+    r1 = p1.rule(pmap)
 
-#     r2 = p2.rule(pmap)
-
-
-
-#     print(r1._Rule__key() == r2._Rule__key())
-#     print(r1)
-#     print(r2)
-#     print(is_valid(r1))
-#     print(is_valid(r2))
-#     print(ontology)
-#     print(fits_domain_range("\"1969\"", ("Abbey_Road","releaseYear_1969","\"1969\""), ontology, kg, pmap, type_predicate))
-#     exit()
+    r2 = p2.rule(pmap)
 
 
 
-    print(isLiteral("\"1970\"^^<http://www.w3.org/2001/XMLSchema#/int>"))
+    print(r1._Rule__key() == r2._Rule__key())
+    print(r1)
+    print(r2)
+    print(is_valid(r1))
+    print(is_valid(r2))
+    print(ontology)
+    print(fits_domain_range("\"1969\"", ("\"1969\"","=","\"1969\""), ontology, kg, pmap, type_predicate))
+
+    exit()
 
 
 

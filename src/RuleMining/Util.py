@@ -1,7 +1,7 @@
 import random
 import numpy as np
 from itertools import combinations
-from RuleMining.Classes import Path, Rule, P_map, IncidenceList, Ontology, dfs
+from RuleMining.Classes import Path, Rule, P_map, IncidenceList, Ontology, dfs, is_literal_comp
 
 ########################################
 # filling custom datastructures
@@ -11,7 +11,7 @@ from RuleMining.Classes import Path, Rule, P_map, IncidenceList, Ontology, dfs
 def parseGraph(ntFilePath, graph:IncidenceList, prefix=""):
     with open(ntFilePath, 'r', encoding='utf-8') as file:
         for row in file:
-            triple = row.split()[0:3]
+            triple = tripleRemovePrefix(row.split()[0:3], prefix)
             graph.add(triple[0], triple[1], triple[2])
 
 
@@ -82,7 +82,6 @@ def extractName(e):
     return out
     
             
-    return
 
 """help function for parseOntology;
 classify triple and add to ontology"""
@@ -139,10 +138,17 @@ def addOntologyBlock(block:list[str], ontology:Ontology, prefix):
             ontology.addProperty(prefix, s, {extractName(e) for e in d}, {extractName(e) for e in r})
 
 """remove prefix from triple"""
-def tripleRemovePrefix(triple:tuple[str], prefix:str):        
-    return (triple[0].removeprefix("<").removeprefix(f"{prefix}").removesuffix(">"), 
-            triple[1].removeprefix("<").removeprefix(f"{prefix}").removesuffix(">"), 
-            triple[2].removeprefix("<").removeprefix(f"{prefix}").removesuffix(">"))
+def tripleRemovePrefix(triple:tuple[str], prefix:str):    
+    if triple[2][0] == "<":
+    # object is an entity
+        return (triple[0].removeprefix("<").removeprefix(f"{prefix}").removesuffix(">"), 
+                triple[1].removeprefix("<").removeprefix(f"{prefix}").removesuffix(">"), 
+                triple[2].removeprefix("<").removeprefix(f"{prefix}").removesuffix(">"))
+    else:
+        # object is literal
+        return (triple[0].removeprefix("<").removeprefix(f"{prefix}").removesuffix(">"), 
+                triple[1].removeprefix("<").removeprefix(f"{prefix}").removesuffix(">"), 
+                triple[2])
 
 """add prefix to triple"""
 def tripleAddPrefix(triple:tuple[str], prefix:str):        
@@ -182,16 +188,27 @@ def instantiate(rule:Rule, kg:IncidenceList, entity_dict, pmap):
     pass
  
 
-# checks if triples that result from instanciating a certain entity are in the kg
-def fitting_triples(e, c, r:Rule, entity_dict, pmap:P_map, kg:IncidenceList):
+"""checks if triples that result from instanciating a certain entity are in the kg
+    e: entity value 
+    c: connection tuple that represents all instances of e in the rule
+    entity_dict: dict: var in rule -> entity in graph"""
+def valid_entity_instanciation(e, c, r:Rule, entity_dict, pmap:P_map, kg:IncidenceList):
+    
+    if not isLiteral(e) and len(kg.nodes[e]) < len(c):
+        # except for literals, entities cannot appear more often in rule than the amount of triples they're apart of
+        return False
     # TODO adapt to allow literal comparisons
     print(f"+++++++\n CALL fiiting triples with e {e}, c{c}, dict {entity_dict}")
     for var in c:
-        if var in r.head:
-            continue
+
         found = False
-        # next is ok to use b/c there is only one appearance per var
-        triple = next(t for t in r.body if var in t)
+
+        if var in r.head:
+            triple = r.head
+        else:
+            # next is ok to use b/c there is exactly one appearance per var
+            triple = next(t for t in r.body if var in t)
+
 
         if triple[0] == var:
             # check only if triple will be completed by instantiating entity
@@ -208,13 +225,14 @@ def fitting_triples(e, c, r:Rule, entity_dict, pmap:P_map, kg:IncidenceList):
             else:
                 continue
 
-
-        for p in pmap.new_preds(triple[1]):
-            
-            if  pair in kg.edges[p]:
-                # triple exists for current var
-                found = True
-                break
+        if is_literal_comp(triple[1]):
+            found = is_valid_comp((pair[0], triple[1], pair[1]))
+        else:
+            for p in pmap.new_preds(triple[1]) or is_valid_comp((pair[0], triple[1], pair[1])):
+                if  pair in kg.edges[p]:
+                    # triple exists for current var
+                    found = True
+                    break
 
         if not found:
             print("False fitting triples")
@@ -227,12 +245,13 @@ def fitting_triples(e, c, r:Rule, entity_dict, pmap:P_map, kg:IncidenceList):
 """
 checks if a rule where some variables may already be instantiated, can be fully instantiated over the kg
 """
+# TODO this goes through all combinations chronologically, backtracking algorithm might be faster,
 def instantiable(rule:Rule, kg:IncidenceList, pmap:P_map, entity_dict):
     print(f"CALL instantiable with {entity_dict}")
-    # TODO adapt to allow literal comparisons
     
+    # no given instanciations, start with head
     if not entity_dict:
-        s,p,o = next(iter(rule.body))
+        s,p,o = next(t for t in rule.body if not is_literal_comp(t[1]))
         c = {s}
         for con in rule.connections:
             if s in con:
@@ -252,8 +271,12 @@ def instantiable(rule:Rule, kg:IncidenceList, pmap:P_map, entity_dict):
                 entity_dict[var] = s
             return instantiable(rule, kg, pmap, entity_dict)
 
-        
+    literal_triples = set()
     for triple in rule.body:
+        # collect and skip literal comparisons for now b/c likely most expensive triples to iterate over instanciations of
+        if is_literal_comp(triple[1]):
+            literal_triples.add(triple)
+            continue
         # find dangling triple
         is_s = triple[0] in entity_dict
         is_o = triple[2] in entity_dict
@@ -288,7 +311,7 @@ def instantiable(rule:Rule, kg:IncidenceList, pmap:P_map, entity_dict):
                         break
                 
                 for o in possible_o:
-                    if not fitting_triples(o, c, rule, entity_dict, pmap, kg):
+                    if not valid_entity_instanciation(o, c, rule, entity_dict, pmap, kg):
                         continue
                     new_entity_dict = dict(entity_dict)
                     for var in c:
@@ -318,7 +341,7 @@ def instantiable(rule:Rule, kg:IncidenceList, pmap:P_map, entity_dict):
                         break
 
                 for s in possible_s:
-                    if not fitting_triples(s, c, rule, entity_dict, pmap, kg):
+                    if not valid_entity_instanciation(s, c, rule, entity_dict, pmap, kg):
                         continue
                     new_entity_dict = dict(entity_dict)
                     for var in c:
@@ -328,6 +351,11 @@ def instantiable(rule:Rule, kg:IncidenceList, pmap:P_map, entity_dict):
                         return True
                 print(f"4RETURN FALSE instantiable with {entity_dict}")
                 return False
+            
+    if literal_triples:
+        pass
+        # TODO handle literal comps here
+
     # no dangling triples, all instanciated -> assumes body is completely connected 
     print(f"3RETURN TRUE with  {entity_dict}")
     return True
@@ -349,7 +377,7 @@ def covers(r:Rule, kg, ex, pmap):
         if not b1 and  t_1 in c:
             b1 = True
             if b2:
-                if not fitting_triples(ex[0], c, r, entity_dict, pmap, kg):
+                if not valid_entity_instanciation(ex[0], c, r, entity_dict, pmap, kg):
                     return False
             for var in c:
                 entity_dict[var] = ex[0]
@@ -357,7 +385,7 @@ def covers(r:Rule, kg, ex, pmap):
         if not b2 and t_2 in c:
             b2 = True
             if b1:
-                if not fitting_triples(ex[1], c, r, entity_dict, pmap, kg):
+                if not valid_entity_instanciation(ex[1], c, r, entity_dict, pmap, kg):
                     return False
             for var in c:
                 entity_dict[var] = ex[1]
@@ -441,21 +469,18 @@ def is_valid(r:Rule):
         return False
     
 
-    # idea: 
     con = r.connections.copy()
-    body = r.body.copy()
-    first = True
-
 
     #########
     # DEFINITION knot: graph entity with more than one triple --> each connection tuple represents one knot
     #########
 
 
+    # iterate over atoms, fuse connection tuples that are connected by handled atoms
     for atom in r.body:
 
+        # get all vars, s and o are connected to
         s_c = next((c for c in con if atom[0] in c), None)
-        
         o_c = next((c for c in con if atom[2] in c ), None)
         
         # atom isn't connected to body
@@ -463,37 +488,67 @@ def is_valid(r:Rule):
             return False
         
         if len(con) > 1:
-            # atom connected to two knots, one is already known to be connected
+            # fuse connections, if s_c and o_c are the same, nothing happens, no two knots are being connected...
             if s_c and o_c:
-                con.remove(s_c)
                 if s_c != o_c:
+
+                    # if it's a literal comparison "=" , s and o must be the same literal
+                    if atom[1] == "=":
+                        return False
+                    con.remove(s_c)
                     con.remove(o_c)
-                con.add(tuple(set(s_c).union(set(o_c))))
+                    con.add(tuple(set(s_c).union(set(o_c))))
 
 
     if len(con) != 1: 
-    # all connected knots are deleted --> there is am unconnected subgraph
+    # all connected knots are fused --> there is am unconnected subgraph
         return False
 
     return True
 
-# checks if an entity is allowed in a certain triple using ontology 
+def is_valid_comp(triple):
+    if not is_literal_comp(triple[1]) or (literalType(triple[0]) != literalType(triple[2])):
+        return False  
+    # TODO maybe ensure s and o are object of same predicate
+    
+    if triple[1] == "=":
+        if triple[0] != triple[2]:
+            return False
+    if triple[1] == "<":
+        if triple[0] >= triple[2]:
+            return False
+        
+    return True
+
+# checks if an entity is allowed in a certain triple using ontology, for literal comparisons, is_valid_comp() is returned
 def fits_domain_range(entity, triple, ontology:Ontology, kg:IncidenceList, pmap:P_map, type_predicate):
-    # TODO adapt to allow literal comparisons
+    if entity not in triple:
+        raise ValueError("Entity not in triple.")
+    
+
     check_domain = False
     check_range = False
     literal = False
+
     if isLiteral(entity):
         literal = True
+
+    if literal and is_valid_comp(triple):
+        return True
+    if is_literal_comp(triple[1]):
+        # it is a literal comp, but it is not valid as checked before
+        return False
+    
+
     if entity == triple[0]:
         if literal:
-            # subject cannot be literal
+            # literal comparisons have been handled before, subject cannot be literal
             return False
         check_domain = True
     if entity == triple[2]:
         check_range = True
-    if entity not in triple:
-        raise ValueError("Entity not in triple.")
+
+    
     
     original = pmap.original_pred(triple[1])
 

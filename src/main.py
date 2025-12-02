@@ -137,7 +137,7 @@ if __name__ == '__main__':
 
 
         kg_transformed_i_list = IncidenceList()
-        parseGraph(f"{transform_output_dir}/TransformedKG_{kg_name}.nt", kg_transformed_i_list)
+        parseGraph(f"{transform_output_dir}/TransformedKG_{kg_name}.nt", kg_transformed_i_list, prefix)
         o = Ontology()
         parseOntology(ontology_path, o, prefix)
         mine_rules(kg_transformed_i_list,  original_predicates, transform_output_dir, o, rules_path, prefix, 3, 15, 0.5)
