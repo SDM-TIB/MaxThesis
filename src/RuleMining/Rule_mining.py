@@ -126,12 +126,14 @@ def mine_rules_for_target_predicate(g:set, v:set, pmap:P_map, transformed_kg:Inc
     #valid rule
     r = Rule(head=("?VAR1","isGenre", "?VAR2"), 
              body={("?VAR3", "collaboratedWith", "?VAR4"), ("?VAR5", "hasAlbum", "?VAR6"), ("?VAR7", "isGenre", "?VAR8"), 
-                   ("?VAR9", "hasAlbum", "?VAR10"), ("?VAR11", "releaseYear", "?VAR12")}, 
-                   connections={("?VAR1", "?VAR6", "?VAR11"), ("?VAR2", "?VAR8"), ("?VAR5", "?VAR3"), ("?VAR4", "?VAR9"),("?VAR10", "?VAR7")}) 
-    if False and pmap.target == "isGenre":
-        print(is_valid(r))
-        print(cov(r,kg,isGenre_g, pmap))
-        print(instantiable(r, kg,pmap,{}))
+                   ("?VAR9", "hasAlbum", "?VAR10"), ("?VAR11", "releaseYear", "?VAR12"), ("?VAR13", "releaseYear", "?VAR14"), ("?VAR15", "<", "?VAR16")}, 
+                   connections={("?VAR1", "?VAR6", "?VAR11"), ("?VAR2", "?VAR8"), ("?VAR5", "?VAR3"), ("?VAR4", "?VAR9"),("?VAR10", "?VAR7", "?VAR13"), ("?VAR12", "?VAR16"),("?VAR13", "?VAR15")}) 
+    if pmap.target == "isGenre":
+        #print(is_valid(r))
+        #print(cov(r,kg,isGenre_g, pmap))
+        print(covers(r,kg,('Ten_Summoner%27s_Tales', 'Pop'), pmap))
+        #print(covers(r,kg,('Rubber_Soul', 'Rock'), pmap))
+        #print(instantiable(r, kg,pmap,{}))
         exit()
     d = {}
     d[r] = 5
@@ -140,104 +142,104 @@ def mine_rules_for_target_predicate(g:set, v:set, pmap:P_map, transformed_kg:Inc
 
 
 
-    p1 = Path()
-    p1.head = ("Shape_of_my_Heart","isGenre_Pop","Pop")
-    p1.graph.add("Dire_Straits","hasAlbum_Making_Movies", "Making_Movies")
-    p1.graph.add("Solid_Rock", "includedIn_Making_Movies", "Making_Movies")
-    p1.graph.add("Sting", "collaboratedWith_Dire_Straits", "Dire_Straits")
-    p1.graph.add("Sting","hasAlbum_Ten_Summoner%27s_Tales","Ten_Summoner%27s_Tales")
-    p1.graph.add("Shape_of_my_Heart","includedIn_Ten_Summoner%27s_Tales","Ten_Summoner%27s_Tales")
-    p1.graph.add("Shape_of_my_Heart","isGenre_Pop","Pop")
-    p1.graph.add("Making_Movies","isGenre_Pop","Pop")
-    p1.graph.add("Pop","=","Pop")
-    p1.graph.add("Ten_Summoner%27s_Tales","releaseYear_1993","\"1993\"^^<http://www.w3.org/2001/XMLSchema#/int>")
-    p1.graph.add("Making_Movies.","releaseYear_1980","\"1980\"^^<http://www.w3.org/2001/XMLSchema#/int>")
-    p1.graph.add("\"1993\"^^<http://www.w3.org/2001/XMLSchema#/int>","<","\"1980\"^^<http://www.w3.org/2001/XMLSchema#/int>")
-   # p1.graph.add("Shape_of_my_Heart","writer_Sting","Sting")
+#     p1 = Path()
+#     p1.head = ("Shape_of_my_Heart","isGenre_Pop","Pop")
+#     p1.graph.add("Dire_Straits","hasAlbum_Making_Movies", "Making_Movies")
+#     p1.graph.add("Solid_Rock", "includedIn_Making_Movies", "Making_Movies")
+#     p1.graph.add("Sting", "collaboratedWith_Dire_Straits", "Dire_Straits")
+#     p1.graph.add("Sting","hasAlbum_Ten_Summoner%27s_Tales","Ten_Summoner%27s_Tales")
+#     p1.graph.add("Shape_of_my_Heart","includedIn_Ten_Summoner%27s_Tales","Ten_Summoner%27s_Tales")
+#     p1.graph.add("Shape_of_my_Heart","isGenre_Pop","Pop")
+#     p1.graph.add("Making_Movies","isGenre_Pop","Pop")
+#     p1.graph.add("Pop","=","Pop")
+#     p1.graph.add("Ten_Summoner%27s_Tales","releaseYear_1993","\"1993\"^^<http://www.w3.org/2001/XMLSchema#/int>")
+#     p1.graph.add("Making_Movies.","releaseYear_1980","\"1980\"^^<http://www.w3.org/2001/XMLSchema#/int>")
+#     p1.graph.add("\"1993\"^^<http://www.w3.org/2001/XMLSchema#/int>","<","\"1980\"^^<http://www.w3.org/2001/XMLSchema#/int>")
+#    # p1.graph.add("Shape_of_my_Heart","writer_Sting","Sting")
 
-    p2 = Path()
-    p2.head = ("I_Shot_the_Sheriff","isGenre_Rock","Rock")
-    p2.graph.add("Here_Comes_the_Sun","includedIn_Abbey_Road","Abbey_Road")
-    #p2.graph.add("Here_Comes_the_Sun","releaseYear_1969","\"1969\"^^<http://www.w3.org/2001/XMLSchema#/int>")
-    #p2.graph.add("461_Ocean_Blvd.","releaseYear_1974","\"1974\"^^<http://www.w3.org/2001/XMLSchema#/int>")
-    #p2.graph.add("\"1969\"^^<http://www.w3.org/2001/XMLSchema#/int>","<","\"1974\"^^<http://www.w3.org/2001/XMLSchema#/int>")
-    p2.graph.add("I_Shot_the_Sheriff","includedIn_461_Ocean_Blvd.","461_Ocean_Blvd.")
-    p2.graph.add("Eric_Clapton","collaboratedWith_The_Beatles","The_Beatles")
-    p2.graph.add("Here_Comes_the_Sun","isGenre_Rock","Rock")
-    p2.graph.add("The_Beatles","hasAlbum_Abbey_Road","Abbey_Road")
-    p2.graph.add("Eric_Clapton","hasAlbum_461_Ocean_Blvd.","461_Ocean_Blvd.")
+#     p2 = Path()
+#     p2.head = ("I_Shot_the_Sheriff","isGenre_Rock","Rock")
+#     p2.graph.add("Here_Comes_the_Sun","includedIn_Abbey_Road","Abbey_Road")
+#     #p2.graph.add("Here_Comes_the_Sun","releaseYear_1969","\"1969\"^^<http://www.w3.org/2001/XMLSchema#/int>")
+#     #p2.graph.add("461_Ocean_Blvd.","releaseYear_1974","\"1974\"^^<http://www.w3.org/2001/XMLSchema#/int>")
+#     #p2.graph.add("\"1969\"^^<http://www.w3.org/2001/XMLSchema#/int>","<","\"1974\"^^<http://www.w3.org/2001/XMLSchema#/int>")
+#     p2.graph.add("I_Shot_the_Sheriff","includedIn_461_Ocean_Blvd.","461_Ocean_Blvd.")
+#     p2.graph.add("Eric_Clapton","collaboratedWith_The_Beatles","The_Beatles")
+#     p2.graph.add("Here_Comes_the_Sun","isGenre_Rock","Rock")
+#     p2.graph.add("The_Beatles","hasAlbum_Abbey_Road","Abbey_Road")
+#     p2.graph.add("Eric_Clapton","hasAlbum_461_Ocean_Blvd.","461_Ocean_Blvd.")
 
-    print(p1)
-    print(p2)
-    r1 = p1.rule(pmap)
+#     print(p1)
+#     print(p2)
+#     r1 = p1.rule(pmap)
 
-    r2 = p2.rule(pmap)
-
-
-
-    print(r1._Rule__key() == r2._Rule__key())
-    print(r1)
-    print(r2)
-    print(is_valid(r1))
-    print(is_valid(r2))
-    print(ontology)
-    print(fits_domain_range("\"1969\"", ("\"1969\"","=","\"1969\""), ontology, kg, pmap, type_predicate))
-
-    exit()
+#     r2 = p2.rule(pmap)
 
 
 
+#     print(r1._Rule__key() == r2._Rule__key())
+#     print(r1)
+#     print(r2)
+#     print(is_valid(r1))
+#     print(is_valid(r2))
+#     print(ontology)
+#     print(fits_domain_range("\"1969\"", ("\"1969\"","=","\"1969\""), ontology, kg, pmap, type_predicate))
+
+#     exit()
 
 
-    #boolean that marks if R_out has changed since the last calculation of marginal weight
-    R_out_changed = False
-
-    #TODO Nf in RuDiK
-    frontiers = {t[0] for t in g}
 
 
-    #TODO potential (sub)rules (Qr in RuDiK)
-    candidates = expand_ft(frontiers, kg, g)
+
+    # #boolean that marks if R_out has changed since the last calculation of marginal weight
+    # R_out_changed = False
+
+    # #TODO Nf in RuDiK
+    # frontiers = {t[0] for t in g}
 
 
-    # find most promising (sub)rule, the one with the lowest marginal weight
-    for rule in candidates:
-        continue
+    # #TODO potential (sub)rules (Qr in RuDiK)
+    # candidates = expand_ft(frontiers, kg, g)
 
 
-    # main loop
-    while candidates and r.cur_emw < 0 and len(cov(R_out, kg, g)) < len(g):
+    # # find most promising (sub)rule, the one with the lowest marginal weight
+    # for rule in candidates:
+    #     continue
+
+
+    # # main loop
+    # while candidates and r.cur_emw < 0 and len(cov(R_out, kg, g)) < len(g):
         
-        candidates = candidates.remove(r)
+    #     candidates = candidates.remove(r)
 
-        # if r is a valid rule, add it to solution
-        if is_valid(r):
-            R_out.append(r)
-            R_out_changed = True
+    #     # if r is a valid rule, add it to solution
+    #     if is_valid(r):
+    #         R_out.append(r)
+    #         R_out_changed = True
 
-        # if r is not a valid rule, expand on it
-        else:
-            #expand r
-            if len(r.body) < max_depth:
-                #the last visited nodes in all search paths that correspond to r
-                frontiers = ft(r)
-                new_rules = expand_ft(frontiers, kg, g)
-                candidates.append(new_rules)
+    #     # if r is not a valid rule, expand on it
+    #     else:
+    #         #expand r
+    #         if len(r.body) < max_depth:
+    #             #the last visited nodes in all search paths that correspond to r
+    #             frontiers = ft(r)
+    #             new_rules = expand_ft(frontiers, kg, g)
+    #             candidates.append(new_rules)
 
-        # find new r
-        if R_out_changed:
-            r.cur_emw = est_m_weight(r, R_out, kg, g, v, alpha, beta)
-            for rule in candidates:
-                continue
+    #     # find new r
+    #     if R_out_changed:
+    #         r.cur_emw = est_m_weight(r, R_out, kg, g, v, alpha, beta)
+    #         for rule in candidates:
+    #             continue
 
-        else:
-            for new_rule in new_rules:
-                continue
-
-
+    #     else:
+    #         for new_rule in new_rules:
+    #             continue
 
 
-        R_out_changed = False
+
+
+    #     R_out_changed = False
 
     #TODO rudik
     return R_out

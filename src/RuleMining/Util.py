@@ -197,8 +197,7 @@ def valid_entity_instanciation(e, c, r:Rule, entity_dict, pmap:P_map, kg:Inciden
     if not isLiteral(e) and len(kg.nodes[e]) < len(c):
         # except for literals, entities cannot appear more often in rule than the amount of triples they're apart of
         return False
-    # TODO adapt to allow literal comparisons
-    print(f"+++++++\n CALL fiiting triples with e {e}, c{c}, dict {entity_dict}")
+    print(f"+++++++\n CALL valid_entity_instanciation with e {e}, c{c}, dict {entity_dict}")
     for var in c:
 
         found = False
@@ -235,9 +234,9 @@ def valid_entity_instanciation(e, c, r:Rule, entity_dict, pmap:P_map, kg:Inciden
                     break
 
         if not found:
-            print("False fitting triples")
+            print(f"False valid_entity_instanciation pair {pair}")
             return False
-    print("True fitting triples")
+    print("True valid_entity_instanciation")
     return True
 
 
@@ -269,18 +268,18 @@ def instantiable(rule:Rule, kg:IncidenceList, pmap:P_map, entity_dict):
             entity_dict = {}
             for var in c:
                 entity_dict[var] = s
-            return instantiable(rule, kg, pmap, entity_dict)
-
-    literal_triples = set()
+            if instantiable(rule, kg, pmap, entity_dict):
+                return True
+        return False
     for triple in rule.body:
-        # collect and skip literal comparisons for now b/c likely most expensive triples to iterate over instanciations of
-        if is_literal_comp(triple[1]):
-            literal_triples.add(triple)
-            continue
+
         # find dangling triple
         is_s = triple[0] in entity_dict
         is_o = triple[2] in entity_dict
 
+        if is_literal_comp(triple[1]) and is_s and is_o:
+            if not is_valid_comp((entity_dict[triple[0]], triple[1], entity_dict[triple[2]])):
+                return False
 
         if is_s != is_o:
             preds = pmap.new_preds(triple[1])
@@ -297,8 +296,15 @@ def instantiable(rule:Rule, kg:IncidenceList, pmap:P_map, entity_dict):
             # need to instantiate object
 
                 s = entity_dict[triple[0]]
-                possible_o = {pair[1] for pair in edges if pair[0] == s} 
+
+                if is_literal_comp(triple[1]):
+                    s_type = literalType(s)
+                    possible_o = {l for l in kg.nodes if isLiteral(l) and s_type == literalType(l)}
+                else:
+                    possible_o = {pair[1] for pair in edges if pair[0] == s} 
+
                 # if no instances for triple, rule is not instantiable along current path
+                print(f"possible o {possible_o}")
                 if not possible_o:
                     print(f"1RETURN FALSE instantiable with {entity_dict}")
                     return False
@@ -326,9 +332,14 @@ def instantiable(rule:Rule, kg:IncidenceList, pmap:P_map, entity_dict):
             else:
             # need to instantiate subject
                 o = entity_dict[triple[2]]
-                possible_s = {pair[0] for pair in edges if pair[1] == o} 
+                if is_literal_comp(triple[1]):
+                    o_type = literalType(o)
+                    possible_s = {l for l in kg.nodes if isLiteral(l) and o_type == literalType(l)}
+                else:
+                    possible_s = {pair[0] for pair in edges if pair[1] == o} 
 
                 # if no instances for triple, rule is not instantiable along current path
+                print(f"possible s {possible_s}")
                 if not possible_s:
                     print(f"3RETURN FALSE instantiable with {entity_dict}")
                     return False
@@ -352,9 +363,7 @@ def instantiable(rule:Rule, kg:IncidenceList, pmap:P_map, entity_dict):
                 print(f"4RETURN FALSE instantiable with {entity_dict}")
                 return False
             
-    if literal_triples:
-        pass
-        # TODO handle literal comps here
+
 
     # no dangling triples, all instanciated -> assumes body is completely connected 
     print(f"3RETURN TRUE with  {entity_dict}")
@@ -372,7 +381,6 @@ def covers(r:Rule, kg, ex, pmap):
     b1 = False
     b2 = False
     entity_dict = {}
-    # TODO insert fitting triples check
     for c in r.connections:
         if not b1 and  t_1 in c:
             b1 = True
@@ -522,6 +530,7 @@ def is_valid_comp(triple):
 
 # checks if an entity is allowed in a certain triple using ontology, for literal comparisons, is_valid_comp() is returned
 def fits_domain_range(entity, triple, ontology:Ontology, kg:IncidenceList, pmap:P_map, type_predicate):
+    print("CALL")
     if entity not in triple:
         raise ValueError("Entity not in triple.")
     
@@ -581,15 +590,14 @@ def fits_domain_range(entity, triple, ontology:Ontology, kg:IncidenceList, pmap:
             entity_type_predicates = type_predicates.intersection(kg.nodes[entity])
         else:
             raise ValueError("Entity is not in knowledge graph.")
-
         if check_domain: 
             types_d = set()
             types_d.update(domain_range[0])
-
         if check_range:
             types_r = set()
             types_r.update(domain_range[1])
     
+
         if not entity_type_predicates:
             # entity is missing type
             return False
@@ -737,10 +745,10 @@ def getExamplesLCWA(kg:IncidenceList, ontology:Ontology, pmap:P_map, count:int, 
     eligible_edges = set()
     for p in preds:
         eligible_edges.update(kg.edges[p])
-        print(kg.edges[p])
 
     diff = count - len(out)
     while len(out) < count and eligible_preds:
+        print("LCWA while")
         max_i = int(diff /( 2 * len(eligible_preds)) + 1) 
         eligible_preds_copy = eligible_preds.copy()
         for p in eligible_preds_copy:
@@ -771,8 +779,6 @@ def getExamplesLCWA(kg:IncidenceList, ontology:Ontology, pmap:P_map, count:int, 
                     break
                 
         diff = count - len(out)
-    print(diff)
-    #print(out)
     for _ in range(-diff):
         out.pop()
     return out

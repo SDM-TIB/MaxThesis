@@ -151,6 +151,7 @@
 <http://example.org/The_Seventh_One> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://example.org/Album> .
 <http://example.org/Sting> <http://example.org/isMemberOf> <http://example.org/The_Police> .
 <http://example.org/Sting> <http://example.org/collaboratedWith> <http://example.org/Dire_Straits> .
+<http://example.org/Dire_Straits> <http://example.org/collaboratedWith> <http://example.org/Sting> .
 <http://example.org/Eric_Clapton> <http://example.org/collaboratedWith> <http://example.org/The_Beatles> .
 <http://example.org/The_Beatles> <http://example.org/collaboratedWith> <http://example.org/Eric_Clapton> .
 <http://example.org/Shape_of_my_Heart> <http://example.org/writer> <http://example.org/Sting> .
