@@ -121,74 +121,71 @@ def mine_rules_for_target_predicate(g:set, v:set, pmap:P_map, transformed_kg:Inc
     R_out = []
 
     
-    isGenre_g = {('Ten_Summoner%27s_Tales', 'Pop'), ('Dire_Straits(Album)', 'Rock'), ('Rubber_Soul', 'Rock'), ('Making_Movies', 'Pop')}#, ('Outlandos_D%27Amour', 'Punk'), ('In_The_Gallery', 'Rock'), ('461_Ocean_Blvd.', 'Blues'), ('Water_Of_Love', 'Country'), ('Make_Beleive', 'Metal'), ('The_Beatles(Album)', 'Jazz'), ('It%27s_a_Feeling', 'Soul'), ('Regatta_De_Blanc', 'Reggae'), ('Let_It_Be', 'Pop'), ('Sultans_Of_Swing', 'Funk'), ('Lovers_in_the_Night', 'Country')}
-    print(isGenre_g)
+    isGenre_g = {('Ten_Summoner%27s_Tales', 'Pop'), ('Dire_Straits(Album)', 'Rock'), ('Wild_West_End', 'Rock'), ('Rubber_Soul', 'Rock'), ('Making_Movies', 'Pop'), ('Outlandos_D%27Amour', 'Punk'), ('In_The_Gallery', 'Rock'), ('461_Ocean_Blvd.', 'Blues'), ('Water_Of_Love', 'Country'), ('Make_Beleive', 'Metal'), ('The_Beatles(Album)', 'Jazz'), ('It%27s_a_Feeling', 'Soul'), ('Regatta_De_Blanc', 'Reggae'), ('Let_It_Be', 'Pop'), ('Sultans_Of_Swing', 'Funk'), ('Lovers_in_the_Night', 'Country')}
+    isGenre_v = {('Africa', 'Funk'), ('Toto_IV', 'Metal'), ('Making_Movies', 'Metal'), ('Ten_Summoner%27s_Tales', 'Rock'), ('Make_Beleive', 'Jazz'), ('Make_Beleive', 'Rock'), ('Africa', 'Soul'), ('Toto', 'Metal'), ('Make_Beleive', 'Funk'), ('Outlandos_D%27Amour', 'Metal'), ('Dire_Straits(Album)', 'Metal'), ('Africa', 'Jazz'), ('Let_It_Be', 'Metal'), ('Ten_Summoner%27s_Tales', 'Metal'), ('461_Ocean_Blvd.', 'Rock')}
     #valid rule
     r = Rule(head=("?VAR1","isGenre", "?VAR2"), 
              body={("?VAR3", "collaboratedWith", "?VAR4"), ("?VAR5", "hasAlbum", "?VAR6"), ("?VAR7", "isGenre", "?VAR8"), 
                    ("?VAR9", "hasAlbum", "?VAR10"), ("?VAR11", "releaseYear", "?VAR12"), ("?VAR13", "releaseYear", "?VAR14"), ("?VAR15", "<", "?VAR16")}, 
-                   connections={("?VAR1", "?VAR6", "?VAR11"), ("?VAR2", "?VAR8"), ("?VAR5", "?VAR3"), ("?VAR4", "?VAR9"),("?VAR10", "?VAR7", "?VAR13"), ("?VAR12", "?VAR16"),("?VAR13", "?VAR15")}) 
+                   connections={("?VAR1", "?VAR6", "?VAR11"), ("?VAR2", "?VAR8"), ("?VAR5", "?VAR3"), ("?VAR4", "?VAR9"),("?VAR10", "?VAR7", "?VAR13"), ("?VAR12", "?VAR16"),("?VAR14", "?VAR15")}) 
+    
+
+
+
+
+    p1 = Path()
+    p1.head = ("Ten_Summoner%27s_Tales","isGenre_Pop","Pop")
+    p1.graph.add("Dire_Straits","hasAlbum_Making_Movies", "Making_Movies")
+    p1.graph.add("Sting", "collaboratedWith_Dire_Straits", "Dire_Straits")
+    p1.graph.add("Sting","hasAlbum_Ten_Summoner%27s_Tales","Ten_Summoner%27s_Tales")
+    p1.graph.add("Making_Movies","isGenre_Pop","Pop")
+    p1.graph.add("Ten_Summoner%27s_Tales","releaseYear_1993","\"1993\"^^<http://www.w3.org/2001/XMLSchema#/int>")
+    p1.graph.add("Making_Movies","releaseYear_1980","\"1980\"^^<http://www.w3.org/2001/XMLSchema#/int>")
+    p1.graph.add("\"1980\"^^<http://www.w3.org/2001/XMLSchema#/int>","<","\"1993\"^^<http://www.w3.org/2001/XMLSchema#/int>")
+   # p1.graph.add("Shape_of_my_Heart","writer_Sting","Sting")
+
+    p2 = Path()
+    p2.head = ("I_Shot_the_Sheriff","isGenre_Rock","Rock")
+    #p2.graph.add("Here_Comes_the_Sun","releaseYear_1969","\"1969\"^^<http://www.w3.org/2001/XMLSchema#/int>")
+    #p2.graph.add("461_Ocean_Blvd.","releaseYear_1974","\"1974\"^^<http://www.w3.org/2001/XMLSchema#/int>")
+    #p2.graph.add("\"1969\"^^<http://www.w3.org/2001/XMLSchema#/int>","<","\"1974\"^^<http://www.w3.org/2001/XMLSchema#/int>")
+    p2.graph.add("I_Shot_the_Sheriff","includedIn_461_Ocean_Blvd.","461_Ocean_Blvd.")
+    p2.graph.add("461_Ocean_Blvd.","isGenre_Rock","Rock")
+
+    print(p1)
+    print(p2)
+    r1 = p1.rule(pmap)
+
+    r2 = p2.rule(pmap)
+
+    r3 = Rule(
+        head=('?VAR1', 'isGenre', '?VAR2'),
+        body={('?VAR9', 'isGenre', '?VAR10'), ('?VAR15', 'releaseYear', '?VAR16'), ('?VAR3', 'hasAlbum', '?VAR4')},
+        connections={('?VAR4', '?VAR1', '?VAR15'), ('?VAR10', '?VAR2')})
+
+
     if pmap.target == "isGenre":
-        #print(is_valid(r))
-        #print(cov(r,kg,isGenre_g, pmap))
-        print(covers(r,kg,('Ten_Summoner%27s_Tales', 'Pop'), pmap))
-        #print(covers(r,kg,('Rubber_Soul', 'Rock'), pmap))
-        #print(instantiable(r, kg,pmap,{}))
+        rule_dict = {}
+        rule_dict[p1.rule(pmap)] = set()
+        rule_dict[p2.rule(pmap)] = set()
+        rule_dict[r3] = set()
+        R_out = [r1,r2]
+        #print(v)
+        for egg in isGenre_g:
+            eg = Path(head=(egg[0], pmap.target, egg[1]))
+            if covers(r1, kg, egg, pmap):
+                rule_dict[r1].add(eg)
+            if covers(r2, kg, egg, pmap):
+                rule_dict[r2].add(eg)
+            if covers(r3, kg, egg, pmap):
+                rule_dict[r3].add(eg)
+        print(est_m_weight(r3, R_out, rule_dict, kg, isGenre_g, isGenre_v, alpha, beta, pmap))
+        print(cov(r2, kg, isGenre_v, pmap))
+
         exit()
-    d = {}
-    d[r] = 5
 
-
-
-
-
-#     p1 = Path()
-#     p1.head = ("Shape_of_my_Heart","isGenre_Pop","Pop")
-#     p1.graph.add("Dire_Straits","hasAlbum_Making_Movies", "Making_Movies")
-#     p1.graph.add("Solid_Rock", "includedIn_Making_Movies", "Making_Movies")
-#     p1.graph.add("Sting", "collaboratedWith_Dire_Straits", "Dire_Straits")
-#     p1.graph.add("Sting","hasAlbum_Ten_Summoner%27s_Tales","Ten_Summoner%27s_Tales")
-#     p1.graph.add("Shape_of_my_Heart","includedIn_Ten_Summoner%27s_Tales","Ten_Summoner%27s_Tales")
-#     p1.graph.add("Shape_of_my_Heart","isGenre_Pop","Pop")
-#     p1.graph.add("Making_Movies","isGenre_Pop","Pop")
-#     p1.graph.add("Pop","=","Pop")
-#     p1.graph.add("Ten_Summoner%27s_Tales","releaseYear_1993","\"1993\"^^<http://www.w3.org/2001/XMLSchema#/int>")
-#     p1.graph.add("Making_Movies.","releaseYear_1980","\"1980\"^^<http://www.w3.org/2001/XMLSchema#/int>")
-#     p1.graph.add("\"1993\"^^<http://www.w3.org/2001/XMLSchema#/int>","<","\"1980\"^^<http://www.w3.org/2001/XMLSchema#/int>")
-#    # p1.graph.add("Shape_of_my_Heart","writer_Sting","Sting")
-
-#     p2 = Path()
-#     p2.head = ("I_Shot_the_Sheriff","isGenre_Rock","Rock")
-#     p2.graph.add("Here_Comes_the_Sun","includedIn_Abbey_Road","Abbey_Road")
-#     #p2.graph.add("Here_Comes_the_Sun","releaseYear_1969","\"1969\"^^<http://www.w3.org/2001/XMLSchema#/int>")
-#     #p2.graph.add("461_Ocean_Blvd.","releaseYear_1974","\"1974\"^^<http://www.w3.org/2001/XMLSchema#/int>")
-#     #p2.graph.add("\"1969\"^^<http://www.w3.org/2001/XMLSchema#/int>","<","\"1974\"^^<http://www.w3.org/2001/XMLSchema#/int>")
-#     p2.graph.add("I_Shot_the_Sheriff","includedIn_461_Ocean_Blvd.","461_Ocean_Blvd.")
-#     p2.graph.add("Eric_Clapton","collaboratedWith_The_Beatles","The_Beatles")
-#     p2.graph.add("Here_Comes_the_Sun","isGenre_Rock","Rock")
-#     p2.graph.add("The_Beatles","hasAlbum_Abbey_Road","Abbey_Road")
-#     p2.graph.add("Eric_Clapton","hasAlbum_461_Ocean_Blvd.","461_Ocean_Blvd.")
-
-#     print(p1)
-#     print(p2)
-#     r1 = p1.rule(pmap)
-
-#     r2 = p2.rule(pmap)
-
-
-
-#     print(r1._Rule__key() == r2._Rule__key())
-#     print(r1)
-#     print(r2)
-#     print(is_valid(r1))
-#     print(is_valid(r2))
-#     print(ontology)
-#     print(fits_domain_range("\"1969\"", ("\"1969\"","=","\"1969\""), ontology, kg, pmap, type_predicate))
-
-#     exit()
-
-
-
+    # ('Outlandos_D%27Amour', 'Punk') ('461_Ocean_Blvd.', 'Blues'), ('Regatta_De_Blanc', 'Reggae')
+    # {('Let_It_Be', 'Pop'), ('Dire_Straits(Album)', 'Rock'), ('Rubber_Soul', 'Rock'), ('The_Beatles(Album)', 'Jazz'), ('Ten_Summoner%27s_Tales', 'Pop'), ('Making_Movies', 'Pop')}
 
 
     # #boolean that marks if R_out has changed since the last calculation of marginal weight

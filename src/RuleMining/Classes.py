@@ -145,8 +145,8 @@ class P_map:
     """
     get existing negative variants of post-normalization predicates
     """
-    def neg_preds(new_preds:set, pmap):
-        return {k for k, v in pmap.neg_predicate_mappings.items() if v in new_preds}
+    def neg_preds(self, new_preds:set):
+        return {k for k, v in self.neg_predicate_mappings.items() if v in new_preds}
 
 
 

@@ -36,19 +36,19 @@ Let It Be,#type,Album
 ,,
 ,,
 Dire Straits,hasAlbum,Dire Straits(Album)
-Dire Straits,hasAlbum,Communiqué
+Dire Straits,hasAlbum,Communiqué(Album)
 Dire Straits,hasAlbum,Making Movies
 Dire Straits,hasAlbum,Love Over Gold
 Dire Straits,hasAlbum,Brothers In Arms
 ,,
 Dire Straits(Album),releaseYear,1978
-Communiqué,releaseYear,1979
+Communiqué(Album),releaseYear,1979
 Making Movies,releaseYear,1980
 Love Over Gold,releaseYear,1982
 Brothers In Arms,releaseYear,1985
 ,,
 Dire Straits(Album),isGenre,Rock
-Communiqué,isGenre,Rock
+Communiqué(Album),isGenre,Rock
 Making Movies,isGenre,Rock
 Making Movies,isGenre,Pop
 Love Over Gold,isGenre,Rock
@@ -86,7 +86,7 @@ Lions,#type,Song
 ,,
 Dire Straits,#type,Band
 Dire Straits(Album),#type,Album
-Communiqué,#type,Album
+Communiqué(Album),#type,Album
 Making Movies,#type,Album
 Love Over Gold,#type,Album
 Brothers In Arms,#type,Album
@@ -204,8 +204,8 @@ The Beatles,collaboratedWith,Eric Clapton
 ,,
 Shape of my Heart,writer,Sting
 Shape of my Heart,isGenre,Pop
-Dire Straits,hasAlbum,Communiqué
-Lady Writer,includedIn,Communiqué
+Dire Straits,hasAlbum,Communiqué(Album)
+Lady Writer,includedIn,Communiqué(Album)
 Sting,collaboratedWith,Dire Straits
 Shape_of_my_Heart,isGenre,Pop
 Here_Comes_the_Sun,includedIn,Abbey_Road

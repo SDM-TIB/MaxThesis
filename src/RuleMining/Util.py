@@ -194,16 +194,17 @@ def instantiate(rule:Rule, kg:IncidenceList, entity_dict, pmap):
     entity_dict: dict: var in rule -> entity in graph"""
 def valid_entity_instanciation(e, c, r:Rule, entity_dict, pmap:P_map, kg:IncidenceList):
     
-    if not isLiteral(e) and len(kg.nodes[e]) < len(c):
-        # except for literals, entities cannot appear more often in rule than the amount of triples they're apart of
-        return False
-    print(f"+++++++\n CALL valid_entity_instanciation with e {e}, c{c}, dict {entity_dict}")
+    if not is_literal(e) and len(kg.nodes[e]) < len(c):
+        # except for literals, entities cannot appear more often in rule than the amount of triples they're apart of, in which the otherr variable isn't dangling!!!
+        # TODO try to see if this check makes it faster, need to add that triples where the other var is dangling don't count bc that can be the same triple as one alrready used...
+        # return False
+        pass
     for var in c:
 
         found = False
 
         if var in r.head:
-            triple = r.head
+            continue
         else:
             # next is ok to use b/c there is exactly one appearance per var
             triple = next(t for t in r.body if var in t)
@@ -227,16 +228,15 @@ def valid_entity_instanciation(e, c, r:Rule, entity_dict, pmap:P_map, kg:Inciden
         if is_literal_comp(triple[1]):
             found = is_valid_comp((pair[0], triple[1], pair[1]))
         else:
-            for p in pmap.new_preds(triple[1]) or is_valid_comp((pair[0], triple[1], pair[1])):
+            for p in pmap.new_preds(triple[1]):
                 if  pair in kg.edges[p]:
                     # triple exists for current var
                     found = True
                     break
 
         if not found:
-            print(f"False valid_entity_instanciation pair {pair}")
+            # instanciation does not work with this variable
             return False
-    print("True valid_entity_instanciation")
     return True
 
 
@@ -246,7 +246,6 @@ checks if a rule where some variables may already be instantiated, can be fully 
 """
 # TODO this goes through all combinations chronologically, backtracking algorithm might be faster,
 def instantiable(rule:Rule, kg:IncidenceList, pmap:P_map, entity_dict):
-    print(f"CALL instantiable with {entity_dict}")
     
     # no given instanciations, start with head
     if not entity_dict:
@@ -271,9 +270,11 @@ def instantiable(rule:Rule, kg:IncidenceList, pmap:P_map, entity_dict):
             if instantiable(rule, kg, pmap, entity_dict):
                 return True
         return False
+    
     for triple in rule.body:
+    # find dangling triple
 
-        # find dangling triple
+
         is_s = triple[0] in entity_dict
         is_o = triple[2] in entity_dict
 
@@ -298,15 +299,13 @@ def instantiable(rule:Rule, kg:IncidenceList, pmap:P_map, entity_dict):
                 s = entity_dict[triple[0]]
 
                 if is_literal_comp(triple[1]):
-                    s_type = literalType(s)
-                    possible_o = {l for l in kg.nodes if isLiteral(l) and s_type == literalType(l)}
+                    s_type = literal_type(s)
+                    possible_o = {l for l in kg.nodes.keys() if is_literal(l) and s_type == literal_type(l)}
                 else:
                     possible_o = {pair[1] for pair in edges if pair[0] == s} 
 
                 # if no instances for triple, rule is not instantiable along current path
-                print(f"possible o {possible_o}")
                 if not possible_o:
-                    print(f"1RETURN FALSE instantiable with {entity_dict}")
                     return False
                 
                 # get o-connections
@@ -323,25 +322,21 @@ def instantiable(rule:Rule, kg:IncidenceList, pmap:P_map, entity_dict):
                     for var in c:
                         new_entity_dict[var] = o
                     if instantiable(rule, kg, pmap, new_entity_dict):
-                        print(f"1RETURN TRUE instantiable with {entity_dict}")
                         return True
                     
-                print(f"2RETURN FALSE instantiable with {entity_dict}")
                 return False
                 
             else:
             # need to instantiate subject
                 o = entity_dict[triple[2]]
                 if is_literal_comp(triple[1]):
-                    o_type = literalType(o)
-                    possible_s = {l for l in kg.nodes if isLiteral(l) and o_type == literalType(l)}
+                    o_type = literal_type(o)
+                    possible_s = {l for l in kg.nodes.keys() if is_literal(l) and o_type == literal_type(l)}
                 else:
                     possible_s = {pair[0] for pair in edges if pair[1] == o} 
 
                 # if no instances for triple, rule is not instantiable along current path
-                print(f"possible s {possible_s}")
                 if not possible_s:
-                    print(f"3RETURN FALSE instantiable with {entity_dict}")
                     return False
                 
                 # get s-connections
@@ -358,15 +353,12 @@ def instantiable(rule:Rule, kg:IncidenceList, pmap:P_map, entity_dict):
                     for var in c:
                         new_entity_dict[var] = s
                     if instantiable(rule, kg, pmap, new_entity_dict):
-                        print(f"2RETURN TRUE instantiable with {entity_dict}")
                         return True
-                print(f"4RETURN FALSE instantiable with {entity_dict}")
                 return False
             
 
 
     # no dangling triples, all instanciated -> assumes body is completely connected 
-    print(f"3RETURN TRUE with  {entity_dict}")
     return True
 
 
@@ -375,16 +367,21 @@ ckecks if a rules body covers a given example (pair of entities)
 """
 def covers(r:Rule, kg, ex, pmap):
 
-    # get occurences of target vars
+    # initialise, get occurences of target vars
     t_1 = r.head[0]
     t_2 = r.head[2]
+    # bools if t_1 or t_2 have been handled already, used for avoiding unnessecary computations
     b1 = False
     b2 = False
     entity_dict = {}
+
+    # find vars that connect to head and instantiate them with the example pairtwitch
+
     for c in r.connections:
         if not b1 and  t_1 in c:
             b1 = True
             if b2:
+                # this is only relevant if there is a body atom between the head entities
                 if not valid_entity_instanciation(ex[0], c, r, entity_dict, pmap, kg):
                     return False
             for var in c:
@@ -393,6 +390,7 @@ def covers(r:Rule, kg, ex, pmap):
         if not b2 and t_2 in c:
             b2 = True
             if b1:
+                # this is only relevant if there is a body atom between the head entities
                 if not valid_entity_instanciation(ex[1], c, r, entity_dict, pmap, kg):
                     return False
             for var in c:
@@ -412,13 +410,12 @@ def cov(r:Rule, kg, ex_set:set, pmap:P_map):
     c = set()
     if type(r) == Rule:
         for ex in ex_set:
-            print("--------------------------------------")
             if covers(r, kg, ex, pmap):
                 c.add(ex)
-    elif type(r) == list[Rule]:
-        ex_set_copy = ex.copy()
+    elif type(r) == list and r and type(r[0])== Rule:
+        ex_set_copy = ex_set.copy()
         for rule in r:
-            c.update(cov(rule, kg, ex_set_copy))
+            c.update(cov(rule, kg, ex_set_copy,pmap))
 
             # remove examples that are already covered, to avoid checking them again
             ex_set_copy = ex_set_copy - c
@@ -426,41 +423,72 @@ def cov(r:Rule, kg, ex_set:set, pmap:P_map):
         raise ValueError("r must be type Rule or list[Rule]")
     return c
 
+"""
+unbounded coverage of rules over set
+"""
+def uncov(r:Rule, kg, ex_set:set, pmap):
+    if type(r) == Rule:
+        u_r = unbind(r)
+    elif type(r) == list and r and type(r[0]) == Rule:
+        u_r = [unbind(rule) for rule in r]
+    return cov(u_r,kg, ex_set,  pmap)
+
 
 """
 coverage of r over g
 """
-def cov_g(R_out:list[Rule], g):
+def cov_g(r, g, rule_dict):
     # TODO special case, just check dict entries for each rule and see the heads of the paths and compare to g
-    pass
+    c = set()
+    if type(r) == Rule:
+        for path in rule_dict[r]:
+            c.add((path.head[0], path.head[2]))
 
+    elif type(r) == list and r and type(r[0]) == Rule:
+        g_copy = g.copy()
+        for rule in r:
+            c.update(cov_g(rule, g_copy, rule_dict))
+    else:
+        raise ValueError("r must be type Rule or list[Rule]")
+    return c
 
 """
 unbounded coverage of r over g
 """
-def uncov_g(R_out, g):
-    # TODO special case, just check dict entries for each rule and see the heads of the paths and compare to g
-    pass
-
-
-"""
-unbounded coverage of rules over set
-"""
-def uncov(r:Rule, kg, ex_set:set):
+def uncov_g(r, g, rule_dict):
     if type(r) == Rule:
-        rules = unbind(r)
-    if type(r) == list[Rule]:
-        rules = [unbind(rule) for rule in r]
-    return cov(kg, ex_set, rules)
+        u_r = unbind(r)
+    elif type(r) == list and r and type(r[0]) == Rule:
+        u_r = [unbind(rule) for rule in r]
+    return cov_g(u_r, g, rule_dict)
+
 
 
 """estimated marginal weight"""
-def est_m_weight(r:Rule, R_out:list[Rule], kg, g:set, v:set, alpha:float, beta:float):
-    cov_r_out_v = cov(R_out, kg, v)
+def est_m_weight(r:Rule, R_out:list[Rule], rule_dict, kg, g:set, v:set, alpha:float, beta:float, pmap):
+    cardinality_cov_r_out_v = len(cov(R_out, kg, v, pmap))
+    uncov_r_out_v = uncov(R_out, kg, v, pmap)
+    uncov_r_v = uncov(r, kg, v, pmap)
+    cardinality_uncov_r_out_r_v = len(set.union(uncov_r_out_v, uncov_r_v))
+    cardinality_uncov_r_out_v = len(uncov_r_out_v)
     # TODO check if still correct
-    return -alpha * (len(cov([r], kg, g) - cov(R_out, kg, g))/len(g)) + beta * (cov_r_out_v / uncov(R_out.append(r), kg, v) - cov_r_out_v / uncov(R_out, kg, v))
 
+    if not cardinality_cov_r_out_v:
+    # if this is zero we know the beta part is zerro, the divisors will also be zero resulting in error, thus removing beta part altogether
+            out = -alpha * ((len(cov_g(r, g, rule_dict) - cov_g(R_out, g, rule_dict)))/len(g))
 
+    out = -alpha * ((len(cov_g(r, g, rule_dict) - cov_g(R_out, g, rule_dict)))/len(g)) + beta * ((cardinality_cov_r_out_v / cardinality_uncov_r_out_r_v) - (cardinality_cov_r_out_v / cardinality_uncov_r_out_v))
+
+    print(cov_g(r, g, rule_dict))
+    print(cov_g(R_out, g, rule_dict))
+    print(len(g))
+    print(cardinality_cov_r_out_v)
+    print(cov(R_out, kg, v, pmap))
+    print(cardinality_uncov_r_out_r_v)
+    print(uncov(r, kg, v, pmap))
+    print(cardinality_uncov_r_out_v)
+    print(uncov(R_out, kg, v, pmap))
+    return out
 """
 check if a (sub)rule is a valid rule
 """
@@ -487,7 +515,7 @@ def is_valid(r:Rule):
     # iterate over atoms, fuse connection tuples that are connected by handled atoms
     for atom in r.body:
 
-        # get all vars, s and o are connected to
+        # get all vars s and o are connected to
         s_c = next((c for c in con if atom[0] in c), None)
         o_c = next((c for c in con if atom[2] in c ), None)
         
@@ -515,7 +543,7 @@ def is_valid(r:Rule):
     return True
 
 def is_valid_comp(triple):
-    if not is_literal_comp(triple[1]) or (literalType(triple[0]) != literalType(triple[2])):
+    if not is_literal_comp(triple[1]) or (literal_type(triple[0]) != literal_type(triple[2])):
         return False  
     # TODO maybe ensure s and o are object of same predicate
     
@@ -539,7 +567,7 @@ def fits_domain_range(entity, triple, ontology:Ontology, kg:IncidenceList, pmap:
     check_range = False
     literal = False
 
-    if isLiteral(entity):
+    if is_literal(entity):
         literal = True
 
     if literal and is_valid_comp(triple):
@@ -571,10 +599,10 @@ def fits_domain_range(entity, triple, ontology:Ontology, kg:IncidenceList, pmap:
 
     if literal:
         types_r = domain_range[1]
-        literal_type = literalType(entity)
+        literal_t = literal_type(entity)
 
         for t in types_r:
-            if derivable(literal_type, t, ontology.literal_hierarchy):
+            if derivable(literal_t, t, ontology.literal_hierarchy):
                 return True
         return False
 
@@ -630,7 +658,7 @@ def fits_domain_range(entity, triple, ontology:Ontology, kg:IncidenceList, pmap:
     
 
 """help function for fits_domain_range()"""
-def literalType(l:str):
+def literal_type(l:str):
     temp = l.split("\"")[2]
     if temp:
         if temp.__contains__("<"):
@@ -647,7 +675,7 @@ def literalType(l:str):
 
    
 """help function for fits_domain_range()"""
-def isLiteral(e:str):
+def is_literal(e:str):
     # TODO make this check better
     return e.__contains__("\"")
         
@@ -748,7 +776,7 @@ def getExamplesLCWA(kg:IncidenceList, ontology:Ontology, pmap:P_map, count:int, 
 
     diff = count - len(out)
     while len(out) < count and eligible_preds:
-        print("LCWA while")
+        print(f"LCWA while target {pmap.target}")
         max_i = int(diff /( 2 * len(eligible_preds)) + 1) 
         eligible_preds_copy = eligible_preds.copy()
         for p in eligible_preds_copy:
