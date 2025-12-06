@@ -17,6 +17,8 @@ class TriplePattern:
 
     def __str__(self):
         return f"({self.predicate}, {self.object}, {'NOT ' if self.is_not_exists else ''}FILTER)" if self.in_filter else f"({self.predicate}, {self.object})"
+    def __repr__(self):
+        return f"({self.predicate}, {self.object}, {'NOT ' if self.is_not_exists else ''}FILTER)" if self.in_filter else f"({self.predicate}, {self.object})"
 
 
 def extract_triple_patterns(query_text: str) -> List[TriplePattern]:
@@ -335,6 +337,9 @@ def transform(kg: Graph, constraints_folder: str, prefix,  kg_name: str = None) 
             if matches_conditions:
                 for s, p, o in transformed_kg.triples((subject, None, None)):
                     transformed = transform_triple((s, p, o), filter_patterns, predicate_mapping)
+                    print("+++++++++++++++++++++++")
+                    print(transformed_kg.triples((subject, None, None)))
+                    print(constraint_patterns['http://example.org/shapes/BeatlesAlbumGenreConstraint'])
                     if transformed:
                         triples_to_remove.add((s, p, o))
                         triples_to_add.add(transformed)

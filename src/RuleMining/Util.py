@@ -558,7 +558,7 @@ def is_valid_comp(triple):
 
 # checks if an entity is allowed in a certain triple using ontology, for literal comparisons, is_valid_comp() is returned
 def fits_domain_range(entity, triple, ontology:Ontology, kg:IncidenceList, pmap:P_map, type_predicate):
-    print("CALL")
+    # print("CALL")
     if entity not in triple:
         raise ValueError("Entity not in triple.")
     

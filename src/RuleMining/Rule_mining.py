@@ -129,8 +129,26 @@ def mine_rules_for_target_predicate(g:set, v:set, pmap:P_map, transformed_kg:Inc
                    ("?VAR9", "hasAlbum", "?VAR10"), ("?VAR11", "releaseYear", "?VAR12"), ("?VAR13", "releaseYear", "?VAR14"), ("?VAR15", "<", "?VAR16")}, 
                    connections={("?VAR1", "?VAR6", "?VAR11"), ("?VAR2", "?VAR8"), ("?VAR5", "?VAR3"), ("?VAR4", "?VAR9"),("?VAR10", "?VAR7", "?VAR13"), ("?VAR12", "?VAR16"),("?VAR14", "?VAR15")}) 
     
+# {
+#   "KG": "musicKG",
+#   "prefix": "http://example.org/",
+#   "rules_file": "musicKG.csv",
+#   "rdf_file": "musicKG.nt",
+#   "constraints_folder": "musicKG",
+#   "ontology_file": "musicKGOntology.ttl",
+#   "pca_threshold": 0.75
+# }
 
 
+# {
+#   "KG": "FrenchRoyalty",
+#   "prefix": "http://FrenchRoyalty.org/",
+#   "rules_file": "french_royalty.csv",
+#   "rdf_file": "french_royalty.nt",
+#   "constraints_folder": "FrenchRoyalty",
+#   "ontology_file": "musicKGOntology.ttl",
+#   "pca_threshold": 0.75
+# }
 
 
     p1 = Path()
