@@ -7,6 +7,8 @@ from RuleMining.Classes import Path, Rule, P_map, IncidenceList, Ontology, dfs, 
 # filling custom datastructures
 ########################################
 
+# TODO refactor every dict call in project to use get()
+
 """parse a graph from nt file into IncidenceList"""
 def parseGraph(ntFilePath, graph:IncidenceList, prefix=""):
     with open(ntFilePath, 'r', encoding='utf-8') as file:
@@ -152,7 +154,7 @@ def tripleRemovePrefix(triple:tuple[str], prefix:str):
 
 """add prefix to triple"""
 def tripleAddPrefix(triple:tuple[str], prefix:str):        
-    return (f"<{prefix}{triple[0]}>",f"<{prefix}{triple[1]}>",f"<{prefix}{triple[2]}>")
+    return (f"{prefix}{triple[0]}",f"{prefix}{triple[1]}",f"{prefix}{triple[2]}")
 
 
 
@@ -229,7 +231,8 @@ def valid_entity_instanciation(e, c, r:Rule, entity_dict, pmap:P_map, kg:Inciden
             found = is_valid_comp((pair[0], triple[1], pair[1]))
         else:
             for p in pmap.new_preds(triple[1]):
-                if  pair in kg.edges[p]:
+                ed = kg.edges.get(p)
+                if ed and pair in ed:
                     # triple exists for current var
                     found = True
                     break
@@ -289,7 +292,9 @@ def instantiable(rule:Rule, kg:IncidenceList, pmap:P_map, entity_dict):
             
             edges = set()
             for pr in preds:
-                edges.update(kg.edges[pr]) 
+                ed = kg.edges.get(pr)
+                if ed:
+                    edges.update(ed) 
 
 
             # find all instances for var that is not instantiated yet and recurse
@@ -742,14 +747,17 @@ def getExamples(kg:IncidenceList, preds:set, count:int):
             exit()
         eligible_preds_copy = eligible_preds.copy()
         for p in eligible_preds_copy:
-            l = len(kg.edges[p])
+            if not kg.edges.get(p):
+                continue
+
+            l = len(kg.edges.get(p)) 
             if l <= (max_i + 1):
                 # if all instances of predicate will be used, remove
                 eligible_preds.remove(p)
             
             # add even share of elements per predicate, if possible
             i = 0
-            for n in kg.edges[p]:
+            for n in kg.edges.get(p):
                 if n not in out:
                     out.add(n)
                     i += 1
@@ -769,10 +777,16 @@ def getExamplesLCWA(kg:IncidenceList, ontology:Ontology, pmap:P_map, count:int, 
     out = set()
     eligible_preds = preds.copy()
 
+
+    # TODO fix infinite loop
+    loop_count = 0 
+
     # will hold all instances of target predicate, search from the connected entities
     eligible_edges = set()
     for p in preds:
-        eligible_edges.update(kg.edges[p])
+        edges = kg.edges.get(p)
+        if edges:
+            eligible_edges.update(edges)
 
     diff = count - len(out)
     while len(out) < count and eligible_preds:
@@ -780,6 +794,8 @@ def getExamplesLCWA(kg:IncidenceList, ontology:Ontology, pmap:P_map, count:int, 
         max_i = int(diff /( 2 * len(eligible_preds)) + 1) 
         eligible_preds_copy = eligible_preds.copy()
         for p in eligible_preds_copy:
+            if not kg.edges.get(p):
+                continue
             l = len(kg.edges[p])
             if l <= (max_i):
                 # if all instances of predicate will be used, remove
@@ -805,7 +821,12 @@ def getExamplesLCWA(kg:IncidenceList, ontology:Ontology, pmap:P_map, count:int, 
                 i += 1
                 if i > max_i:
                     break
-                
+
+        # TODO remove after fix
+        loop_count +=1
+        if loop_count > 10:
+            return out
+
         diff = count - len(out)
     for _ in range(-diff):
         out.pop()

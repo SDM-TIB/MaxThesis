@@ -5,7 +5,7 @@ from rdflib import Graph, URIRef, Namespace
 from rdflib.namespace import SH, RDF
 from typing import Dict, List, Tuple, Set, Optional
 
-from RuleMining.Classes import removePrefix
+from RuleMining.Classes import removePrefix, addPrefix
 
 
 class TriplePattern:
@@ -45,10 +45,14 @@ def extract_triple_patterns(query_text: str) -> List[TriplePattern]:
     filter_query = ""
     is_not_exists = False
 
+
     if filter_match:
         filter_query = filter_match.group(1)
         main_query = query_text[:filter_match.start()]
-        is_not_exists = "NOT EXISTS" in query_text[filter_match.start() - 4:filter_match.start() + 15]
+
+        # MAX
+        # original: is_not_exists = "NOT EXISTS" in query_text[filter_match.start() - 4:filter_match.start() + 15]
+        is_not_exists = "NOT EXISTS" in filter_match.group()
 
     def extract_from_text(text: str, in_filter: bool) -> None:
         # Direct patterns with $this
@@ -68,6 +72,7 @@ def extract_triple_patterns(query_text: str) -> List[TriplePattern]:
     if filter_query:
         extract_from_text(filter_query, True)
 
+    print(is_not_exists)
     return patterns
 
 
@@ -207,7 +212,8 @@ def transform_predicate_with_object(kg: Graph, prefix) -> Tuple[Graph, Dict[str,
 
 def transform_triple(triple: Tuple[URIRef, URIRef, URIRef],
                      patterns: List[TriplePattern],
-                     predicate_mapping: Dict[str, str]) -> Optional[Tuple[URIRef, URIRef, URIRef]]:
+                     predicate_mapping: Dict[str, str], 
+                     prefix: str) -> Optional[Tuple[URIRef, URIRef, URIRef]]:
     """
     Transforms a given RDF triple based on specified patterns and a predicate mapping. The transformation is based
     on certain constraints, adding prefixes to object and predicate components if a match is found.
@@ -227,22 +233,23 @@ def transform_triple(triple: Tuple[URIRef, URIRef, URIRef],
 
     subject, predicate, obj = triple
     # We need to match with original predicate from the mapping
-    orig_pred_str = predicate_mapping.get(str(predicate))
-
+    orig_pred_str = predicate_mapping.get(removePrefix(str(predicate), prefix))
 
     matching_filter_pattern = None
     for pattern in patterns:
-        if pattern.in_filter and orig_pred_str and URIRef(orig_pred_str) == pattern.predicate:
+        if pattern.in_filter and orig_pred_str and orig_pred_str == removePrefix(pattern.predicate, prefix):
             # Check if this specific object value is mentioned in the constraint
             if pattern.object is None or pattern.object == obj:
                 matching_filter_pattern = pattern
                 
-                prefix = "NO_" if not matching_filter_pattern.is_not_exists else ""
+                # original: no_prefix = "NO_" if not matching_filter_pattern.is_not_exists else ""
+                # MAX
+                no_prefix = "NONONO" if matching_filter_pattern.is_not_exists else ""
                 entity_name = str(obj).split('/')[-1]
 
                 # Create new predicate with 'No' prefix for the object part
-                new_pred = URIRef(f"{orig_pred_str}_{prefix}{entity_name}")
-                new_obj = URIRef(f"{str(obj).rsplit('/', 1)[0]}/{prefix}{entity_name}")
+                new_pred = URIRef(f"{orig_pred_str}_{no_prefix}{entity_name}")
+                new_obj = URIRef(f"{str(obj).rsplit('/', 1)[0]}/{no_prefix}{entity_name}")
                 return (subject, new_pred, new_obj)
 
     return None
@@ -306,11 +313,9 @@ def transform(kg: Graph, constraints_folder: str, prefix,  kg_name: str = None) 
         triples_to_remove: Set[Tuple[URIRef, URIRef, URIRef]] = set()
         triples_to_add: Set[Tuple[URIRef, URIRef, URIRef]] = set()
         no_predicate_mapping = {}
-
         for subject_uri, shape_uri in violations:
             subject = URIRef(subject_uri)
             patterns = constraint_patterns.get(shape_uri)
-
             if not patterns:
                 continue
 
@@ -323,9 +328,9 @@ def transform(kg: Graph, constraints_folder: str, prefix,  kg_name: str = None) 
                 # Find any predicate in the transformed KG that maps to the original predicate
                 pattern_matches = False
                 for pred_str, orig_pred_str in predicate_mapping.items():
-                    if URIRef(orig_pred_str) == pattern.predicate:
+                    if orig_pred_str == removePrefix(pattern.predicate, prefix):
                         if check_pattern_match(transformed_kg, subject,
-                                               TriplePattern(URIRef(pred_str), pattern.object,
+                                               TriplePattern(URIRef(addPrefix(pred_str, prefix)), pattern.object,
                                                              pattern.in_filter, pattern.is_not_exists)):
                             pattern_matches = True
                             break
@@ -336,10 +341,8 @@ def transform(kg: Graph, constraints_folder: str, prefix,  kg_name: str = None) 
 
             if matches_conditions:
                 for s, p, o in transformed_kg.triples((subject, None, None)):
-                    transformed = transform_triple((s, p, o), filter_patterns, predicate_mapping)
-                    print("+++++++++++++++++++++++")
-                    print(transformed_kg.triples((subject, None, None)))
-                    print(constraint_patterns['http://example.org/shapes/BeatlesAlbumGenreConstraint'])
+                    transformed = transform_triple((s, p, o), filter_patterns, predicate_mapping, prefix)
+
                     if transformed:
                         triples_to_remove.add((s, p, o))
                         triples_to_add.add(transformed)
@@ -348,6 +351,7 @@ def transform(kg: Graph, constraints_folder: str, prefix,  kg_name: str = None) 
                         no_predicate_mapping[str(transformed[1])] = p_str
 
         print(f"Applying {len(triples_to_remove)} transformations...")
+
         for triple in triples_to_remove:
             transformed_kg.remove(triple)
         for triple in triples_to_add:

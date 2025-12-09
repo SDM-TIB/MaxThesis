@@ -417,7 +417,9 @@ class Ontology:
 
 """add prefix to element"""
 def addPrefix(element:str, prefix:str):
-    return f"<{prefix}{element}>"
+    if element.__contains__("/"):
+        return element
+    return f"{prefix}{element}"
 """remove prefix from element"""
 def removePrefix(element:str, prefix:str):
     return element.removeprefix("<").removeprefix(f"{prefix}").removesuffix(">")
