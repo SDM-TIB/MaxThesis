@@ -60,8 +60,8 @@ def mine_rules(transformed_kg:IncidenceList, targets:set, transform_output_dir:s
         if len_g < set_size:
             print(f"There aren't enough positive examples in the graph, proceeding with {len_g} examples.\n")  
 
-        # first, get all constraint violating triples
-        v = getExamples(transformed_kg, pmap.neg_predicates, set_size)
+        # first, get constraint violating triples
+        v = getNegExamples(transformed_kg, pmap.neg_predicates, set_size)
 
         # if not enough in v fill with lcwa-conform examples
         len_v = len(v)
@@ -82,10 +82,10 @@ def mine_rules(transformed_kg:IncidenceList, targets:set, transform_output_dir:s
 
         if not g:
             warnings.warn(f"There are no generation examples for {pmap.target}. No rule-mining possible \n", UserWarning)   
-            return []    
+            continue  
         if not v:
             warnings.warn(f"There are no validation examples for {pmap.target}. No rule-mining possible \n", UserWarning)   
-            return []
+            continue
 
         
         print(f"mining rules for target predicate <{p}>...\n")
@@ -98,7 +98,7 @@ def mine_rules(transformed_kg:IncidenceList, targets:set, transform_output_dir:s
 
     return
 
-def mine_rules_for_target_predicate(g:set, v:set, pmap:P_map, transformed_kg:IncidenceList, prefix:str, type_predicate:str, ontology:Ontology,  max_depth:int=3, alpha:float=0.5, beta:float=0.5):
+def mine_rules_for_target_predicate(g:set, v:set, pmap:P_map, kg:IncidenceList, prefix:str, type_predicate:str, ontology:Ontology,  max_depth:int=3, alpha:float=0.5, beta:float=0.5):
     
     """
     Args:
@@ -116,9 +116,8 @@ def mine_rules_for_target_predicate(g:set, v:set, pmap:P_map, transformed_kg:Inc
         R_out -- mined rules for the target predicate
     """
 
-    kg = transformed_kg
 
-    R_out = []
+    
 
     
     isGenre_g = {('Ten_Summoner%27s_Tales', 'Pop'), ('Dire_Straits(Album)', 'Rock'), ('Wild_West_End', 'Rock'), ('Rubber_Soul', 'Rock'), ('Making_Movies', 'Pop'), ('Outlandos_D%27Amour', 'Punk'), ('In_The_Gallery', 'Rock'), ('461_Ocean_Blvd.', 'Blues'), ('Water_Of_Love', 'Country'), ('Make_Beleive', 'Metal'), ('The_Beatles(Album)', 'Jazz'), ('It%27s_a_Feeling', 'Soul'), ('Regatta_De_Blanc', 'Reggae'), ('Let_It_Be', 'Pop'), ('Sultans_Of_Swing', 'Funk'), ('Lovers_in_the_Night', 'Country')}
@@ -170,8 +169,9 @@ def mine_rules_for_target_predicate(g:set, v:set, pmap:P_map, transformed_kg:Inc
     p2.graph.add("I_Shot_the_Sheriff","includedIn_461_Ocean_Blvd.","461_Ocean_Blvd.")
     p2.graph.add("461_Ocean_Blvd.","isGenre_Rock","Rock")
 
-    print(p1)
     print(p2)
+    print(p2.rule(pmap))
+    print(p2.graph)
     r1 = p1.rule(pmap)
 
     r2 = p2.rule(pmap)
@@ -200,7 +200,6 @@ def mine_rules_for_target_predicate(g:set, v:set, pmap:P_map, transformed_kg:Inc
         print(est_m_weight(r3, R_out, rule_dict, kg, isGenre_g, isGenre_v, alpha, beta, pmap))
         print(cov(r2, kg, isGenre_v, pmap))
 
-        exit()
 
     # ('Outlandos_D%27Amour', 'Punk') ('461_Ocean_Blvd.', 'Blues'), ('Regatta_De_Blanc', 'Reggae')
     # {('Let_It_Be', 'Pop'), ('Dire_Straits(Album)', 'Rock'), ('Rubber_Soul', 'Rock'), ('The_Beatles(Album)', 'Jazz'), ('Ten_Summoner%27s_Tales', 'Pop'), ('Making_Movies', 'Pop')}
@@ -256,11 +255,40 @@ def mine_rules_for_target_predicate(g:set, v:set, pmap:P_map, transformed_kg:Inc
 
     #     R_out_changed = False
 
+
+    ###########################
+    # end of test code
+    ###########################
+
+
+
     #TODO rudik
+
+    R_out = []
+
+    rule_dict = {}
+    # initialise a path per pair in g
+    # expand by one and save resulting paths in rule dict
+
+    
+    paths = [Path((s, p , o), IncidenceList()) for s,p,o in g]
+
+    expanded_paths = expand_ft(paths, kg, pmap)
+
+
+    for path in expanded_paths:
+        rule = path.rule(pmap)
+        if rule in rule_dict:
+            rule_dict[path.rule(pmap)].add(path)
+        else:
+            rule_dict[path.rule(pmap)] = {path}
+
+    print(rule_dict)
+
     return R_out
 
 #TODO help function expand_frontiers(list of current nodes)
-def expand_ft(frontiers:set, kg, g:np.ndarray):
+def expand_ft(paths:list[Path], kg:IncidenceList, pmap:P_map, ontology:Ontology):
     # get all frontier nodes of the rule and edges
 
 

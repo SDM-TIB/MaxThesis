@@ -731,16 +731,16 @@ def neg_preds(new_preds:set, map):
 
 """get distributed examples for given predicates, limited by count"""
 def getExamples(kg:IncidenceList, preds:set, count:int):
-    out = set()
+    g = set()
     eligible_preds = preds.copy()
-    diff = count - len(out)
+    diff = count - len(g)
 
 
     # go through all predicates, get mean examples per predicate if possible
     # repeat with all predicates that still have unused instances left until count is met
 
     test = 0
-    while len(out) < count and eligible_preds:
+    while len(g) < count and eligible_preds:
         max_i = int(diff/len(eligible_preds) + 1)  
         test += 1
         if test == 5:
@@ -758,21 +758,68 @@ def getExamples(kg:IncidenceList, preds:set, count:int):
             # add even share of elements per predicate, if possible
             i = 0
             for n in kg.edges.get(p):
-                if n not in out:
-                    out.add(n)
+                triple = (n[0], p, n[1])
+                if triple not in g:
+                    g.add(triple)
                     i += 1
                 if i > max_i:
                     break
                 
-        diff = count - len(out)
+        diff = count - len(g)
 
     for _ in range(-diff):
-        out.pop()
-    return out
+        g.pop()
+    return g
+
+
+
+"""get distributed examples for given predicates, limited by count"""
+def getNegExamples(kg:IncidenceList, preds:set, count:int):
+    v = set()
+    eligible_preds = preds.copy()
+    diff = count - len(v)
+
+
+    # go through all predicates, get mean examples per predicate if possible
+    # repeat with all predicates that still have unused instances left until count is met
+
+    test = 0
+    while len(v) < count and eligible_preds:
+        max_i = int(diff/len(eligible_preds) + 1)  
+        test += 1
+        if test == 5:
+            exit()
+        eligible_preds_copy = eligible_preds.copy()
+        for p in eligible_preds_copy:
+            if not kg.edges.get(p):
+                continue
+
+            l = len(kg.edges.get(p)) 
+            if l <= (max_i + 1):
+                # if all instances of predicate will be used, remove
+                eligible_preds.remove(p)
+            
+            # add even share of elements per predicate, if possible
+            i = 0
+            for n in kg.edges.get(p):
+                pair = (n[0], n[1])
+                if pair not in v:
+                    v.add(pair)
+                    i += 1
+                if i > max_i:
+                    break
+                
+        diff = count - len(v)
+
+    for _ in range(-diff):
+        v.pop()
+    return v
+
+
 
 """get negative examples for given predicates that satisfy the local closed world assumption, limited by count"""
 def getExamplesLCWA(kg:IncidenceList, ontology:Ontology, pmap:P_map, count:int, type_predicate:str):
-    # TODO is there a mistake, doesn't vanilla create new negative entity? here maybe thinking only predicate is negated
+
     preds = pmap.predicates
     out = set()
     eligible_preds = preds.copy()
@@ -790,16 +837,18 @@ def getExamplesLCWA(kg:IncidenceList, ontology:Ontology, pmap:P_map, count:int, 
 
     diff = count - len(out)
     while len(out) < count and eligible_preds:
-        print(f"LCWA while target {pmap.target}")
-        max_i = int(diff /( 2 * len(eligible_preds)) + 1) 
+        print(f"LCWA while target {pmap.target} eligible {eligible_preds}")
+        max_i = int(diff /(len(eligible_preds)) + 1) 
         eligible_preds_copy = eligible_preds.copy()
+
         for p in eligible_preds_copy:
+            found1 = False
+            found2 = False
+
             if not kg.edges.get(p):
                 continue
+
             l = len(kg.edges[p])
-            if l <= (max_i):
-                # if all instances of predicate will be used, remove
-                eligible_preds.remove(p)
 
             i = 0
             for e in eligible_edges:
@@ -809,27 +858,39 @@ def getExamplesLCWA(kg:IncidenceList, ontology:Ontology, pmap:P_map, count:int, 
                 o = e[1]
                 for f in eligible_edges:
                     # TODO ask if this is ok, recombining entities that have the relation, rather than combining one entity that has relation with one that may or may NOT have it
-                    if (s, f[1]) not in eligible_edges and (s, f[1]) not in out and fits_domain_range(f[1], (s,p,f[1]), ontology, kg, pmap, type_predicate):
+                    if not found1 and (s, f[1]) not in eligible_edges and (s, f[1]) not in out and fits_domain_range(f[1], (s,p,f[1]), ontology, kg, pmap, type_predicate):
                         out.add((s, f[1]))
-                        break
+                        found1 = True
+                        i += 1
 
-                for f in eligible_edges:
-                    if (f[0], o) not in eligible_edges and (f[0], o) not in out and fits_domain_range(f[0], (f[0],p,s), ontology, kg, pmap, type_predicate):
+                    if not found2 and (f[0], o) not in eligible_edges and (f[0], o) not in out and fits_domain_range(f[0], (f[0],p,s), ontology, kg, pmap, type_predicate):
                         out.add((f[0], o))
-                        break
+                        found2 = True
+                        i += 1
 
-                i += 1
+                    if found1 and found2:
+                        break 
+
                 if i > max_i:
+                    eligible_preds.remove(p)
                     break
 
+            
+
+            if (not found1 and not found2 and p in eligible_preds):
+                    # if all instances of predicate are used
+                    eligible_preds.remove(p)
+
+
         # TODO remove after fix
-        loop_count +=1
-        if loop_count > 10:
-            return out
+        # loop_count +=1
+        # if loop_count > 10:
+        #     return out
 
         diff = count - len(out)
     for _ in range(-diff):
         out.pop()
+    print(f"==============LCWA OUT {out}" )
     return out
 
 """get random pairs of entities that don't have target predicate"""
