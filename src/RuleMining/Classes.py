@@ -19,6 +19,9 @@ class IncidenceList:
     def __repr__(self):
         return f"Graph:\nedges: {self.edges},\nnodes: {self.nodes}.\n"
 
+    def copy(self):
+        return IncidenceList(self.edges.copy(), self.nodes.copy())
+
 
     def addNode(self, n, edges=None):
         if edges == None:
@@ -26,8 +29,7 @@ class IncidenceList:
         if not n in self.nodes:
             self.nodes[n] = edges
         else:
-            for e in edges:
-                self.nodes[n].add(e) 
+            self.nodes[n].update(edges) 
 
     def deleteNode(self, n):
         for l in self.nodes[n]:
@@ -35,28 +37,27 @@ class IncidenceList:
         del self.nodes[n]
 
     def add(self, x, l, y):
+        self.addNode(x, {l})
+        self.addNode(y, {l})
         if not l in self.edges:
             self.edges[l] = {(x,y)}
         else:
-            if (x,y) in self.edges[l]:
-                return
-            self.edges[l].add((x,y))
-        self.addNode(x, {l})
-        self.addNode(y, {l})
+            if not (x,y) in self.edges[l]:
+                self.edges[l].add((x,y))
+
             
         
     def delete(self, l):
         del self.edges[l]
         return
     
-    def neighbours(self, n):
-        return {(l, self.edges[l]) for l in self.nodes[n]}
-
     def triples(self):
         return {(pair[0], p, pair[1])  for p in self.edges for pair in self.edges[p]}
+    
+
+
+
 """class that holds all information on predicate mappings for a kg and specific target"""
-
-
 class P_map:
     def __init__(self, target, predicates, neg_predicates, predicate_mappings, neg_predicate_mappings):
         self.target = target
@@ -66,7 +67,7 @@ class P_map:
         self.neg_predicate_mappings = neg_predicate_mappings
 
     def __repr__(self) -> str:
-        return f"{type(self).__name__}(target={self.target}, predicates={self.predicates}, neg_predicates={self.neg_predicates}, predicate_mappings={self.predicate_mappings}, neg_predicate_mappings={self.neg_predicate_mappings})"
+        return f"{type(self).__name__}(target={self.target},\n\npredicates={self.predicates},\n\nneg_predicates={self.neg_predicates},\n\npredicate_mappings={self.predicate_mappings},\n\nneg_predicate_mappings={self.neg_predicate_mappings})"
 
     def addPrefix(self, prefix):
         self.target = addPrefix(self.target, prefix)
@@ -163,11 +164,17 @@ class Path:
         self.head = head
         return
     def __repr__(self):
-        return f"Path spanning the subgraph: {self.graph}\nhead: {self.head}.\n"
+        return f"Path with:\n {self.graph}head: {self.head}.\n\n"
     
+
+    def copy(self):
+        return Path(self.head, self.graph.copy())
+
 
     """returns a rule object corresponding to the paths' structure."""
     def rule(self, pmap:P_map): 
+        print(f"RULE of {self}")
+
         name_dict = {}
         p_count = 0
         rule = Rule()
@@ -194,6 +201,8 @@ class Path:
 
 """performs a strictly ordered dfs over an Incidence list, starting at  start entity, returns the traversal order of triples"""
 def dfs(nodes, edges, start, triple, visited=None):
+    print(f"--------DFS: \nnodes = {nodes}\n\nedges: {edges}\n\ntriple {triple} \n visited{visited}")
+
 
     def find_min_key(subpaths, visited):
         # true if path one is more favourable than two

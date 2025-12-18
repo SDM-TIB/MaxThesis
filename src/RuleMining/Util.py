@@ -250,6 +250,10 @@ checks if a rule where some variables may already be instantiated, can be fully 
 # TODO this goes through all combinations chronologically, backtracking algorithm might be faster,
 def instantiable(rule:Rule, kg:IncidenceList, pmap:P_map, entity_dict):
     
+    if not rule.body:
+        # trivial case
+        return True
+
     # no given instanciations, start with head
     if not entity_dict:
         s,p,o = next(t for t in rule.body if not is_literal_comp(t[1]))
@@ -413,6 +417,8 @@ covarage of a rule/rules over set
 """
 def cov(r:Rule, kg, ex_set:set, pmap:P_map):
     c = set()
+    if not r:
+        return c
     if type(r) == Rule:
         for ex in ex_set:
             if covers(r, kg, ex, pmap):
@@ -432,27 +438,37 @@ def cov(r:Rule, kg, ex_set:set, pmap:P_map):
 unbounded coverage of rules over set
 """
 def uncov(r:Rule, kg, ex_set:set, pmap):
+    if not r:
+        return set()
+    u_r = None
     if type(r) == Rule:
         u_r = unbind(r)
     elif type(r) == list and r and type(r[0]) == Rule:
         u_r = [unbind(rule) for rule in r]
-    return cov(u_r,kg, ex_set,  pmap)
+    return cov(u_r, kg, ex_set,  pmap)
 
 
 """
 coverage of r over g
 """
-def cov_g(r, g, rule_dict):
+def cov_g(r, g, rule_dict, R_out_dict):
     # TODO special case, just check dict entries for each rule and see the heads of the paths and compare to g
     c = set()
+    if not r:
+        return c
     if type(r) == Rule:
-        for path in rule_dict[r]:
-            c.add((path.head[0], path.head[2]))
-
+        if r in rule_dict:
+            for path in rule_dict[r]:
+                c.add((path.head[0], path.head[2]))
+        elif r in R_out_dict:
+            for path in R_out_dict[r]:
+                c.add((path.head[0], path.head[2]))  
+        else: 
+            raise ValueError("unknown rule")  
     elif type(r) == list and r and type(r[0]) == Rule:
         g_copy = g.copy()
         for rule in r:
-            c.update(cov_g(rule, g_copy, rule_dict))
+            c.update(cov_g(rule, g_copy, rule_dict, R_out_dict))
     else:
         raise ValueError("r must be type Rule or list[Rule]")
     return c
@@ -460,40 +476,53 @@ def cov_g(r, g, rule_dict):
 """
 unbounded coverage of r over g
 """
-def uncov_g(r, g, rule_dict):
+def uncov_g(r, g, rule_dict, R_out_dict):
+    if not r:
+        return set()
+    u_r = None
     if type(r) == Rule:
         u_r = unbind(r)
     elif type(r) == list and r and type(r[0]) == Rule:
         u_r = [unbind(rule) for rule in r]
-    return cov_g(u_r, g, rule_dict)
+    return cov_g(u_r, g, rule_dict, R_out_dict)
 
 
 
 """estimated marginal weight"""
-def est_m_weight(r:Rule, R_out:list[Rule], rule_dict, kg, g:set, v:set, alpha:float, beta:float, pmap):
+def est_m_weight(r:Rule, R_out_dict, rule_dict, kg:IncidenceList, g:set, v:set, alpha:float, beta:float, pmap:P_map):
+
+    R_out = list(R_out_dict.keys())
+
     cardinality_cov_r_out_v = len(cov(R_out, kg, v, pmap))
     uncov_r_out_v = uncov(R_out, kg, v, pmap)
     uncov_r_v = uncov(r, kg, v, pmap)
     cardinality_uncov_r_out_r_v = len(set.union(uncov_r_out_v, uncov_r_v))
     cardinality_uncov_r_out_v = len(uncov_r_out_v)
-    # TODO check if still correct
 
-    if not cardinality_cov_r_out_v:
-    # if this is zero we know the beta part is zerro, the divisors will also be zero resulting in error, thus removing beta part altogether
-            out = -alpha * ((len(cov_g(r, g, rule_dict) - cov_g(R_out, g, rule_dict)))/len(g))
 
-    out = -alpha * ((len(cov_g(r, g, rule_dict) - cov_g(R_out, g, rule_dict)))/len(g)) + beta * ((cardinality_cov_r_out_v / cardinality_uncov_r_out_r_v) - (cardinality_cov_r_out_v / cardinality_uncov_r_out_v))
-
-    print(cov_g(r, g, rule_dict))
-    print(cov_g(R_out, g, rule_dict))
+    print(cov_g(r, g, rule_dict, R_out_dict))
+    print(cov_g(R_out, g, rule_dict, R_out_dict))
     print(len(g))
-    print(cardinality_cov_r_out_v)
+    print(f"croutv {cardinality_cov_r_out_v}")
     print(cov(R_out, kg, v, pmap))
     print(cardinality_uncov_r_out_r_v)
     print(uncov(r, kg, v, pmap))
-    print(cardinality_uncov_r_out_v)
+    print(f"uncroutv {cardinality_uncov_r_out_v}")
     print(uncov(R_out, kg, v, pmap))
-    return out
+
+
+    if not cardinality_cov_r_out_v:
+    # if this is zero we know the beta part is zerro, the divisors will also be zero resulting in error, thus removing beta part altogether
+        return -alpha * ((len(cov_g(r, g, rule_dict, R_out_dict) - cov_g(R_out, g, rule_dict, R_out_dict)))/len(g))
+    
+    if not cardinality_uncov_r_out_r_v:
+    # if this is zero there is division by zero in first fraction of beta part, setting it to zero
+        return -alpha * ((len(cov_g(r, g, rule_dict, R_out_dict) - cov_g(R_out, g, rule_dict, R_out_dict)))/len(g)) - beta * (cardinality_cov_r_out_v / cardinality_uncov_r_out_v)
+
+
+    return -alpha * ((len(cov_g(r, g, rule_dict, R_out_dict) - cov_g(R_out, g, rule_dict, R_out_dict)))/len(g)) + beta * ((cardinality_cov_r_out_v / cardinality_uncov_r_out_r_v) - (cardinality_cov_r_out_v / cardinality_uncov_r_out_v))
+
+
 """
 check if a (sub)rule is a valid rule
 """
@@ -824,9 +853,6 @@ def getExamplesLCWA(kg:IncidenceList, ontology:Ontology, pmap:P_map, count:int, 
     out = set()
     eligible_preds = preds.copy()
 
-
-    # TODO fix infinite loop
-    loop_count = 0 
 
     # will hold all instances of target predicate, search from the connected entities
     eligible_edges = set()

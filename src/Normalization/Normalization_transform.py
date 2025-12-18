@@ -347,7 +347,7 @@ def transform(kg: Graph, constraints_folder: str, prefix,  kg_name: str = None) 
                         triples_to_remove.add((s, p, o))
                         triples_to_add.add(transformed)
 
-                        p_str = str(p)
+                        p_str = removePrefix(str(p), prefix)
                         no_predicate_mapping[str(transformed[1])] = p_str
 
         print(f"Applying {len(triples_to_remove)} transformations...")

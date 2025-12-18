@@ -120,13 +120,13 @@ def mine_rules_for_target_predicate(g:set, v:set, pmap:P_map, kg:IncidenceList, 
     
 
     
-    isGenre_g = {('Ten_Summoner%27s_Tales', 'Pop'), ('Dire_Straits(Album)', 'Rock'), ('Wild_West_End', 'Rock'), ('Rubber_Soul', 'Rock'), ('Making_Movies', 'Pop'), ('Outlandos_D%27Amour', 'Punk'), ('In_The_Gallery', 'Rock'), ('461_Ocean_Blvd.', 'Blues'), ('Water_Of_Love', 'Country'), ('Make_Beleive', 'Metal'), ('The_Beatles(Album)', 'Jazz'), ('It%27s_a_Feeling', 'Soul'), ('Regatta_De_Blanc', 'Reggae'), ('Let_It_Be', 'Pop'), ('Sultans_Of_Swing', 'Funk'), ('Lovers_in_the_Night', 'Country')}
-    isGenre_v = {('Africa', 'Funk'), ('Toto_IV', 'Metal'), ('Making_Movies', 'Metal'), ('Ten_Summoner%27s_Tales', 'Rock'), ('Make_Beleive', 'Jazz'), ('Make_Beleive', 'Rock'), ('Africa', 'Soul'), ('Toto', 'Metal'), ('Make_Beleive', 'Funk'), ('Outlandos_D%27Amour', 'Metal'), ('Dire_Straits(Album)', 'Metal'), ('Africa', 'Jazz'), ('Let_It_Be', 'Metal'), ('Ten_Summoner%27s_Tales', 'Metal'), ('461_Ocean_Blvd.', 'Rock')}
-    #valid rule
-    r = Rule(head=("?VAR1","isGenre", "?VAR2"), 
-             body={("?VAR3", "collaboratedWith", "?VAR4"), ("?VAR5", "hasAlbum", "?VAR6"), ("?VAR7", "isGenre", "?VAR8"), 
-                   ("?VAR9", "hasAlbum", "?VAR10"), ("?VAR11", "releaseYear", "?VAR12"), ("?VAR13", "releaseYear", "?VAR14"), ("?VAR15", "<", "?VAR16")}, 
-                   connections={("?VAR1", "?VAR6", "?VAR11"), ("?VAR2", "?VAR8"), ("?VAR5", "?VAR3"), ("?VAR4", "?VAR9"),("?VAR10", "?VAR7", "?VAR13"), ("?VAR12", "?VAR16"),("?VAR14", "?VAR15")}) 
+    # isGenre_g = {('Ten_Summoner%27s_Tales', 'Pop'), ('Dire_Straits(Album)', 'Rock'), ('Wild_West_End', 'Rock'), ('Rubber_Soul', 'Rock'), ('Making_Movies', 'Pop'), ('Outlandos_D%27Amour', 'Punk'), ('In_The_Gallery', 'Rock'), ('461_Ocean_Blvd.', 'Blues'), ('Water_Of_Love', 'Country'), ('Make_Beleive', 'Metal'), ('The_Beatles(Album)', 'Jazz'), ('It%27s_a_Feeling', 'Soul'), ('Regatta_De_Blanc', 'Reggae'), ('Let_It_Be', 'Pop'), ('Sultans_Of_Swing', 'Funk'), ('Lovers_in_the_Night', 'Country')}
+    # isGenre_v = {('Africa', 'Funk'), ('Toto_IV', 'Metal'), ('Making_Movies', 'Metal'), ('Ten_Summoner%27s_Tales', 'Rock'), ('Make_Beleive', 'Jazz'), ('Make_Beleive', 'Rock'), ('Africa', 'Soul'), ('Toto', 'Metal'), ('Make_Beleive', 'Funk'), ('Outlandos_D%27Amour', 'Metal'), ('Dire_Straits(Album)', 'Metal'), ('Africa', 'Jazz'), ('Let_It_Be', 'Metal'), ('Ten_Summoner%27s_Tales', 'Metal'), ('461_Ocean_Blvd.', 'Rock')}
+    # #valid rule
+    # r = Rule(head=("?VAR1","isGenre", "?VAR2"), 
+    #          body={("?VAR3", "collaboratedWith", "?VAR4"), ("?VAR5", "hasAlbum", "?VAR6"), ("?VAR7", "isGenre", "?VAR8"), 
+    #                ("?VAR9", "hasAlbum", "?VAR10"), ("?VAR11", "releaseYear", "?VAR12"), ("?VAR13", "releaseYear", "?VAR14"), ("?VAR15", "<", "?VAR16")}, 
+    #                connections={("?VAR1", "?VAR6", "?VAR11"), ("?VAR2", "?VAR8"), ("?VAR5", "?VAR3"), ("?VAR4", "?VAR9"),("?VAR10", "?VAR7", "?VAR13"), ("?VAR12", "?VAR16"),("?VAR14", "?VAR15")}) 
     
 # {
 #   "KG": "musicKG",
@@ -150,55 +150,55 @@ def mine_rules_for_target_predicate(g:set, v:set, pmap:P_map, kg:IncidenceList, 
 # }
 
 
-    p1 = Path()
-    p1.head = ("Ten_Summoner%27s_Tales","isGenre_Pop","Pop")
-    p1.graph.add("Dire_Straits","hasAlbum_Making_Movies", "Making_Movies")
-    p1.graph.add("Sting", "collaboratedWith_Dire_Straits", "Dire_Straits")
-    p1.graph.add("Sting","hasAlbum_Ten_Summoner%27s_Tales","Ten_Summoner%27s_Tales")
-    p1.graph.add("Making_Movies","isGenre_Pop","Pop")
-    p1.graph.add("Ten_Summoner%27s_Tales","releaseYear_1993","\"1993\"^^<http://www.w3.org/2001/XMLSchema#/int>")
-    p1.graph.add("Making_Movies","releaseYear_1980","\"1980\"^^<http://www.w3.org/2001/XMLSchema#/int>")
-    p1.graph.add("\"1980\"^^<http://www.w3.org/2001/XMLSchema#/int>","<","\"1993\"^^<http://www.w3.org/2001/XMLSchema#/int>")
-   # p1.graph.add("Shape_of_my_Heart","writer_Sting","Sting")
+    # p1 = Path()
+    # p1.head = ("Ten_Summoner%27s_Tales","isGenre_Pop","Pop")
+    # p1.graph.add("Dire_Straits","hasAlbum_Making_Movies", "Making_Movies")
+    # p1.graph.add("Sting", "collaboratedWith_Dire_Straits", "Dire_Straits")
+    # p1.graph.add("Sting","hasAlbum_Ten_Summoner%27s_Tales","Ten_Summoner%27s_Tales")
+    # p1.graph.add("Making_Movies","isGenre_Pop","Pop")
+    # p1.graph.add("Ten_Summoner%27s_Tales","releaseYear_1993","\"1993\"^^<http://www.w3.org/2001/XMLSchema#/int>")
+    # p1.graph.add("Making_Movies","releaseYear_1980","\"1980\"^^<http://www.w3.org/2001/XMLSchema#/int>")
+    # p1.graph.add("\"1980\"^^<http://www.w3.org/2001/XMLSchema#/int>","<","\"1993\"^^<http://www.w3.org/2001/XMLSchema#/int>")
+    # p1.graph.add("Shape_of_my_Heart","writer_Sting","Sting")
 
-    p2 = Path()
-    p2.head = ("I_Shot_the_Sheriff","isGenre_Rock","Rock")
+    # p2 = Path()
+    # p2.head = ("I_Shot_the_Sheriff","isGenre_Rock","Rock")
     #p2.graph.add("Here_Comes_the_Sun","releaseYear_1969","\"1969\"^^<http://www.w3.org/2001/XMLSchema#/int>")
     #p2.graph.add("461_Ocean_Blvd.","releaseYear_1974","\"1974\"^^<http://www.w3.org/2001/XMLSchema#/int>")
     #p2.graph.add("\"1969\"^^<http://www.w3.org/2001/XMLSchema#/int>","<","\"1974\"^^<http://www.w3.org/2001/XMLSchema#/int>")
-    p2.graph.add("I_Shot_the_Sheriff","includedIn_461_Ocean_Blvd.","461_Ocean_Blvd.")
-    p2.graph.add("461_Ocean_Blvd.","isGenre_Rock","Rock")
+    # p2.graph.add("I_Shot_the_Sheriff","includedIn_461_Ocean_Blvd.","461_Ocean_Blvd.")
+    # p2.graph.add("461_Ocean_Blvd.","isGenre_Rock","Rock")
 
-    print(p2)
-    print(p2.rule(pmap))
-    print(p2.graph)
-    r1 = p1.rule(pmap)
+    # print(p2)
+    # print(p2.rule(pmap))
+    # print(p2.graph)
+    # r1 = p1.rule(pmap)
 
-    r2 = p2.rule(pmap)
+    # r2 = p2.rule(pmap)
 
-    r3 = Rule(
-        head=('?VAR1', 'isGenre', '?VAR2'),
-        body={('?VAR9', 'isGenre', '?VAR10'), ('?VAR15', 'releaseYear', '?VAR16'), ('?VAR3', 'hasAlbum', '?VAR4')},
-        connections={('?VAR4', '?VAR1', '?VAR15'), ('?VAR10', '?VAR2')})
+    # r3 = Rule(
+    #     head=('?VAR1', 'isGenre', '?VAR2'),
+    #     body={('?VAR9', 'isGenre', '?VAR10'), ('?VAR15', 'releaseYear', '?VAR16'), ('?VAR3', 'hasAlbum', '?VAR4')},
+    #     connections={('?VAR4', '?VAR1', '?VAR15'), ('?VAR10', '?VAR2')})
 
 
-    if pmap.target == "isGenre":
-        rule_dict = {}
-        rule_dict[p1.rule(pmap)] = set()
-        rule_dict[p2.rule(pmap)] = set()
-        rule_dict[r3] = set()
-        R_out = [r1,r2]
-        #print(v)
-        for egg in isGenre_g:
-            eg = Path(head=(egg[0], pmap.target, egg[1]))
-            if covers(r1, kg, egg, pmap):
-                rule_dict[r1].add(eg)
-            if covers(r2, kg, egg, pmap):
-                rule_dict[r2].add(eg)
-            if covers(r3, kg, egg, pmap):
-                rule_dict[r3].add(eg)
-        print(est_m_weight(r3, R_out, rule_dict, kg, isGenre_g, isGenre_v, alpha, beta, pmap))
-        print(cov(r2, kg, isGenre_v, pmap))
+    # if pmap.target == "isGenre":
+    #     rule_dict = {}
+    #     rule_dict[p1.rule(pmap)] = set()
+    #     rule_dict[p2.rule(pmap)] = set()
+    #     rule_dict[r3] = set()
+    #     R_out = [r1,r2]
+    #     #print(v)
+    #     for egg in isGenre_g:
+    #         eg = Path(head=(egg[0], pmap.target, egg[1]))
+    #         if covers(r1, kg, egg, pmap):
+    #             rule_dict[r1].add(eg)
+    #         if covers(r2, kg, egg, pmap):
+    #             rule_dict[r2].add(eg)
+    #         if covers(r3, kg, egg, pmap):
+    #             rule_dict[r3].add(eg)
+    #     print(est_m_weight(r3, R_out, rule_dict, kg, isGenre_g, isGenre_v, alpha, beta, pmap))
+    #     print(cov(r2, kg, isGenre_v, pmap))
 
 
     # ('Outlandos_D%27Amour', 'Punk') ('461_Ocean_Blvd.', 'Blues'), ('Regatta_De_Blanc', 'Reggae')
@@ -261,45 +261,135 @@ def mine_rules_for_target_predicate(g:set, v:set, pmap:P_map, kg:IncidenceList, 
     ###########################
 
 
-
     #TODO rudik
 
-    R_out = []
-
-    rule_dict = {}
-    # initialise a path per pair in g
+    # initialise
+    # create a path per pair in g
     # expand by one and save resulting paths in rule dict
 
+    R_out_dict = {}
+
+    rule_dict = {}   
+    paths = {Path((s, p , o), IncidenceList()) for s,p,o in g}
+
     
-    paths = [Path((s, p , o), IncidenceList()) for s,p,o in g]
 
-    expanded_paths = expand_ft(paths, kg, pmap)
+    for path in paths:
+        expanded_paths = expand_path(path, kg, ontology, pmap, type_predicate)
+        for ep in expanded_paths:
+            rule = ep.rule(pmap)
+            if rule in rule_dict:
+                rule_dict[rule].add(ep)
+            else:
+                rule_dict[rule] = {ep}
 
 
-    for path in expanded_paths:
-        rule = path.rule(pmap)
-        if rule in rule_dict:
-            rule_dict[path.rule(pmap)].add(path)
+
+    r, min_weight = find_r(rule, R_out_dict, rule_dict, kg, g, v, alpha, beta, pmap)
+
+
+
+
+    # main loop 
+
+    while True:
+
+        if not rule_dict or cov_g(list(R_out_dict.keys()), g, rule_dict, R_out_dict) == g or min_weight >= 0:
+            break
+        
+        print(rule_dict[r])
+        if is_valid(r):
+            # move rule to output dict
+            R_out_dict[r] = rule_dict.pop(r)
+            
         else:
-            rule_dict[path.rule(pmap)] = {path}
+            # expand
+            # TODO len(r.body) only works if rule is a straight path, need seperate function and different if clause if allow branching
+            if len(r.body) < max_depth:
+                expand_rule(r, rule_dict, kg, ontology, pmap, type_predicate)
+    
+            print(f"elselselselse {rule_dict[r]}")
+            # remove handled rule
+            rule_dict.pop(r)
 
-    print(rule_dict)
+        # find next r
+        r, min_weight = find_r(rule, R_out_dict, rule_dict, kg, g, v, alpha, beta, pmap)
 
-    return R_out
+        print(r, min_weight)
 
-#TODO help function expand_frontiers(list of current nodes)
-def expand_ft(paths:list[Path], kg:IncidenceList, pmap:P_map, ontology:Ontology):
-    # get all frontier nodes of the rule and edges
+    # TODO possibly return the whole R_out_dict or calc some metrics here 
+    return list(R_out_dict.keys())
 
 
-    # return rules generated by this
+
+def find_r(r:Rule, R_out_dict, rule_dict, kg:IncidenceList, g:set, v:set, alpha:float, beta:float, pmap:P_map):
+    min_weight = np.inf
+    r = None
+    for rule in rule_dict.keys():
+        weight = est_m_weight(rule, R_out_dict, rule_dict, kg, g, v, alpha, beta, pmap)
+        if weight < min_weight:
+            r = rule
+            min_weight = weight
+
+    return r, min_weight
+
+
+
+def expand_rule(rule, rule_dict, kg:IncidenceList, ontology:Ontology, pmap:P_map, type_predicate):
+
+    for path in rule_dict[rule]:
+        expanded_paths = expand_path(path, kg, ontology, pmap, type_predicate)
+        if expanded_paths:
+            for ep in expanded_paths:
+                r = ep.rule(pmap)
+                if r in rule_dict:
+                    rule_dict[r].add(ep)
+                else:
+                    rule_dict[r] = {ep}
+                
+
+
+
+
+
+
+    # return paths generated by this
 
 
     return {}
 
-#TODO calc frontiers of r
-def ft(r:Rule):
-    return
+def expand_path(path:Path, kg:IncidenceList, ontology:Ontology, pmap:P_map, type_predicate:str):
+    expanded_paths = set()
+    # TODO here is decided what structure the rules will have, is every node a frontier to branch out?  or only leaves...
+
+    # find all leaves, head object doesn't count
+    frontiers = {node for node in path.graph.nodes.keys() if len(path.graph.nodes[node]) < 2 and node != path.head[2]}
+
+    # if head subject isn't connected -> path is only head, it's a leaf too
+    if path.head[0] not in path.graph.nodes.keys():
+        frontiers.add(path.head[0])
+
+    # go through all possible new triples, create new path versions with one more triple than given path
+    # TODO depending on how rules should look like, add multiple triples here aswell
+    for f in frontiers:
+        for p in kg.nodes.get(f):
+            pairs = kg.edges.get(p)
+            if pairs:
+                for pair in pairs:
+                    edges = path.graph.edges.get(p)
+                    triple = (pair[0],p, pair[1])
+
+                    if triple == path.head or edges and pair in edges:
+                    # we only want triples that are not in path 
+                        continue
+
+                    e = pair[0] if pair[1] == f else pair[1]
+                    if f in pair and fits_domain_range(e, triple, ontology, kg, pmap, type_predicate):
+                        new = path.copy()
+                        new.graph.add(pair[0], p, pair[1])
+                        expanded_paths.add(new)
+    print(expanded_paths)
+    return expanded_paths
 
 
 
