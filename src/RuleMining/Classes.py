@@ -20,7 +20,7 @@ class IncidenceList:
         return f"Graph:\nedges: {self.edges},\nnodes: {self.nodes}.\n"
 
     def copy(self):
-        return IncidenceList(self.edges.copy(), self.nodes.copy())
+        return IncidenceList(deepcopy(self.edges), deepcopy(self.nodes))
 
 
     def addNode(self, n, edges=None):
@@ -170,6 +170,9 @@ class Path:
     def copy(self):
         return Path(self.head, self.graph.copy())
 
+    def frontiers(self):
+        # TODO
+        pass
 
     """returns a rule object corresponding to the paths' structure."""
     def rule(self, pmap:P_map): 
@@ -342,7 +345,6 @@ def rename_triple(triple, head, name_dict, p_count, rule:Rule, pmap:P_map):
     add_to_set_dict(name_dict, s, s_var)
     add_to_set_dict(name_dict, o, o_var)
     
-    # TODO generalize head 1 and p
     if is_head:
         head = (s_var, pmap.original_pred(head[1]), o_var)
         rule.head = head

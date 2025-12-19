@@ -363,31 +363,50 @@ def expand_path(path:Path, kg:IncidenceList, ontology:Ontology, pmap:P_map, type
     # TODO here is decided what structure the rules will have, is every node a frontier to branch out?  or only leaves...
 
     # find all leaves, head object doesn't count
-    frontiers = {node for node in path.graph.nodes.keys() if len(path.graph.nodes[node]) < 2 and node != path.head[2]}
-
+    # TODO this is wrong, need to count corresponding appearances not different preds, there can be 1000 triples with same pred in graph... 
+    frontiers = path.frontiers()
+    print(f"path {path} frontiers {frontiers}")
     # if head subject isn't connected -> path is only head, it's a leaf too
     if path.head[0] not in path.graph.nodes.keys():
         frontiers.add(path.head[0])
 
     # go through all possible new triples, create new path versions with one more triple than given path
     # TODO depending on how rules should look like, add multiple triples here aswell
+
     for f in frontiers:
-        for p in kg.nodes.get(f):
+        preds = kg.nodes.get(f)
+        if not preds:
+            continue
+
+        for p in preds:
             pairs = kg.edges.get(p)
-            if pairs:
-                for pair in pairs:
-                    edges = path.graph.edges.get(p)
-                    triple = (pair[0],p, pair[1])
+            if not pairs:
+                continue
 
-                    if triple == path.head or edges and pair in edges:
-                    # we only want triples that are not in path 
-                        continue
+            for pair in pairs:
+                if f not in pair:
+                # cannot jump through kg
+                    continue
 
-                    e = pair[0] if pair[1] == f else pair[1]
-                    if f in pair and fits_domain_range(e, triple, ontology, kg, pmap, type_predicate):
-                        new = path.copy()
-                        new.graph.add(pair[0], p, pair[1])
-                        expanded_paths.add(new)
+                e = pair[0] if pair[1] == f else pair[1]
+
+                if e != f and e in path.graph.nodes.keys():
+                # don't want circles, except when s = o
+                    continue
+
+                triple = (pair[0],p, pair[1])
+
+                if triple == path.head:
+                # we only want triples that are not in path, need to check head seperately here
+                    continue
+
+                if fits_domain_range(e, triple, ontology, kg, pmap, type_predicate):
+                    new = path.copy()
+                    print(f"NEW A {new}")
+                    new.graph.add(pair[0], p, pair[1])
+                    print(f"NEW B {new}")
+                    print(f"PATH b {path}")
+                    expanded_paths.add(new)
     print(expanded_paths)
     return expanded_paths
 
