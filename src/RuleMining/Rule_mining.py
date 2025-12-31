@@ -9,7 +9,7 @@ from RuleMining.Classes import Path, Rule, P_map, IncidenceList, Ontology
 
 
 def mine_rules(transformed_kg:IncidenceList, targets:set, transform_output_dir:str, ontology:Ontology, rules_file:str, prefix:str, max_depth:int=3, set_size:int=100, 
-               alpha:float=0.5, type_predicate:str='http://www.w3.org/1999/02/22-rdf-syntax-ns#type'):
+               alpha:float=0.5, type_predicate:str='http://www.w3.org/1999/02/22-rdf-syntax-ns#type', rule_type:str="rudik"):
     """
     Mines rules for all original predicates of a normalized knowledge graph.
     
@@ -35,6 +35,18 @@ def mine_rules(transformed_kg:IncidenceList, targets:set, transform_output_dir:s
     beta = 1 - alpha
     print(f"computed beta as {beta}.\n")
     print(f"using <{type_predicate}> as type predicate.\n")
+
+    expand_fun = None
+    fits_max_depth = None
+
+    # TODO if clauses for other rule types
+    if rule_type == "rudik":
+        expand_fun = expand_path_rudik
+        fits_max_depth = fits_max_depth_rudik
+
+    if not expand_fun or not fits_max_depth:
+        raise ValueError("parameter rule_type must be one of the following strings: \"rudik\". If not spedified, it defaults to \"rudik\".")
+
 
     if type_predicate in targets:
         targets.remove(type_predicate)
@@ -89,16 +101,24 @@ def mine_rules(transformed_kg:IncidenceList, targets:set, transform_output_dir:s
 
         
         print(f"mining rules for target predicate <{p}>...\n")
-        result.extend(mine_rules_for_target_predicate(g, v, pmap, transformed_kg, prefix, type_predicate, ontology, max_depth))
+        result.extend(mine_rules_for_target_predicate(g, v, pmap, transformed_kg, prefix, type_predicate, ontology, expand_fun, fits_max_depth, max_depth, alpha, beta))
 
+        # if p == "isGenre":
+        #     isGenre_g = {('Dire_Straits(Album)', 'isGenre_Rock', 'Rock'), ('Let_It_Be', 'isGenre_Rock', 'Rock'), ('Rosanna', 'isGenre_Rock', 'Rock'), ('Regatta_De_Blanc', 'isGenre_Reggae', 'Reggae'), ('Outlandos_D%27Amour', 'isGenre_Punk', 'Punk'), ('The_Beatles(Album)', 'isGenre_Jazz', 'Jazz'), ('In_The_Gallery', 'isGenre_Rock', 'Rock'), ('Lions', 'isGenre_Rock', 'Rock'), ('Africa', 'isGenre_Rock', 'Rock'), ('Shape_of_my_Heart', 'isGenre_Pop', 'Pop'), ('Let_It_Be', 'isGenre_Pop', 'Pop'), ('Making_Movies', 'isGenre_Pop', 'Pop'), ('461_Ocean_Blvd.', 'isGenre_Blues', 'Blues'), ('Ten_Summoner%27s_Tales', 'isGenre_Pop', 'Pop'), ('Down_To_The_Waterline', 'isGenre_Rock', 'Rock')}
+        #     isGenre_v = {('Sultans_Of_Swing', 'NONONOFunk'), ('Make_Believe', 'NONONOMetal'), ('Water_Of_Love', 'NONONOCountry'), ('Outlandos_D%27Amour', 'Pop'), ('The_Seventh_One', 'Jazz'), ('The_Beatles(Album)', 'Rock'), ('It%27s_a_Feeling', 'NONONOSoul'), ('Outlandos_D%27Amour', 'Jazz'), ('Lovers_in_the_Night', 'NONONOCountry'), ('The_Seventh_One', 'Pop'), ('The_Seventh_One', 'Reggae'), ('Regatta_De_Blanc', 'Jazz'), ('Making_Movies', 'Reggae'), ('461_Ocean_Blvd.', 'Rock'), ('Ten_Summoner%27s_Tales', 'Rock')}
+        #     result.extend(mine_rules_for_target_predicate(isGenre_g, isGenre_v, pmap, transformed_kg, prefix, type_predicate, ontology, max_depth))
+            
+
+    print(result)
     #TODO add result to csvs
     with open(rules_file, mode='w', newline='', encoding='utf-8') as datei:
         writer = csv.writer(datei)
         writer.writerows(result)
 
+    print(type(expand_fun))
     return
 
-def mine_rules_for_target_predicate(g:set, v:set, pmap:P_map, kg:IncidenceList, prefix:str, type_predicate:str, ontology:Ontology,  max_depth:int=3, alpha:float=0.5, beta:float=0.5):
+def mine_rules_for_target_predicate(g:set, v:set, pmap:P_map, kg:IncidenceList, prefix:str, type_predicate:str, ontology:Ontology, expand_fun, fits_max_depth,  max_depth:int=3, alpha:float=0.5, beta:float=0.5):
     
     """
     Args:
@@ -120,8 +140,9 @@ def mine_rules_for_target_predicate(g:set, v:set, pmap:P_map, kg:IncidenceList, 
     
 
     
-    # isGenre_g = {('Ten_Summoner%27s_Tales', 'Pop'), ('Dire_Straits(Album)', 'Rock'), ('Wild_West_End', 'Rock'), ('Rubber_Soul', 'Rock'), ('Making_Movies', 'Pop'), ('Outlandos_D%27Amour', 'Punk'), ('In_The_Gallery', 'Rock'), ('461_Ocean_Blvd.', 'Blues'), ('Water_Of_Love', 'Country'), ('Make_Beleive', 'Metal'), ('The_Beatles(Album)', 'Jazz'), ('It%27s_a_Feeling', 'Soul'), ('Regatta_De_Blanc', 'Reggae'), ('Let_It_Be', 'Pop'), ('Sultans_Of_Swing', 'Funk'), ('Lovers_in_the_Night', 'Country')}
-    # isGenre_v = {('Africa', 'Funk'), ('Toto_IV', 'Metal'), ('Making_Movies', 'Metal'), ('Ten_Summoner%27s_Tales', 'Rock'), ('Make_Beleive', 'Jazz'), ('Make_Beleive', 'Rock'), ('Africa', 'Soul'), ('Toto', 'Metal'), ('Make_Beleive', 'Funk'), ('Outlandos_D%27Amour', 'Metal'), ('Dire_Straits(Album)', 'Metal'), ('Africa', 'Jazz'), ('Let_It_Be', 'Metal'), ('Ten_Summoner%27s_Tales', 'Metal'), ('461_Ocean_Blvd.', 'Rock')}
+    # isGenre_g = {('Dire_Straits(Album)', 'isGenre_Rock', 'Rock'), ('Let_It_Be', 'isGenre_Rock', 'Rock'), ('Rosanna', 'isGenre_Rock', 'Rock'), ('Regatta_De_Blanc', 'isGenre_Reggae', 'Reggae'), ('Outlandos_D%27Amour', 'isGenre_Punk', 'Punk'), ('The_Beatles(Album)', 'isGenre_Jazz', 'Jazz'), ('In_The_Gallery', 'isGenre_Rock', 'Rock'), ('Lions', 'isGenre_Rock', 'Rock'), ('Africa', 'isGenre_Rock', 'Rock'), ('Shape_of_my_Heart', 'isGenre_Pop', 'Pop'), ('Let_It_Be', 'isGenre_Pop', 'Pop'), ('Making_Movies', 'isGenre_Pop', 'Pop'), ('461_Ocean_Blvd.', 'isGenre_Blues', 'Blues'), ('Ten_Summoner%27s_Tales', 'isGenre_Pop', 'Pop'), ('Down_To_The_Waterline', 'isGenre_Rock', 'Rock')}    # isGenre_v = {('Africa', 'Funk'), ('Toto_IV', 'Metal'), ('Making_Movies', 'Metal'), ('Ten_Summoner%27s_Tales', 'Rock'), ('Make_Beleive', 'Jazz'), ('Make_Beleive', 'Rock'), ('Africa', 'Soul'), ('Toto', 'Metal'), ('Make_Beleive', 'Funk'), ('Outlandos_D%27Amour', 'Metal'), ('Dire_Straits(Album)', 'Metal'), ('Africa', 'Jazz'), ('Let_It_Be', 'Metal'), ('Ten_Summoner%27s_Tales', 'Metal'), ('461_Ocean_Blvd.', 'Rock')}
+    # isGenre_v = {('Sultans_Of_Swing', 'NONONOFunk'), ('Make_Believe', 'NONONOMetal'), ('Water_Of_Love', 'NONONOCountry'), ('Outlandos_D%27Amour', 'Pop'), ('The_Seventh_One', 'Jazz'), ('The_Beatles(Album)', 'Rock'), ('It%27s_a_Feeling', 'NONONOSoul'), ('Outlandos_D%27Amour', 'Jazz'), ('Lovers_in_the_Night', 'NONONOCountry'), ('The_Seventh_One', 'Pop'), ('The_Seventh_One', 'Reggae'), ('Regatta_De_Blanc', 'Jazz'), ('Making_Movies', 'Reggae'), ('461_Ocean_Blvd.', 'Rock'), ('Ten_Summoner%27s_Tales', 'Rock')}
+
     # #valid rule
     # r = Rule(head=("?VAR1","isGenre", "?VAR2"), 
     #          body={("?VAR3", "collaboratedWith", "?VAR4"), ("?VAR5", "hasAlbum", "?VAR6"), ("?VAR7", "isGenre", "?VAR8"), 
@@ -275,7 +296,7 @@ def mine_rules_for_target_predicate(g:set, v:set, pmap:P_map, kg:IncidenceList, 
     
 
     for path in paths:
-        expanded_paths = expand_path(path, kg, ontology, pmap, type_predicate)
+        expanded_paths = expand_fun(path, kg, ontology, pmap, type_predicate)
         for ep in expanded_paths:
             rule = ep.rule(pmap)
             if rule in rule_dict:
@@ -297,28 +318,26 @@ def mine_rules_for_target_predicate(g:set, v:set, pmap:P_map, kg:IncidenceList, 
         if not rule_dict or cov_g(list(R_out_dict.keys()), g, rule_dict, R_out_dict) == g or min_weight >= 0:
             break
         
-        print(rule_dict[r])
         if is_valid(r):
             # move rule to output dict
             R_out_dict[r] = rule_dict.pop(r)
+            print(f"\n\nFOUND RULE {r} with {min_weight}\n\n")
             
         else:
             # expand
             # TODO len(r.body) only works if rule is a straight path, need seperate function and different if clause if allow branching
-            if len(r.body) < max_depth:
-                expand_rule(r, rule_dict, kg, ontology, pmap, type_predicate)
+            if fits_max_depth(r, max_depth):
+                expand_rule(r, rule_dict, kg, ontology, pmap, type_predicate, expand_fun)
     
-            print(f"elselselselse {rule_dict[r]}")
             # remove handled rule
             rule_dict.pop(r)
 
         # find next r
         r, min_weight = find_r(rule, R_out_dict, rule_dict, kg, g, v, alpha, beta, pmap)
 
-        print(r, min_weight)
 
     # TODO possibly return the whole R_out_dict or calc some metrics here 
-    return list(R_out_dict.keys())
+    return list(rule.as_csv_row() for rule in R_out_dict.keys())
 
 
 
@@ -335,10 +354,10 @@ def find_r(r:Rule, R_out_dict, rule_dict, kg:IncidenceList, g:set, v:set, alpha:
 
 
 
-def expand_rule(rule, rule_dict, kg:IncidenceList, ontology:Ontology, pmap:P_map, type_predicate):
+def expand_rule(rule, rule_dict, kg:IncidenceList, ontology:Ontology, pmap:P_map, type_predicate, expand_fun):
 
     for path in rule_dict[rule]:
-        expanded_paths = expand_path(path, kg, ontology, pmap, type_predicate)
+        expanded_paths = expand_fun(path, kg, ontology, pmap, type_predicate)
         if expanded_paths:
             for ep in expanded_paths:
                 r = ep.rule(pmap)
@@ -348,24 +367,17 @@ def expand_rule(rule, rule_dict, kg:IncidenceList, ontology:Ontology, pmap:P_map
                     rule_dict[r] = {ep}
                 
 
+def fits_max_depth_rudik(r:Rule, max_depth):
+    return len(r.body) < max_depth
 
-
-
-
-
-    # return paths generated by this
-
-
-    return {}
-
-def expand_path(path:Path, kg:IncidenceList, ontology:Ontology, pmap:P_map, type_predicate:str):
+def expand_path_rudik(path:Path, kg:IncidenceList, ontology:Ontology, pmap:P_map, type_predicate:str):
     expanded_paths = set()
     # TODO here is decided what structure the rules will have, is every node a frontier to branch out?  or only leaves...
 
     # find all leaves, head object doesn't count
     # TODO this is wrong, need to count corresponding appearances not different preds, there can be 1000 triples with same pred in graph... 
     frontiers = path.frontiers()
-    print(f"path {path} frontiers {frontiers}")
+    #print(f"path {path} frontiers {frontiers}")
     # if head subject isn't connected -> path is only head, it's a leaf too
     if path.head[0] not in path.graph.nodes.keys():
         frontiers.add(path.head[0])
@@ -402,17 +414,17 @@ def expand_path(path:Path, kg:IncidenceList, ontology:Ontology, pmap:P_map, type
 
                 if fits_domain_range(e, triple, ontology, kg, pmap, type_predicate):
                     new = path.copy()
-                    print(f"NEW A {new}")
                     new.graph.add(pair[0], p, pair[1])
-                    print(f"NEW B {new}")
-                    print(f"PATH b {path}")
                     expanded_paths.add(new)
-    print(expanded_paths)
     return expanded_paths
 
 
 
+def fits_max_depth_branch(r:Rule, max_depth):
+    pass
 
+def expand_path_branch(path:Path, kg:IncidenceList, ontology:Ontology, pmap:P_map, type_predicate:str):
+    pass
 
 
 

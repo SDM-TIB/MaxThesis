@@ -471,21 +471,8 @@ def cov_g(r, g, rule_dict, R_out_dict):
             c.update(cov_g(rule, g_copy, rule_dict, R_out_dict))
     else:
         raise ValueError("r must be type Rule or list[Rule]")
+    
     return c
-
-"""
-unbounded coverage of r over g
-"""
-def uncov_g(r, g, rule_dict, R_out_dict):
-    if not r:
-        return set()
-    u_r = None
-    if type(r) == Rule:
-        u_r = unbind(r)
-    elif type(r) == list and r and type(r[0]) == Rule:
-        u_r = [unbind(rule) for rule in r]
-    return cov_g(u_r, g, rule_dict, R_out_dict)
-
 
 
 """estimated marginal weight"""
@@ -499,16 +486,6 @@ def est_m_weight(r:Rule, R_out_dict, rule_dict, kg:IncidenceList, g:set, v:set, 
     cardinality_uncov_r_out_r_v = len(set.union(uncov_r_out_v, uncov_r_v))
     cardinality_uncov_r_out_v = len(uncov_r_out_v)
 
-
-    print(cov_g(r, g, rule_dict, R_out_dict))
-    print(cov_g(R_out, g, rule_dict, R_out_dict))
-    print(len(g))
-    print(f"croutv {cardinality_cov_r_out_v}")
-    print(cov(R_out, kg, v, pmap))
-    print(cardinality_uncov_r_out_r_v)
-    print(uncov(r, kg, v, pmap))
-    print(f"uncroutv {cardinality_uncov_r_out_v}")
-    print(uncov(R_out, kg, v, pmap))
 
 
     if not cardinality_cov_r_out_v:
@@ -592,7 +569,6 @@ def is_valid_comp(triple):
 
 # checks if an entity is allowed in a certain triple using ontology, for literal comparisons, is_valid_comp() is returned
 def fits_domain_range(entity, triple, ontology:Ontology, kg:IncidenceList, pmap:P_map, type_predicate):
-    # print("CALL")
     if entity not in triple:
         raise ValueError("Entity not in triple.")
     
@@ -863,7 +839,6 @@ def getExamplesLCWA(kg:IncidenceList, ontology:Ontology, pmap:P_map, count:int, 
 
     diff = count - len(out)
     while len(out) < count and eligible_preds:
-        print(f"LCWA while target {pmap.target} eligible {eligible_preds}")
         max_i = int(diff /(len(eligible_preds)) + 1) 
         eligible_preds_copy = eligible_preds.copy()
 
@@ -916,7 +891,6 @@ def getExamplesLCWA(kg:IncidenceList, ontology:Ontology, pmap:P_map, count:int, 
         diff = count - len(out)
     for _ in range(-diff):
         out.pop()
-    print(f"==============LCWA OUT {out}" )
     return out
 
 """get random pairs of entities that don't have target predicate"""

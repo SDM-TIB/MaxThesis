@@ -153,7 +153,7 @@ Toto IV,isGenre,Rock
 The Seventh One,isGenre,Rock
 ,,
 Rosanna,isGenre,Rock
-Make Beleive,isGenre,Metal
+Make Believe,isGenre,Metal
 I Won’t Hold You Back,isGenre,Rock
 Good For You,isGenre,Rock
 It’s a Feeling,isGenre,Soul
@@ -164,7 +164,7 @@ Waiting for Your Love,isGenre,Rock
 Africa,isGenre,Rock
 ,,
 Rosanna,includedIn,Toto IV
-Make Beleive,includedIn,Toto IV
+Make Believe,includedIn,Toto IV
 I Won’t Hold You Back,includedIn,Toto IV
 Good For You,includedIn,Toto IV
 It’s a Feeling,includedIn,Toto IV
@@ -175,7 +175,7 @@ Waiting for Your Love,includedIn,Toto IV
 Africa,includedIn,Toto IV
 ,,
 Rosanna,#type,Song
-Make Beleive,#type,Song
+Make Believe,#type,Song
 I Won’t Hold You Back,#type,Song
 Good For You,#type,Song
 It’s a Feeling,#type,Song

@@ -170,13 +170,32 @@ class Path:
     def copy(self):
         return Path(self.head, self.graph.copy())
 
+    # calculates a paths frontiers in line with rudik algorithm, change this to create other path shapes
     def frontiers(self):
         # TODO
-        pass
+        out = set()
+        h1 = self.head[0]
+        if h1 not in self.graph.nodes.keys():
+            out.add(h1)
+
+        for node, preds in self.graph.nodes.items():
+            if node == h1 or len(preds) > 1:
+                continue
+            count = 0
+            for pair in self.graph.edges[next(p for p in preds)]:
+                if node in pair:
+                    if count:
+                        count += 1
+                        break
+                    count = 1
+            if count == 1:
+                out.add(node)
+        return out
+
+
 
     """returns a rule object corresponding to the paths' structure."""
     def rule(self, pmap:P_map): 
-        print(f"RULE of {self}")
 
         name_dict = {}
         p_count = 0
@@ -188,7 +207,6 @@ class Path:
 
 
         if len(triple_order) < sum(len(self.graph.edges[p]) for p in self.graph.edges):
-            print(f" {triple_order} \n{len(triple_order)}\n {self.graph.edges}\n {sum(len(self.graph.edges[p]) for p in self.graph.edges)} \n")
             raise ValueError("The given path is faulty, all triples must be reachable from head subject.")
         
         p_count = 0
@@ -204,7 +222,6 @@ class Path:
 
 """performs a strictly ordered dfs over an Incidence list, starting at  start entity, returns the traversal order of triples"""
 def dfs(nodes, edges, start, triple, visited=None):
-    print(f"--------DFS: \nnodes = {nodes}\n\nedges: {edges}\n\ntriple {triple} \n visited{visited}")
 
 
     def find_min_key(subpaths, visited):
@@ -316,6 +333,18 @@ class Rule:
         r.body = self.body.copy()
         r.connections = self.connections.copy()
         return r
+
+    
+    def as_csv_row(self):
+        def triple_csv(triple):
+            s,p,o = triple
+            return f"{p}({s};{o})"
+        
+        out = [triple_csv(self.head)]
+        out.extend(list(triple_csv(t) for t in self.body))
+        for knot in self.connections:
+            out.append("=".join(knot))
+        return out
     
 
 """help function for Path.rule()
