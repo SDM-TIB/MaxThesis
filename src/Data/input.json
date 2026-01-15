@@ -1,10 +1,10 @@
 
 {
-  "KG": "musicKG",
-  "prefix": "http://example.org/",
-  "rules_file": "musicKG.csv",
-  "rdf_file": "musicKG.nt",
-  "constraints_folder": "musicKG",
-  "ontology_file": "musicKGOntology.ttl",
+  "KG": "FrenchRoyalty",
+  "prefix": "http://FrenchRoyalty.org/",
+  "rules_file": "FrenchRoyalty.csv",
+  "rdf_file": "french_royalty.nt",
+  "constraints_folder": "FrenchRoyalty",
+  "ontology_file": "ontology_FrenchRoyalty.ttl",
   "pca_threshold": 0.75
 }

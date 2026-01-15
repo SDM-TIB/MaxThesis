@@ -39,6 +39,8 @@ def mine_rules(transformed_kg:IncidenceList, targets:set, transform_output_dir:s
     expand_fun = None
     fits_max_depth = None
 
+
+
     # TODO if clauses for other rule types
     if rule_type == "rudik":
         expand_fun = expand_path_rudik
@@ -64,6 +66,7 @@ def mine_rules(transformed_kg:IncidenceList, targets:set, transform_output_dir:s
         # getting post normalization instances of target predicate and the negative instances from validation
         pmap = P_map(p, new_preds(p, predicate_mappings), set() , predicate_mappings, neg_predicate_mappings)
         pmap.neg_predicates = neg_preds(pmap.predicates, neg_predicate_mappings)
+
 
         print(f"creating input sets G and V for target predicate <{p}>...\n")
         # create positive examples
@@ -289,8 +292,8 @@ def mine_rules_for_target_predicate(g:set, v:set, pmap:P_map, kg:IncidenceList, 
     # expand by one and save resulting paths in rule dict
 
     R_out_dict = {}
-
-    rule_dict = {}   
+    rule_dict = {}  
+    rule = None 
     paths = {Path((s, p , o), IncidenceList()) for s,p,o in g}
 
     
@@ -306,7 +309,7 @@ def mine_rules_for_target_predicate(g:set, v:set, pmap:P_map, kg:IncidenceList, 
 
 
 
-    r, min_weight = find_r(rule, R_out_dict, rule_dict, kg, g, v, alpha, beta, pmap)
+    r, min_weight = find_r(R_out_dict, rule_dict, kg, g, v, alpha, beta, pmap)
 
 
 
@@ -333,7 +336,7 @@ def mine_rules_for_target_predicate(g:set, v:set, pmap:P_map, kg:IncidenceList, 
             rule_dict.pop(r)
 
         # find next r
-        r, min_weight = find_r(rule, R_out_dict, rule_dict, kg, g, v, alpha, beta, pmap)
+        r, min_weight = find_r(R_out_dict, rule_dict, kg, g, v, alpha, beta, pmap)
 
 
     # TODO possibly return the whole R_out_dict or calc some metrics here 
@@ -341,7 +344,7 @@ def mine_rules_for_target_predicate(g:set, v:set, pmap:P_map, kg:IncidenceList, 
 
 
 
-def find_r(r:Rule, R_out_dict, rule_dict, kg:IncidenceList, g:set, v:set, alpha:float, beta:float, pmap:P_map):
+def find_r(R_out_dict, rule_dict, kg:IncidenceList, g:set, v:set, alpha:float, beta:float, pmap:P_map):
     min_weight = np.inf
     r = None
     for rule in rule_dict.keys():

@@ -438,14 +438,22 @@ class Ontology:
                 else:
                     self.classes[classname] = set()
             else:
-                self.classes[classname].add(super) 
+                if super:
+                    self.classes[classname].add(super) 
 
     def addProperty(self, prefix, p, d=None, r=None):
         if d == None:
             d = set()
         if r == None:
             r = set()
-        self.properties[removePrefix(p, prefix)] = (d, r)
+
+        name = removePrefix(p, prefix)
+        if not name in self.properties:
+            self.properties[name] = (d, r)
+        else:
+            self.properties[name][0].update(d)
+            self.properties[name][1].update(r)
+            
 
 
 

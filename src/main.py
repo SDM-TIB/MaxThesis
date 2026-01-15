@@ -64,7 +64,7 @@ def delete_existing_result(pfad):
     if os.path.exists(pfad) and os.path.isdir(pfad):
         i = True
         while i:
-            user_input = input(f"There already exists a result folder for this knowledge graph at '{pfad}'. Do you want to delete it and resume? (y/n) ").strip().lower()
+            user_input = input(f"\nThere already exists a result folder for this knowledge graph at '{pfad}'. Do you want to delete it and resume? (y/n) ").strip().lower()
             
             if user_input == 'y':
                 shutil.rmtree(pfad)

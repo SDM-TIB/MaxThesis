@@ -30,19 +30,33 @@ def parseOntology(ontology_file:str, ontology:Ontology, prefix:str=""):
                    continue
 
                 for e in r:
-                    if e == ".":
+                    if e[len(e)-1] == ".":
                         # all triples for current subject are finished
                         block_end = True
-                    block.append(e)
+                        if len(e) > 1:
+                            block.append(e[0:len(e)-1])
+                        break
+                    
+                    if e[len(e)-1] == ",":
+                        if len(e) > 1:
+                            block.append(e[0:len(e)-1])
+                        block.append(",")                    
+                    elif e[len(e)-1] == ";":
+                        if len(e) > 1:
+                            block.append(e[0:len(e)-1])
+                        block.append(";")
+                    else:
+                        block.append(e)
 
                 if block_end:
+                    print(f"ONTOLOGY BLOCK {block}")
                     addOntologyBlock(block, ontology, prefix)
                     block = []
                     block_end = False
 
 """help function for parseOntology"""
 def checkForType(e):
-    return e.__contains__("type")
+    return e.__contains__("type") or e == "a"
 
 """help function for parseOntology"""
 def checkForClass(types):
@@ -85,59 +99,184 @@ def extractName(e):
     
             
 
-"""help function for parseOntology;
-classify triple and add to ontology"""
-def addOntologyBlock(block:list[str], ontology:Ontology, prefix):
-    s, p, o = block[0:3]
-    if checkForType(p):
-    # next item is type of s
+# """help function for parseOntology;
+# classify triple and add to ontology"""
+# def addOntologyBlock(block:list[str], ontology:Ontology, prefix):
+#     s, p, o = block[0:3]
+#     if checkForType(p):
+#     # next item is type of s
 
-        types = set()
-        types.add(o)
-        for next_i in range(3, len(block)):
-            if block[next_i] == ";":
-                break
-            if block[next_i] == ",":
-                continue
+#         types = set()
+#         types.add(o)
+#         for next_i in range(3, len(block)-1):
+#             if block[next_i] == ";":
+#                 break
+#             if block[next_i] == ",":
+#                 continue
           
-            types.add(block[next_i])
+#             types.add(block[next_i])
 
-        if checkForClass(types):
-        # s is a class
+#         if checkForClass(types):
+#         # s is a class
 
-            ontology.addClass(prefix, s)
-            for next_i in range(3 + len(types), len(block)):
-                if checkForSubClass(block[next_i]):
-                    i = 1
-                    # add all objects given for subClassOf
-                    while True:
-                        ontology.addClass(prefix, s, extractName(block[next_i + i]))
-                        i += 1
-                        if not block[next_i + i][len(block[next_i + i])-1] == ",":
-                            break
+#             ontology.addClass(prefix, s)
+#             for next_i in range(3 + 2 * len(types), len(block)-1):
+#                 if checkForSubClass(block[next_i]):
+#                     i = 1
+#                     # add all objects given for subClassOf
+#                     while True:
+#                         ontology.addClass(prefix, s, extractName(block[next_i + i]))
+#                         i += 1
+#                         if not block[next_i + i][len(block[next_i + i])-1] == ",":
+#                             break
 
-        if checkForProperty(types):
-            d, r = set(), set()
-            for next_i in range(3 + len(types), len(block)-1):
-                if checkForDomain(block[next_i]):
-                    i = 1
-                    # add all objects given for domain
-                    while True:
-                        d.add(block[next_i +  i])
-                        i += 1
-                        if not block[next_i + i][len(block[next_i + i])-1] == ",":
-                            break
-                if checkForRange(block[next_i]):
-                    i = 1
-                    # add all objects given for range
-                    while True:
-                        r.add(block[next_i + i])
-                        i += 1
-                        if not block[next_i + i][len(block[next_i + i])-1] == ",":
-                            break
+#         if checkForProperty(types):
+#             d, r = set(), set()
+#             for next_i in range(3 + 2*len(types), len(block)-1):
+#                 if checkForDomain(block[next_i]):
+#                     i = 1
+#                     # add all objects given for domain
+#                     while True:
+#                         d.add(block[next_i +  i])
+#                         i += 1
+#                         if not block[next_i + i][len(block[next_i + i])-1] == ",":
+#                             break
+#                 if checkForRange(block[next_i]):
+#                     i = 1
+#                     # add all objects given for range
+#                     while True:
+#                         r.add(block[next_i + i])
+#                         i += 1
+#                         if not block[next_i + i][len(block[next_i + i])-1] == ",":
+#                             break
 
             
-            ontology.addProperty(prefix, s, {extractName(e) for e in d}, {extractName(e) for e in r})
+#             ontology.addProperty(prefix, s, {extractName(e) for e in d}, {extractName(e) for e in r})
+
+
+
+def addOntologyBlock(block:list[str], ontology:Ontology, prefix):
+    s = block[0]
+    current_i = 1
+    max_i = len(block)
+    domain = set()
+    range = set()
+    super = set()
+    types = set()
+    isClass = False
+    isProperty = False
+
+    while current_i < max_i:
+        p = block[current_i]
+        print(f"\n\nset p to {p}\n\n")
+        current_i += 1
+        o = block[current_i]
+        print(f"\n\nset o to {o}\n\n")
+        current_i += 1
+
+        if checkForType(p):
+            types.add(o)
+
+            while current_i < max_i:
+
+                if block[current_i] == ";":
+                    break
+                if block[current_i] == ",":
+                    current_i += 1
+                    continue
+
+                o = block[current_i]
+                print(f"\n\nset o to {o}\n\n")
+
+                types.add(o)
+                current_i += 1
+
+            if checkForClass(types):
+                isClass = True
+
+            if checkForProperty(types):
+                isProperty = True
+
+
+        elif checkForSubClass(p):
+            super.add(o)
+            while current_i < max_i:
+
+                if block[current_i] == ";":
+                    break
+                if block[current_i] == ",":
+                    current_i += 1
+                    continue
+
+                o = block[current_i]
+                print(f"\n\nset o to {o}\n\n")
+
+                super.add(o)
+                current_i += 1
+
+
+            
+        elif checkForDomain(p):
+            domain.add(o)
+            while current_i < max_i:
+
+                if block[current_i] == ";":
+                    break
+                if block[current_i] == ",":
+                    current_i += 1
+                    continue
+
+                o = block[current_i]
+                print(f"\n\nset o to {o}\n\n")
+
+                domain.add(o)
+                current_i += 1
+            
+        elif checkForRange(p):
+            range.add(o)
+            while current_i < max_i:
+
+                if block[current_i] == ";":
+                    break
+                if block[current_i] == ",":
+                    current_i += 1
+                    continue
+
+                o = block[current_i]
+                print(f"\n\nset o to {o}\n\n")
+
+                range.add(o)
+                current_i += 1
+        else:
+            # irrelevant predicate, skip to next one
+            while current_i < max_i and block[current_i] != ";":
+                current_i += 1
+        
+
+        # each of the if clauses ends on a current_i where block[current_i] == ";" or >= max_i
+        # setting current_i to next predicate
+        current_i += 1
+
+    # add collected info to ontology
+    if isClass:
+        if super:
+            for sup in super:
+                ontology.addClass(prefix, extractName(s), extractName(sup))
+        else:
+            ontology.addClass(prefix, extractName(s))
+        
+    if isProperty:
+        print(domain, range)
+        ontology.addProperty(prefix, extractName(s), {extractName(e) for e in domain}, {extractName(e) for e in range})
+
+
+
+
+
+
+
+
+
 
 """remove prefix from triple"""
 def tripleRemovePrefix(triple:tuple[str], prefix:str):    
@@ -577,11 +716,14 @@ def fits_domain_range(entity, triple, ontology:Ontology, kg:IncidenceList, pmap:
     check_range = False
     literal = False
 
+    
     if is_literal(entity):
+        # need to handle differently if entity is a literal
         literal = True
 
     if literal and is_valid_comp(triple):
         return True
+    
     if is_literal_comp(triple[1]):
         # it is a literal comp, but it is not valid as checked before
         return False
@@ -592,13 +734,14 @@ def fits_domain_range(entity, triple, ontology:Ontology, kg:IncidenceList, pmap:
             # literal comparisons have been handled before, subject cannot be literal
             return False
         check_domain = True
+
     if entity == triple[2]:
         check_range = True
 
     
     
     original = pmap.original_pred(triple[1])
-
+    # depending on given predicate (old or new), this insures it is found in ontology
     if triple[1] in ontology.properties:
         domain_range = ontology.properties[triple[1]]
     elif original in ontology.properties:
@@ -618,12 +761,9 @@ def fits_domain_range(entity, triple, ontology:Ontology, kg:IncidenceList, pmap:
 
 
     else:
-
         # get type predicate(s) the entity has 
-        type_predicates = set()
-        for k in pmap.predicate_mappings:
-            if pmap.predicate_mappings[k] == type_predicate:
-                type_predicates.add(k)
+        type_predicates = {k for k in pmap.predicate_mappings if pmap.predicate_mappings[k] == type_predicate}
+
         if entity in kg.nodes:
             entity_type_predicates = type_predicates.intersection(kg.nodes[entity])
         else:
@@ -738,10 +878,10 @@ def neg_preds(new_preds:set, map):
 def getExamples(kg:IncidenceList, preds:set, count:int):
     g = set()
     eligible_preds = preds.copy()
-    diff = count - len(g)
+    diff = count
 
 
-    # go through all predicates, get mean examples per predicate if possible
+    # go through all predicates, get even share of examples per predicate if possible
     # repeat with all predicates that still have unused instances left until count is met
 
     test = 0
@@ -778,15 +918,14 @@ def getExamples(kg:IncidenceList, preds:set, count:int):
 
 
 
-"""get distributed examples for given predicates, limited by count"""
+"""get distributed negative examples for given predicates, by finding instances of negative predicates, limited by count"""
 def getNegExamples(kg:IncidenceList, preds:set, count:int):
     v = set()
     eligible_preds = preds.copy()
-    diff = count - len(v)
+    diff = count
 
 
     # go through all predicates, get mean examples per predicate if possible
-    # repeat with all predicates that still have unused instances left until count is met
 
     test = 0
     while len(v) < count and eligible_preds:
@@ -827,68 +966,63 @@ def getExamplesLCWA(kg:IncidenceList, ontology:Ontology, pmap:P_map, count:int, 
 
     preds = pmap.predicates
     out = set()
-    eligible_preds = preds.copy()
+    diff = count - len(out)
 
-
-    # will hold all instances of target predicate, search from the connected entities
+    # will hold all instances of target predicate
     eligible_edges = set()
     for p in preds:
         edges = kg.edges.get(p)
         if edges:
             eligible_edges.update(edges)
+    
 
-    diff = count - len(out)
-    while len(out) < count and eligible_preds:
-        max_i = int(diff /(len(eligible_preds)) + 1) 
-        eligible_preds_copy = eligible_preds.copy()
+    j = diff
 
-        for p in eligible_preds_copy:
+    while len(out) < count:
+
+        max_i = int(diff /(len(preds)) + 1) 
+
+
+        i = 0
+        for e in eligible_edges:
+            # find object in neighbourhood that fits domain but doesnt have the relation with subject
+            # n = (s, o) find s' and o' s.t. not exists p(s, o') and p(s', o)
+            s = e[0]
+            o = e[1]
             found1 = False
             found2 = False
+            for f in eligible_edges:
+                s_prime = f[0]
+                o_prime = f[1]
+                # TODO ask if this is ok, recombining entities that have the relation, rather than combining one entity that has relation with one that may or may NOT have it
 
-            if not kg.edges.get(p):
-                continue
+                if not found1 and (s, o_prime) not in eligible_edges and (s, o_prime) not in out and fits_domain_range(o_prime, (s,pmap.target,o_prime), ontology, kg, pmap, type_predicate):
+                    out.add((s, o_prime))
+                    found1 = True
+                    i += 1
 
-            l = len(kg.edges[p])
+                if not found2 and (s_prime, o) not in eligible_edges and (s_prime, o) not in out and fits_domain_range(s_prime, (s_prime,pmap.target,o), ontology, kg, pmap, type_predicate):
+                    out.add((s_prime, o))
+                    found2 = True
+                    i += 1
 
-            i = 0
-            for e in eligible_edges:
-                # find object in neighbourhood that fits domain but doesnt have the relation with subject
-                # n = (s, o) find s' and o' s.t. not exists p(s, o') and p(s', o)
-                s = e[0]
-                o = e[1]
-                for f in eligible_edges:
-                    # TODO ask if this is ok, recombining entities that have the relation, rather than combining one entity that has relation with one that may or may NOT have it
-                    if not found1 and (s, f[1]) not in eligible_edges and (s, f[1]) not in out and fits_domain_range(f[1], (s,p,f[1]), ontology, kg, pmap, type_predicate):
-                        out.add((s, f[1]))
-                        found1 = True
-                        i += 1
+                if found1 and found2:
+                    break 
 
-                    if not found2 and (f[0], o) not in eligible_edges and (f[0], o) not in out and fits_domain_range(f[0], (f[0],p,s), ontology, kg, pmap, type_predicate):
-                        out.add((f[0], o))
-                        found2 = True
-                        i += 1
+            if i > max_i:
+                j -= 1
 
-                    if found1 and found2:
-                        break 
+                break
 
-                if i > max_i:
-                    eligible_preds.remove(p)
-                    break
+            if (not found1 and not found2):
+                # if all instances of predicate are used
+                j -= 1
 
-            
-
-            if (not found1 and not found2 and p in eligible_preds):
-                    # if all instances of predicate are used
-                    eligible_preds.remove(p)
-
-
-        # TODO remove after fix
-        # loop_count +=1
-        # if loop_count > 10:
-        #     return out
-
+        if j < 1:
+            break
         diff = count - len(out)
+
+
     for _ in range(-diff):
         out.pop()
     return out
@@ -898,12 +1032,17 @@ def getRandomNegExamples(kg:IncidenceList, preds:set, count:int, v=set()):
     ct = 1
     fact = 1
 
+    forbidden_pairs = set()
+    for p in preds:
+        forbidden_pairs.update(kg.edges.get(p))
+
+
     # finding set size where |set X set| > count
     while fact <= count:
         ct+=1
         fact *= ct
 
-    # this is somewhat arbitrary, goal is to remove some bias by having more entities in the set while managing computational work --> not going trhough all kg.nodes
+    # this is somewhat arbitrary, goal is to remove some bias by having more distinct entities in the set while managing computational work --> not going through all kg.nodes
     ct *= 2
 
     entities = []
@@ -916,8 +1055,8 @@ def getRandomNegExamples(kg:IncidenceList, preds:set, count:int, v=set()):
             break
 
     out = set()
-    for i in range(count):
+    for _ in range(count):
         pair = (random.choice(entities), random.choice(entities))
-        if pair not in v:
+        if pair not in v and pair not in forbidden_pairs:
             out.add(pair)
     return out

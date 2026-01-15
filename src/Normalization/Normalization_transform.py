@@ -250,9 +250,12 @@ def transform_triple(triple: Tuple[URIRef, URIRef, URIRef],
                 # Create new predicate with 'No' prefix for the object part
                 new_pred = URIRef(f"{orig_pred_str}_{no_prefix}{entity_name}")
                 new_obj = URIRef(f"{str(obj).rsplit('/', 1)[0]}/{no_prefix}{entity_name}")
-                return (subject, new_pred, new_obj)
+                if no_prefix:
+                    return (subject, new_pred, new_obj), True
+                else:
+                    return (subject, new_pred, new_obj), False
 
-    return None
+    return None, None
 
 
 def transform(kg: Graph, constraints_folder: str, prefix,  kg_name: str = None) -> Tuple[Graph, str]:
@@ -341,14 +344,15 @@ def transform(kg: Graph, constraints_folder: str, prefix,  kg_name: str = None) 
 
             if matches_conditions:
                 for s, p, o in transformed_kg.triples((subject, None, None)):
-                    transformed = transform_triple((s, p, o), filter_patterns, predicate_mapping, prefix)
+                    transformed, pred_negated = transform_triple((s, p, o), filter_patterns, predicate_mapping, prefix)
 
                     if transformed:
                         triples_to_remove.add((s, p, o))
                         triples_to_add.add(transformed)
 
-                        p_str = removePrefix(str(p), prefix)
-                        no_predicate_mapping[str(transformed[1])] = p_str
+                        if pred_negated:
+                            p_str = removePrefix(str(p), prefix)
+                            no_predicate_mapping[str(transformed[1])] = p_str
 
         print(f"Applying {len(triples_to_remove)} transformations...")
 
