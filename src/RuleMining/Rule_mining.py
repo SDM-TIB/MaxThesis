@@ -5,6 +5,8 @@ import warnings
 from RuleMining.Util import *
 from RuleMining.Classes import Path, Rule, P_map, IncidenceList, Ontology
 
+import time
+
 
 
 
@@ -60,6 +62,15 @@ def mine_rules(transformed_kg:IncidenceList, targets:set, transform_output_dir:s
         neg_predicate_mappings = json.load(np_map_file)
     result = []
 
+    # TODO remove
+    exr_time = 0
+    exp_time = 0
+    find_r_time = 0
+    w_time = 0
+    exp_calls = 0
+    w_calls = 0
+    cov_time = 0
+    fdr_time = 0
 
     for p in targets:
 
@@ -104,21 +115,28 @@ def mine_rules(transformed_kg:IncidenceList, targets:set, transform_output_dir:s
 
         
         print(f"mining rules for target predicate <{p}>...\n")
-        result.extend(mine_rules_for_target_predicate(g, v, pmap, transformed_kg, prefix, type_predicate, ontology, expand_fun, fits_max_depth, max_depth, alpha, beta))
+        #result.extend(mine_rules_for_target_predicate(g, v, pmap, transformed_kg, prefix, type_predicate, ontology, expand_fun, fits_max_depth, max_depth, alpha, beta))
 
-        # if p == "isGenre":
-        #     isGenre_g = {('Dire_Straits(Album)', 'isGenre_Rock', 'Rock'), ('Let_It_Be', 'isGenre_Rock', 'Rock'), ('Rosanna', 'isGenre_Rock', 'Rock'), ('Regatta_De_Blanc', 'isGenre_Reggae', 'Reggae'), ('Outlandos_D%27Amour', 'isGenre_Punk', 'Punk'), ('The_Beatles(Album)', 'isGenre_Jazz', 'Jazz'), ('In_The_Gallery', 'isGenre_Rock', 'Rock'), ('Lions', 'isGenre_Rock', 'Rock'), ('Africa', 'isGenre_Rock', 'Rock'), ('Shape_of_my_Heart', 'isGenre_Pop', 'Pop'), ('Let_It_Be', 'isGenre_Pop', 'Pop'), ('Making_Movies', 'isGenre_Pop', 'Pop'), ('461_Ocean_Blvd.', 'isGenre_Blues', 'Blues'), ('Ten_Summoner%27s_Tales', 'isGenre_Pop', 'Pop'), ('Down_To_The_Waterline', 'isGenre_Rock', 'Rock')}
-        #     isGenre_v = {('Sultans_Of_Swing', 'NONONOFunk'), ('Make_Believe', 'NONONOMetal'), ('Water_Of_Love', 'NONONOCountry'), ('Outlandos_D%27Amour', 'Pop'), ('The_Seventh_One', 'Jazz'), ('The_Beatles(Album)', 'Rock'), ('It%27s_a_Feeling', 'NONONOSoul'), ('Outlandos_D%27Amour', 'Jazz'), ('Lovers_in_the_Night', 'NONONOCountry'), ('The_Seventh_One', 'Pop'), ('The_Seventh_One', 'Reggae'), ('Regatta_De_Blanc', 'Jazz'), ('Making_Movies', 'Reggae'), ('461_Ocean_Blvd.', 'Rock'), ('Ten_Summoner%27s_Tales', 'Rock')}
-        #     result.extend(mine_rules_for_target_predicate(isGenre_g, isGenre_v, pmap, transformed_kg, prefix, type_predicate, ontology, max_depth))
-            
+        #TODO remove
+        res, exr, exp, find_r, wt, ec, wc, fdr, cov = mine_rules_for_target_predicate(g, v, pmap, transformed_kg, prefix, type_predicate, ontology, expand_fun, fits_max_depth, max_depth, alpha, beta)
+        result.extend(res)
+        exr_time += exr
+        exp_time += exp
+        find_r_time += find_r
+        w_time += wt
+        exp_calls += ec
+        w_calls += wc
+        fdr_time += fdr
+        cov_time += cov
+        
 
     print(result)
+    print(f"exp rule {exr_time}\nexp path {exp_time} for {exp_calls} calls\n find r {find_r_time}\n weight time {w_time} for {w_calls} calls\n fdr {fdr_time}\n cov {cov_time}")
     #TODO add result to csvs
     with open(rules_file, mode='w', newline='', encoding='utf-8') as datei:
         writer = csv.writer(datei)
         writer.writerows(result)
 
-    print(type(expand_fun))
     return
 
 def mine_rules_for_target_predicate(g:set, v:set, pmap:P_map, kg:IncidenceList, prefix:str, type_predicate:str, ontology:Ontology, expand_fun, fits_max_depth,  max_depth:int=3, alpha:float=0.5, beta:float=0.5):
@@ -162,36 +180,49 @@ def mine_rules_for_target_predicate(g:set, v:set, pmap:P_map, kg:IncidenceList, 
 #   "pca_threshold": 0.75
 # }
 
+# {
+#   "KG": "SynthLC_1000",
+#   "prefix": "<http://synthetic-LC.org/",
+#   "rules_file": "LC.csv",
+#   "rdf_file": "SynthLC_1000.nt",
+#   "constraints_folder": "SynthLC_1000",
+#   "ontology_file": "ontology_LungCancer.ttl",
+#   "pca_threshold": 0.75
+# }
 
 # {
 #   "KG": "FrenchRoyalty",
 #   "prefix": "http://FrenchRoyalty.org/",
-#   "rules_file": "french_royalty.csv",
+#   "rules_file": "FrenchRoyalty.csv",
 #   "rdf_file": "french_royalty.nt",
 #   "constraints_folder": "FrenchRoyalty",
-#   "ontology_file": "musicKGOntology.ttl",
+#   "ontology_file": "ontology_FrenchRoyalty.ttl",
 #   "pca_threshold": 0.75
 # }
 
 
-    # p1 = Path()
-    # p1.head = ("Ten_Summoner%27s_Tales","isGenre_Pop","Pop")
-    # p1.graph.add("Dire_Straits","hasAlbum_Making_Movies", "Making_Movies")
-    # p1.graph.add("Sting", "collaboratedWith_Dire_Straits", "Dire_Straits")
-    # p1.graph.add("Sting","hasAlbum_Ten_Summoner%27s_Tales","Ten_Summoner%27s_Tales")
-    # p1.graph.add("Making_Movies","isGenre_Pop","Pop")
-    # p1.graph.add("Ten_Summoner%27s_Tales","releaseYear_1993","\"1993\"^^<http://www.w3.org/2001/XMLSchema#/int>")
-    # p1.graph.add("Making_Movies","releaseYear_1980","\"1980\"^^<http://www.w3.org/2001/XMLSchema#/int>")
-    # p1.graph.add("\"1980\"^^<http://www.w3.org/2001/XMLSchema#/int>","<","\"1993\"^^<http://www.w3.org/2001/XMLSchema#/int>")
-    # p1.graph.add("Shape_of_my_Heart","writer_Sting","Sting")
+    p1 = Path()
+    p1.head = ("Ten_Summoner%27s_Tales","isGenre_Pop","Pop")
+    p1.graph.add("Dire_Straits","hasAlbum_Making_Movies", "Making_Movies")
+    p1.graph.add("Sting", "collaboratedWith_Dire_Straits", "Dire_Straits")
+    p1.graph.add("Sting","hasAlbum_Ten_Summoner%27s_Tales","Ten_Summoner%27s_Tales")
+    p1.graph.add("Making_Movies","isGenre_Pop","Pop")
+    p1.graph.add("Ten_Summoner%27s_Tales","releaseYear_1993","\"1993\"^^<http://www.w3.org/2001/XMLSchema#/int>")
+    p1.graph.add("Making_Movies","releaseYear_1980","\"1980\"^^<http://www.w3.org/2001/XMLSchema#/int>")
+    p1.graph.add("\"1980\"^^<http://www.w3.org/2001/XMLSchema#/int>","<","\"1993\"^^<http://www.w3.org/2001/XMLSchema#/int>")
+    p1.graph.add("Shape_of_my_Heart","writer_Sting","Sting")
 
-    # p2 = Path()
-    # p2.head = ("I_Shot_the_Sheriff","isGenre_Rock","Rock")
-    #p2.graph.add("Here_Comes_the_Sun","releaseYear_1969","\"1969\"^^<http://www.w3.org/2001/XMLSchema#/int>")
-    #p2.graph.add("461_Ocean_Blvd.","releaseYear_1974","\"1974\"^^<http://www.w3.org/2001/XMLSchema#/int>")
-    #p2.graph.add("\"1969\"^^<http://www.w3.org/2001/XMLSchema#/int>","<","\"1974\"^^<http://www.w3.org/2001/XMLSchema#/int>")
-    # p2.graph.add("I_Shot_the_Sheriff","includedIn_461_Ocean_Blvd.","461_Ocean_Blvd.")
-    # p2.graph.add("461_Ocean_Blvd.","isGenre_Rock","Rock")
+    # print(p1)
+    # print(p1.frontiers_rudik())
+    # exit()
+
+    p2 = Path()
+    p2.head = ("I_Shot_the_Sheriff","isGenre_Rock","Rock")
+    p2.graph.add("Here_Comes_the_Sun","releaseYear_1969","\"1969\"^^<http://www.w3.org/2001/XMLSchema#/int>")
+    p2.graph.add("461_Ocean_Blvd.","releaseYear_1974","\"1974\"^^<http://www.w3.org/2001/XMLSchema#/int>")
+    p2.graph.add("\"1969\"^^<http://www.w3.org/2001/XMLSchema#/int>","<","\"1974\"^^<http://www.w3.org/2001/XMLSchema#/int>")
+    p2.graph.add("I_Shot_the_Sheriff","includedIn_461_Ocean_Blvd.","461_Ocean_Blvd.")
+    p2.graph.add("461_Ocean_Blvd.","isGenre_Rock","Rock")
 
     # print(p2)
     # print(p2.rule(pmap))
@@ -279,13 +310,334 @@ def mine_rules_for_target_predicate(g:set, v:set, pmap:P_map, kg:IncidenceList, 
 
     #     R_out_changed = False
 
+    # print(f"g----{g}\n\nv---{v}")
+
+
+
+
+
+
+    rulelist = [Rule(
+        head= ('?VAR1', 'parent', '?VAR2'),
+        body= {('?VAR3', 'child', '?VAR4')},
+        connections= {('?VAR3', '?VAR1')})
+        , Rule(
+        head= ('?VAR1', 'parent', '?VAR2'),
+        body= {('?VAR3', 'mother', '?VAR4')},
+        connections= {('?VAR3', '?VAR1'), ('?VAR4', '?VAR2')})
+        , Rule(
+        head= ('?VAR1', 'parent', '?VAR2'),
+        body= {('?VAR3', 'father', '?VAR4')},
+        connections= {('?VAR4', '?VAR1')})
+        , Rule(
+        head= ('?VAR1', 'parent', '?VAR2'),
+        body= {('?VAR3', 'parent', '?VAR4')},
+        connections= {('?VAR3', '?VAR1')})
+        , Rule(
+        head= ('?VAR1', 'parent', '?VAR2'),
+        body= {('?VAR3', 'successor', '?VAR4')},
+        connections= {('?VAR3', '?VAR1')})
+        , Rule(
+        head= ('?VAR1', 'parent', '?VAR2'),
+        body= {('?VAR3', 'successor', '?VAR4')},
+        connections= {('?VAR4', '?VAR1')})
+        , Rule(
+        head= ('?VAR1', 'parent', '?VAR2'),
+        body= {('?VAR3', 'spouse', '?VAR4')},
+        connections= {('?VAR4', '?VAR1')})
+        , Rule(
+        head= ('?VAR1', 'parent', '?VAR2'),
+        body= {('?VAR3', 'father', '?VAR4')},
+        connections= {('?VAR3', '?VAR1')})
+        , Rule(
+        head= ('?VAR1', 'parent', '?VAR2'),
+        body= {('?VAR3', 'predecessor', '?VAR4')},
+        connections= {('?VAR3', '?VAR1')})
+        , Rule(
+        head= ('?VAR1', 'parent', '?VAR2'),
+        body= {('?VAR3', 'father', '?VAR4')},
+        connections= {('?VAR3', '?VAR1'), ('?VAR4', '?VAR2')})
+        , Rule(
+        head= ('?VAR1', 'parent', '?VAR2'),
+        body= {('?VAR3', 'mother', '?VAR4')},
+        connections= {('?VAR3', '?VAR1')})
+        , Rule(
+        head= ('?VAR1', 'parent', '?VAR2'),
+        body= {('?VAR3', 'mother', '?VAR4')},
+        connections= {('?VAR4', '?VAR1')})
+        , Rule(
+        head= ('?VAR1', 'parent', '?VAR2'),
+        body= {('?VAR3', 'child', '?VAR4')},
+        connections= {('?VAR4', '?VAR1')})
+        , Rule(
+        head= ('?VAR1', 'parent', '?VAR2'),
+        body= {('?VAR3', 'successor', '?VAR4')},
+        connections= {('?VAR3', '?VAR2'), ('?VAR4', '?VAR1')})
+        , Rule(
+        head= ('?VAR1', 'parent', '?VAR2'),
+        body= {('?VAR3', 'child', '?VAR4')},
+        connections= {('?VAR3', '?VAR2'), ('?VAR4', '?VAR1')})
+        , Rule(
+        head= ('?VAR1', 'parent', '?VAR2'),
+        body= {('?VAR3', 'predecessor', '?VAR4')},
+        connections= {('?VAR3', '?VAR1'), ('?VAR4', '?VAR2')})
+        , Rule(
+        head= ('?VAR1', 'parent', '?VAR2'),
+        body= {('?VAR3', 'predecessor', '?VAR4')},
+        connections= {('?VAR4', '?VAR1')})
+        , Rule(
+        head= ('?VAR1', 'parent', '?VAR2'),
+        body= {('?VAR5', 'gender', '?VAR6'), ('?VAR3', 'gender', '?VAR4')},
+        connections= {('?VAR5', '?VAR2'), ('?VAR3', '?VAR1'), ('?VAR4', '?VAR6')})
+        , Rule(
+        head= ('?VAR1', 'parent', '?VAR2'),
+        body= {('?VAR7', 'parent', '?VAR8'), ('?VAR5', 'gender', '?VAR6'), ('?VAR3', 'gender', '?VAR4')},
+        connections= {('?VAR2', '?VAR7'), ('?VAR4', '?VAR6'), ('?VAR3', '?VAR1'), ('?VAR5', '?VAR8')})
+        , Rule(
+        head= ('?VAR1', 'parent', '?VAR2'),
+        body= {('?VAR7', 'spouse', '?VAR8'), ('?VAR5', 'gender', '?VAR6'), ('?VAR3', 'gender', '?VAR4')},
+        connections= {('?VAR2', '?VAR7'), ('?VAR4', '?VAR6'), ('?VAR3', '?VAR1'), ('?VAR5', '?VAR8')})
+        , Rule(
+        head= ('?VAR1', 'parent', '?VAR2'),
+        body= {('?VAR7', 'mother', '?VAR8'), ('?VAR5', 'gender', '?VAR6'), ('?VAR3', 'gender', '?VAR4')},
+        connections= {('?VAR2', '?VAR7'), ('?VAR4', '?VAR6'), ('?VAR3', '?VAR1'), ('?VAR5', '?VAR8')})
+        , Rule(
+        head= ('?VAR1', 'parent', '?VAR2'),
+        body= {('?VAR5', 'gender', '?VAR6'), ('?VAR3', 'gender', '?VAR4'), ('?VAR7', 'father', '?VAR8')},
+        connections= {('?VAR2', '?VAR7'), ('?VAR4', '?VAR6'), ('?VAR3', '?VAR1'), ('?VAR5', '?VAR8')})
+        , Rule(
+        head= ('?VAR1', 'parent', '?VAR2'),
+        body= {('?VAR7', 'spouse', '?VAR8'), ('?VAR5', 'gender', '?VAR6'), ('?VAR3', 'gender', '?VAR4')},
+        connections= {('?VAR8', '?VAR2'), ('?VAR4', '?VAR6'), ('?VAR3', '?VAR1'), ('?VAR5', '?VAR7')})
+        , Rule(
+        head= ('?VAR1', 'parent', '?VAR2'),
+        body= {('?VAR5', 'gender', '?VAR6'), ('?VAR7', 'successor', '?VAR8'), ('?VAR3', 'gender', '?VAR4')},
+        connections= {('?VAR2', '?VAR7'), ('?VAR4', '?VAR6'), ('?VAR3', '?VAR1'), ('?VAR5', '?VAR8')})
+        , Rule(
+        head= ('?VAR1', 'parent', '?VAR2'),
+        body= {('?VAR5', 'gender', '?VAR6'), ('?VAR7', 'predecessor', '?VAR8'), ('?VAR3', 'gender', '?VAR4')},
+        connections= {('?VAR8', '?VAR2'), ('?VAR4', '?VAR6'), ('?VAR3', '?VAR1'), ('?VAR5', '?VAR7')})
+        , Rule(
+        head= ('?VAR1', 'parent', '?VAR2'),
+        body= {('?VAR5', 'gender', '?VAR6'), ('?VAR7', 'child', '?VAR8'), ('?VAR3', 'gender', '?VAR4')},
+        connections= {('?VAR2', '?VAR7'), ('?VAR4', '?VAR6'), ('?VAR3', '?VAR1'), ('?VAR5', '?VAR8')})
+        , Rule(
+        head= ('?VAR1', 'parent', '?VAR2'),
+        body= {('?VAR7', 'parent', '?VAR8'), ('?VAR5', 'gender', '?VAR6'), ('?VAR3', 'gender', '?VAR4')},
+        connections= {('?VAR8', '?VAR2'), ('?VAR4', '?VAR6'), ('?VAR3', '?VAR1'), ('?VAR5', '?VAR7')})
+        , Rule(
+        head= ('?VAR1', 'parent', '?VAR2'),
+        body= {('?VAR5', 'gender', '?VAR6'), ('?VAR3', 'gender', '?VAR4'), ('?VAR7', 'father', '?VAR8')},
+        connections= {('?VAR8', '?VAR2'), ('?VAR4', '?VAR6'), ('?VAR3', '?VAR1'), ('?VAR5', '?VAR7')})
+        , Rule(
+        head= ('?VAR1', 'parent', '?VAR2'),
+        body= {('?VAR5', 'gender', '?VAR6'), ('?VAR3', 'parent', '?VAR4')},
+        connections= {('?VAR4', '?VAR1'), ('?VAR5', '?VAR3')})
+        , Rule(
+        head= ('?VAR1', 'parent', '?VAR2'),
+        body= {('?VAR3', 'parent', '?VAR4'), ('?VAR5', 'parent', '?VAR6')},
+        connections= {('?VAR4', '?VAR1'), ('?VAR5', '?VAR3')})
+        , Rule(
+        head= ('?VAR1', 'parent', '?VAR2'),
+        body= {('?VAR3', 'parent', '?VAR4'), ('?VAR5', 'spouse', '?VAR6')},
+        connections= {('?VAR4', '?VAR1'), ('?VAR5', '?VAR3')})
+        , Rule(
+        head= ('?VAR1', 'parent', '?VAR2'),
+        body= {('?VAR5', 'predecessor', '?VAR6'), ('?VAR3', 'parent', '?VAR4')},
+        connections= {('?VAR4', '?VAR1'), ('?VAR3', '?VAR6')})
+        , Rule(
+        head= ('?VAR1', 'parent', '?VAR2'),
+        body= {('?VAR5', 'child', '?VAR6'), ('?VAR3', 'parent', '?VAR4')},
+        connections= {('?VAR4', '?VAR1'), ('?VAR5', '?VAR3')})
+        , Rule(
+        head= ('?VAR1', 'parent', '?VAR2'),
+        body= {('?VAR3', 'parent', '?VAR4'), ('?VAR5', 'father', '?VAR6')},
+        connections= {('?VAR4', '?VAR1'), ('?VAR3', '?VAR6')})
+        , Rule(
+        head= ('?VAR1', 'parent', '?VAR2'),
+        body= {('?VAR3', 'parent', '?VAR4'), ('?VAR5', 'mother', '?VAR6')},
+        connections= {('?VAR4', '?VAR1'), ('?VAR5', '?VAR3')})
+        , Rule(
+        head= ('?VAR1', 'parent', '?VAR2'),
+        body= {('?VAR5', 'successor', '?VAR6'), ('?VAR3', 'parent', '?VAR4')},
+        connections= {('?VAR4', '?VAR1'), ('?VAR5', '?VAR3')})
+        , Rule(
+        head= ('?VAR1', 'parent', '?VAR2'),
+        body= {('?VAR3', 'parent', '?VAR4'), ('?VAR5', 'spouse', '?VAR6')},
+        connections= {('?VAR4', '?VAR1'), ('?VAR3', '?VAR6')})
+        , Rule(
+        head= ('?VAR1', 'parent', '?VAR2'),
+        body= {('?VAR3', 'parent', '?VAR4'), ('?VAR5', 'parent', '?VAR6')},
+        connections= {('?VAR4', '?VAR1'), ('?VAR3', '?VAR6')})
+        , Rule(
+        head= ('?VAR1', 'parent', '?VAR2'),
+        body= {('?VAR3', 'parent', '?VAR4'), ('?VAR5', 'mother', '?VAR6')},
+        connections= {('?VAR4', '?VAR1'), ('?VAR3', '?VAR6')})
+        , Rule(
+        head= ('?VAR1', 'parent', '?VAR2'),
+        body= {('?VAR3', 'parent', '?VAR4'), ('?VAR5', 'father', '?VAR6')},
+        connections= {('?VAR4', '?VAR1'), ('?VAR5', '?VAR3')})
+        , Rule(
+        head= ('?VAR1', 'parent', '?VAR2'),
+        body= {('?VAR5', 'successor', '?VAR6'), ('?VAR3', 'parent', '?VAR4')},
+        connections= {('?VAR4', '?VAR1'), ('?VAR3', '?VAR6')})
+        , Rule(
+        head= ('?VAR1', 'parent', '?VAR2'),
+        body= {('?VAR5', 'predecessor', '?VAR6'), ('?VAR3', 'parent', '?VAR4')},
+        connections= {('?VAR4', '?VAR1'), ('?VAR5', '?VAR3')})
+        , Rule(
+        head= ('?VAR1', 'parent', '?VAR2'),
+        body= {('?VAR5', 'child', '?VAR6'), ('?VAR3', 'parent', '?VAR4')},
+        connections= {('?VAR4', '?VAR1'), ('?VAR3', '?VAR6')})
+        , Rule(
+        head= ('?VAR1', 'parent', '?VAR2'),
+        body= {('?VAR3', 'spouse', '?VAR4'), ('?VAR5', 'spouse', '?VAR6')},
+        connections= {('?VAR4', '?VAR6'), ('?VAR3', '?VAR1')})
+        , Rule(
+        head= ('?VAR1', 'parent', '?VAR2'),
+        body= {('?VAR3', 'spouse', '?VAR4'), ('?VAR5', 'father', '?VAR6')},
+        connections= {('?VAR4', '?VAR5'), ('?VAR3', '?VAR1')})
+        , Rule(
+        head= ('?VAR1', 'parent', '?VAR2'),
+        body= {('?VAR5', 'gender', '?VAR6'), ('?VAR3', 'spouse', '?VAR4')},
+        connections= {('?VAR4', '?VAR5'), ('?VAR3', '?VAR1')})
+        , Rule(
+        head= ('?VAR1', 'parent', '?VAR2'),
+        body= {('?VAR5', 'predecessor', '?VAR6'), ('?VAR3', 'spouse', '?VAR4')},
+        connections= {('?VAR4', '?VAR5'), ('?VAR3', '?VAR1')})
+        , Rule(
+        head= ('?VAR1', 'parent', '?VAR2'),
+        body= {('?VAR5', 'child', '?VAR6'), ('?VAR3', 'spouse', '?VAR4')},
+        connections= {('?VAR4', '?VAR5'), ('?VAR3', '?VAR1')})
+        , Rule(
+        head= ('?VAR1', 'parent', '?VAR2'),
+        body= {('?VAR5', 'successor', '?VAR6'), ('?VAR3', 'spouse', '?VAR4')},
+        connections= {('?VAR4', '?VAR6'), ('?VAR3', '?VAR1')})
+        , Rule(
+        head= ('?VAR1', 'parent', '?VAR2'),
+        body= {('?VAR3', 'spouse', '?VAR4'), ('?VAR5', 'parent', '?VAR6')},
+        connections= {('?VAR4', '?VAR5'), ('?VAR3', '?VAR1')})
+        , Rule(
+        head= ('?VAR1', 'parent', '?VAR2'),
+        body= {('?VAR3', 'spouse', '?VAR4'), ('?VAR5', 'parent', '?VAR6')},
+        connections= {('?VAR4', '?VAR6'), ('?VAR3', '?VAR1')})
+        , Rule(
+        head= ('?VAR1', 'parent', '?VAR2'),
+        body= {('?VAR5', 'successor', '?VAR6'), ('?VAR3', 'spouse', '?VAR4')},
+        connections= {('?VAR4', '?VAR5'), ('?VAR3', '?VAR1')})
+        , Rule(
+        head= ('?VAR1', 'parent', '?VAR2'),
+        body= {('?VAR3', 'spouse', '?VAR4'), ('?VAR5', 'spouse', '?VAR6')},
+        connections= {('?VAR4', '?VAR5'), ('?VAR3', '?VAR1')})
+        , Rule(
+        head= ('?VAR1', 'parent', '?VAR2'),
+        body= {('?VAR3', 'spouse', '?VAR4'), ('?VAR5', 'father', '?VAR6')},
+        connections= {('?VAR4', '?VAR6'), ('?VAR3', '?VAR1')})
+        , Rule(
+        head= ('?VAR1', 'parent', '?VAR2'),
+        body= {('?VAR5', 'predecessor', '?VAR6'), ('?VAR3', 'spouse', '?VAR4')},
+        connections= {('?VAR4', '?VAR6'), ('?VAR3', '?VAR1')})
+        , Rule(
+        head= ('?VAR1', 'parent', '?VAR2'),
+        body= {('?VAR3', 'spouse', '?VAR4'), ('?VAR5', 'mother', '?VAR6')},
+        connections= {('?VAR4', '?VAR5'), ('?VAR3', '?VAR1')})
+        , Rule(
+        head= ('?VAR1', 'parent', '?VAR2'),
+        body= {('?VAR5', 'child', '?VAR6'), ('?VAR3', 'spouse', '?VAR4')},
+        connections= {('?VAR4', '?VAR6'), ('?VAR3', '?VAR1')})
+        , Rule(
+        head= ('?VAR1', 'parent', '?VAR2'),
+        body= {('?VAR3', 'spouse', '?VAR4'), ('?VAR5', 'mother', '?VAR6')},
+        connections= {('?VAR4', '?VAR6'), ('?VAR3', '?VAR1')})
+        ]
+    
+
+    pathlist = [ Path( ('Blanche_of_Burgundy', 'parent_Mahaut_Countess_of_Artois', 'Mahaut_Countess_of_Artois'), IncidenceList(
+        {'spouse_Charles_IV_of_France': {('Blanche_of_Burgundy', 'Charles_IV_of_France')}, 'spouse_Joan_of__vreux': {('Charles_IV_of_France', 'Joan_of__vreux')}},        
+        {'Blanche_of_Burgundy': {'spouse_Charles_IV_of_France'}, 'Charles_IV_of_France': {'spouse_Charles_IV_of_France', 'spouse_Joan_of__vreux'}, 'Joan_of__vreux': {'spouse_Joan_of__vreux'}}
+        )),
+
+        Path( ('Philip_V_of_Spain', 'parent_Louis_Dauphin_of_France_son_of_Louis_XIV', 'Louis_Dauphin_of_France_son_of_Louis_XIV'), IncidenceList(
+         {'spouse_Maria_Amalia_of_Saxony': {('Philip_V_of_Spain', 'Maria_Amalia_of_Saxony'), ('Charles_III_of_Spain', 'Maria_Amalia_of_Saxony')}},
+         {'Philip_V_of_Spain': {'spouse_Maria_Amalia_of_Saxony'}, 'Maria_Amalia_of_Saxony': {'spouse_Maria_Amalia_of_Saxony'}, 'Charles_III_of_Spain': {'spouse_Maria_Amalia_of_Saxony'}}
+        )),
+        Path( ('Philip_V_of_Spain', 'parent_Louis_Dauphin_of_France_son_of_Louis_XIV', 'Louis_Dauphin_of_France_son_of_Louis_XIV'), IncidenceList(
+         {'spouse_Maria_Amalia_of_Saxony': {('Philip_V_of_Spain', 'Maria_Amalia_of_Saxony')}, 'marriedTo_Elisabeth_Farnese': {('Maria_Amalia_of_Saxony', 'Elisabeth_Farnese')}},
+         {'Philip_V_of_Spain': {'spouse_Maria_Amalia_of_Saxony'}, 'Maria_Amalia_of_Saxony': {'marriedTo_Elisabeth_Farnese', 'spouse_Maria_Amalia_of_Saxony'}, 'Elisabeth_Farnese': {'marriedTo_Elisabeth_Farnese'}}
+        )), 
+
+
+        Path( ('Philip_V_of_Spain', 'parent_Louis_Dauphin_of_France_son_of_Louis_XIV', 'Louis_Dauphin_of_France_son_of_Louis_XIV'), IncidenceList(
+         {'spouse_Maria_Amalia_of_Saxony': {('Philip_V_of_Spain', 'Maria_Amalia_of_Saxony'), ('Charles_III_of_Spain', 'Maria_Amalia_of_Saxony')}},
+         {'Philip_V_of_Spain': {'spouse_Maria_Amalia_of_Saxony'}, 'Maria_Amalia_of_Saxony': {'spouse_Maria_Amalia_of_Saxony'}, 'Charles_III_of_Spain': {'spouse_Maria_Amalia_of_Saxony'}}
+        )),
+        Path( ('Philip_V_of_Spain', 'parent_Louis_Dauphin_of_France_son_of_Louis_XIV', 'Louis_Dauphin_of_France_son_of_Louis_XIV'), IncidenceList(
+         {'spouse_Maria_Amalia_of_Saxony': {('Philip_V_of_Spain', 'Maria_Amalia_of_Saxony')}},
+         {'Philip_V_of_Spain': {'spouse_Maria_Amalia_of_Saxony'}, 'Maria_Amalia_of_Saxony': { 'spouse_Maria_Amalia_of_Saxony'}}
+        ))]
+     
+
+    # ft = 0
+    # start = time.time()
+    # for i in range(500):
+    #     for p in pathlist:
+    #         ft += expand_path_rudik({}, p, kg, ontology, pmap, type_predicate)
+
+            
+
+    # end = time.time()
+    # print(f" exp time {end - start}\n fitsdr time {ft}")
+
+    # exit()
+
+
+    #########################
+    # FR runtime
+    
+    # exp rule 293.1274049282074
+    # exp path 292.27738404273987 for 39326 calls
+    # find r 247.1837990283966
+    # weight time 244.89486694335938 for 12249 calls
+    # fdr 228.44119000434875
+    # cov 61.921411752700806
+
+    # exp rule 250.4089686870575
+    # exp path 249.61481380462646 for 36992 calls
+    # find r 223.62124681472778
+    # weight time 222.06457448005676 for 9523 calls
+    # fdr 195.1195251941681
+    # cov 84.86956405639648
+
+    # Total execution time: 498.85 seconds
+
+
+    # exp rule 326.1665086746216
+    # exp path 325.29557514190674 for 45334 calls
+    # find r 1619.713145494461
+    # weight time 1617.6381304264069 for 11601 calls
+    # fdr 254.85655879974365
+    # cov 135.619286775589
+
+    # Total execution time: 1972.67 seconds
+
+    ################################
+
+
+
+
+
+
+
+
 
     ###########################
     # end of test code
     ###########################
 
 
-    #TODO rudik
+    #TODO when expanding, exclude bad paths better?
+    # TODO save weight in rule dict, to make find r faster, if sensible, bc weight changes wwhen new rule is added
+    # TODO when finding r, mind rules with same weight, collect all and look through those until a rule is found
 
     # initialise
     # create a path per pair in g
@@ -293,133 +645,209 @@ def mine_rules_for_target_predicate(g:set, v:set, pmap:P_map, kg:IncidenceList, 
 
     R_out_dict = {}
     rule_dict = {}  
+
+    # for saving calculation results for est m weight
+    rule_weight_dict = {}
+    R_out_cov_v_cardinality = [None]
+    R_out_uncov_v = None
+    
+   # TODO remove
+    exr_time = 0
+    exp_time = 0
+    find_r_time = 0
+    w_time = 0
+    fdr_time = 0
+    cov_time = 0
+
+    exp_calls = 0
+    w_calls = 0
+
     rule = None 
     paths = {Path((s, p , o), IncidenceList()) for s,p,o in g}
 
-    
-
+    # TODO call expand rule here, duplicate code
+    t1 = time.time()
     for path in paths:
-        expanded_paths = expand_fun(path, kg, ontology, pmap, type_predicate)
-        for ep in expanded_paths:
-            rule = ep.rule(pmap)
-            if rule in rule_dict:
-                rule_dict[rule].add(ep)
-            else:
-                rule_dict[rule] = {ep}
+        exp_calls += 1
+        t2 = time.time()
+        fdr_time += expand_fun(rule_dict, path, kg, ontology, pmap, type_predicate)
+        t3=time.time()
 
+    t4 = time.time()
+    exr_time = t4 - t1
+    exp_time = t3 - t2
 
-
-    r, min_weight = find_r(R_out_dict, rule_dict, kg, g, v, alpha, beta, pmap)
-
-
-
+    r, min_weight,wt, wc, ct = find_r(R_out_dict, R_out_cov_v_cardinality, R_out_uncov_v, rule_dict, rule_weight_dict, kg, g, v, alpha, beta, pmap, fits_max_depth, max_depth)
+    t5= time.time()
+    find_r_time = t5-t4
+    w_time += wt
+    w_calls += wc
+    cov_time += ct
+ 
 
     # main loop 
 
     while True:
 
+
+        print(f"ruledict {len(rule_dict)}\n\n cov == g {cov_g(list(R_out_dict.keys()), g, rule_dict, R_out_dict) == g}\n\nmw {min_weight}\n\n")
+
         if not rule_dict or cov_g(list(R_out_dict.keys()), g, rule_dict, R_out_dict) == g or min_weight >= 0:
+            print(f"END ruledict {len(rule_dict)}\n\n cov == g {cov_g(list(R_out_dict.keys()), g, rule_dict, R_out_dict) == g}\n\nmw {min_weight}\n\n")
             break
         
         if is_valid(r):
             # move rule to output dict
             R_out_dict[r] = rule_dict.pop(r)
+
+            # resetting these, since R_out has changed
+            rule_weight_dict = {}
+            R_out_cov_v_cardinality = [None, None]
+            R_out_uncov_v = None
             print(f"\n\nFOUND RULE {r} with {min_weight}\n\n")
             
         else:
             # expand
-            # TODO len(r.body) only works if rule is a straight path, need seperate function and different if clause if allow branching
             if fits_max_depth(r, max_depth):
-                expand_rule(r, rule_dict, kg, ontology, pmap, type_predicate, expand_fun)
-    
+                print("expand")
+                t1 = time.time()
+                et, ec, fdr = expand_rule(r, rule_dict, kg, ontology, pmap, type_predicate, expand_fun)
+                exr_time += time.time() - t1
+                exp_time += et
+                exp_calls += ec
+                fdr_time += fdr
             # remove handled rule
             rule_dict.pop(r)
 
         # find next r
-        r, min_weight = find_r(R_out_dict, rule_dict, kg, g, v, alpha, beta, pmap)
-
+        print("find_r")
+        t1 = time.time()
+        r, min_weight, wt, wc, ct = find_r(R_out_dict, R_out_cov_v_cardinality, R_out_uncov_v, rule_dict, rule_weight_dict, kg, g, v, alpha, beta, pmap, fits_max_depth, max_depth)
+        find_r_time += time.time() -t1
+        w_time += wt
+        w_calls += wc
+        cov_time += ct
 
     # TODO possibly return the whole R_out_dict or calc some metrics here 
-    return list(rule.as_csv_row() for rule in R_out_dict.keys())
+
+    
+
+    return list(rule.as_csv_row() for rule in R_out_dict.keys()), exr_time, exp_time, find_r_time, w_time, exp_calls, w_calls, fdr_time, cov_time
 
 
 
-def find_r(R_out_dict, rule_dict, kg:IncidenceList, g:set, v:set, alpha:float, beta:float, pmap:P_map):
+def find_r(R_out_dict:dict, R_out_cov_v_cardinality:list, R_out_uncov_v:set, rule_dict:dict, rule_weight_dict:dict, kg:IncidenceList, g:set, v:set, alpha:float, beta:float, pmap:P_map, fits_max_depth,  max_depth:int):
+
+    w_time = 0
+    wc = 0
+    cov_time = 0
     min_weight = np.inf
     r = None
+
+    rules_to_remove = set()
+
     for rule in rule_dict.keys():
-        weight = est_m_weight(rule, R_out_dict, rule_dict, kg, g, v, alpha, beta, pmap)
-        if weight < min_weight:
+        if rule in rule_weight_dict:
+            weight = rule_weight_dict[rule]
+        else:
+            wc += 1
+            tw = time.time()
+            ct, weight = est_m_weight(rule, R_out_dict, rule_dict, kg, g, v, alpha, beta, pmap, R_out_cov_v_cardinality, R_out_uncov_v)
+            w_time += time.time() - tw
+            rule_weight_dict[rule] = weight
+            cov_time += ct
+
+        if not fits_max_depth(rule, max_depth) and (weight >= 0 or not is_valid(rule)):
+            # collect hopeless rules
+            rules_to_remove.add(rule)
+            continue
+
+        if weight < min_weight or (weight == min_weight and is_valid(rule)):
             r = rule
             min_weight = weight
 
-    return r, min_weight
+
+    
+    # remove hopeless rules, declutter rule_dict
+    print(f"removing {len(rules_to_remove)} hopeless rules")
+    for rule in rules_to_remove:
+        rule_dict.pop(rule)
+
+    return r, min_weight, w_time, wc, cov_time
 
 
 
 def expand_rule(rule, rule_dict, kg:IncidenceList, ontology:Ontology, pmap:P_map, type_predicate, expand_fun):
-
+    exp_time = 0
+    ec = 0
+    fdr_time = 0
     for path in rule_dict[rule]:
-        expanded_paths = expand_fun(path, kg, ontology, pmap, type_predicate)
-        if expanded_paths:
-            for ep in expanded_paths:
-                r = ep.rule(pmap)
-                if r in rule_dict:
-                    rule_dict[r].add(ep)
-                else:
-                    rule_dict[r] = {ep}
-                
+        ec += 1
+        t = time.time()
+        fdr_time += expand_fun(rule_dict, path, kg, ontology, pmap, type_predicate)
+        exp_time += time.time() - t
+          
+    return exp_time, ec, fdr_time
 
 def fits_max_depth_rudik(r:Rule, max_depth):
     return len(r.body) < max_depth
 
-def expand_path_rudik(path:Path, kg:IncidenceList, ontology:Ontology, pmap:P_map, type_predicate:str):
-    expanded_paths = set()
-    # TODO here is decided what structure the rules will have, is every node a frontier to branch out?  or only leaves...
+
+"""expands given path by one from frontiers, creates straight paths in line with RuDiK"""
+def expand_path_rudik(rule_dict:dict, path:Path, kg:IncidenceList, ontology:Ontology, pmap:P_map, type_predicate:str):
 
     # find all leaves, head object doesn't count
-    # TODO this is wrong, need to count corresponding appearances not different preds, there can be 1000 triples with same pred in graph... 
-    frontiers = path.frontiers()
-    #print(f"path {path} frontiers {frontiers}")
-    # if head subject isn't connected -> path is only head, it's a leaf too
-    if path.head[0] not in path.graph.nodes.keys():
-        frontiers.add(path.head[0])
+    f = path.frontiers_rudik()
 
-    # go through all possible new triples, create new path versions with one more triple than given path
-    # TODO depending on how rules should look like, add multiple triples here aswell
 
-    for f in frontiers:
-        preds = kg.nodes.get(f)
-        if not preds:
+    tout = 0
+
+    # TODO literal comparisons
+    if is_literal(f):
+        pass
+
+    preds = kg.nodes.get(f)
+
+    for p in preds:
+        # don't want to traverse type triples
+        if pmap.original_pred(p) == type_predicate:
             continue
+        pairs = kg.edges.get(p)
 
-        for p in preds:
-            pairs = kg.edges.get(p)
-            if not pairs:
-                continue
 
-            for pair in pairs:
-                if f not in pair:
-                # cannot jump through kg
-                    continue
-
-                e = pair[0] if pair[1] == f else pair[1]
-
-                if e != f and e in path.graph.nodes.keys():
-                # don't want circles, except when s = o
-                    continue
-
+        for pair in pairs:
+            if f in pair:
+            # cannot jump through kg
                 triple = (pair[0],p, pair[1])
-
-                if triple == path.head:
+                edges_p = path.graph.edges.get(p)
+                if triple == path.head or( edges_p and  pair in edges_p):
                 # we only want triples that are not in path, need to check head seperately here
                     continue
 
+
+                # e is entity path is expanded to
+                e = pair[0] if pair[1] == f else pair[1]
+
+                if e != f and e in path.graph.nodes:
+                # don't want circles, except when s = o
+                    continue
+
+                ift = 0
+                t = time.time()
                 if fits_domain_range(e, triple, ontology, kg, pmap, type_predicate):
+                    t3 = time.time()
                     new = path.copy()
                     new.graph.add(pair[0], p, pair[1])
-                    expanded_paths.add(new)
-    return expanded_paths
+                    r = new.rule(pmap)
+                    if r in rule_dict:
+                        rule_dict[r].add(new)
+                    else:
+                        rule_dict[r] = {new}
+                    t4 = time.time()
+                    ift = t4-t3
+                t2 = time.time()
+                tout += t2 - t - ift
+    return tout
 
 
 

@@ -164,23 +164,30 @@ class Path:
         self.head = head
         return
     def __repr__(self):
-        return f"Path with:\n {self.graph}head: {self.head}.\n\n"
+        # TODO uncomment
+        # return f"Path with:\n {self.graph}head: {self.head}.\n\n"
+        return f"Path {self.head}{self.graph}\n"
+        
     
 
     def copy(self):
         return Path(self.head, self.graph.copy())
 
-    # calculates a paths frontiers in line with rudik algorithm, change this to create other path shapes
+    # calculates a paths frontiers by finding all leafs
     def frontiers(self):
-        # TODO
+        
         out = set()
         h1 = self.head[0]
         if h1 not in self.graph.nodes.keys():
+            # head subject is leaf
             out.add(h1)
 
         for node, preds in self.graph.nodes.items():
+            # if node has more than one predicate, it can't be a leaf
             if node == h1 or len(preds) > 1:
                 continue
+
+            # node has only one predicate, count instances of it
             count = 0
             for pair in self.graph.edges[next(p for p in preds)]:
                 if node in pair:
@@ -191,6 +198,31 @@ class Path:
             if count == 1:
                 out.add(node)
         return out
+    
+ # calculates a paths frontier in line with rudik
+    def frontiers_rudik(self):
+        
+        h1 = self.head[0]
+        if h1 not in self.graph.nodes.keys():
+            # head subject is leaf
+            return h1
+
+        for node, preds in self.graph.nodes.items():
+            # if node has more than one predicate, it can't be a leaf
+            if node == h1 or len(preds) > 1:
+                continue
+
+            # node has only one predicate, count instances of it
+            count = 0
+            for pair in self.graph.edges[next(p for p in preds)]:
+                if node in pair:
+                    if count:
+                        count += 1
+                        break
+                    count = 1
+            if count == 1:
+                return node
+        return None
 
 
 

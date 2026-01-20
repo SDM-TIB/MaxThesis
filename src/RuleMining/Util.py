@@ -2,12 +2,12 @@ import random
 import numpy as np
 from itertools import combinations
 from RuleMining.Classes import Path, Rule, P_map, IncidenceList, Ontology, dfs, is_literal_comp
+import time
 
 ########################################
 # filling custom datastructures
 ########################################
 
-# TODO refactor every dict call in project to use get()
 
 """parse a graph from nt file into IncidenceList"""
 def parseGraph(ntFilePath, graph:IncidenceList, prefix=""):
@@ -19,6 +19,170 @@ def parseGraph(ntFilePath, graph:IncidenceList, prefix=""):
 
 """parse a .ttl ontology into Ontology Type"""
 def parseOntology(ontology_file:str, ontology:Ontology, prefix:str=""):
+
+
+
+
+    """help function for parseOntology"""
+    def checkForType(e):
+        return e.__contains__("type") or e == "a"
+
+    """help function for parseOntology"""
+    def checkForClass(types):
+        for t in types:
+            if t.__contains__("Class"):
+                return True
+        return False
+
+    """help function for parseOntology"""
+    def checkForSubClass(e):
+        return e.__contains__("subClassOf")
+
+    """help function for parseOntology"""
+    def checkForProperty(types):
+        for t in types:
+            if t.__contains__("Property"):
+                return True
+        return False
+
+    """help function for parseOntology"""
+    def checkForRange(e):
+        return e.__contains__("range")
+
+    """help function for parseOntology"""
+    def checkForDomain(e):
+        return e.__contains__("domain")
+
+    """help function for parseOntology"""
+    def extractName(e):
+        # e is whole uri
+        if e[0] == "<":
+            split = e.split("/")
+        # e uses prefix abbreviation
+        else:
+            split = e.split(":")
+        out = split[len(split)-1]
+        while out[len(out)-1] in (">",",",";"):
+            out = out[:-1]
+        return out
+        
+    """Handles a block(file segment until next '.' --> everything belonging to the last stated subject) from an ontology file, adds the extracted information to the given Ontology object"""
+    def addOntologyBlock(block:list[str], ontology:Ontology, prefix):
+        s = block[0]
+        current_i = 1
+        max_i = len(block)
+        domain = set()
+        range = set()
+        super = set()
+        types = set()
+        isClass = False
+        isProperty = False
+
+        while current_i < max_i:
+            p = block[current_i]
+            print(f"\n\nset p to {p}\n\n")
+            current_i += 1
+            o = block[current_i]
+            print(f"\n\nset o to {o}\n\n")
+            current_i += 1
+
+            if checkForType(p):
+                types.add(o)
+
+                while current_i < max_i:
+
+                    if block[current_i] == ";":
+                        break
+                    if block[current_i] == ",":
+                        current_i += 1
+                        continue
+
+                    o = block[current_i]
+                    print(f"\n\nset o to {o}\n\n")
+
+                    types.add(o)
+                    current_i += 1
+
+                if checkForClass(types):
+                    isClass = True
+
+                if checkForProperty(types):
+                    isProperty = True
+
+
+            elif checkForSubClass(p):
+                super.add(o)
+                while current_i < max_i:
+
+                    if block[current_i] == ";":
+                        break
+                    if block[current_i] == ",":
+                        current_i += 1
+                        continue
+
+                    o = block[current_i]
+                    print(f"\n\nset o to {o}\n\n")
+
+                    super.add(o)
+                    current_i += 1
+
+
+                
+            elif checkForDomain(p):
+                domain.add(o)
+                while current_i < max_i:
+
+                    if block[current_i] == ";":
+                        break
+                    if block[current_i] == ",":
+                        current_i += 1
+                        continue
+
+                    o = block[current_i]
+                    print(f"\n\nset o to {o}\n\n")
+
+                    domain.add(o)
+                    current_i += 1
+                
+            elif checkForRange(p):
+                range.add(o)
+                while current_i < max_i:
+
+                    if block[current_i] == ";":
+                        break
+                    if block[current_i] == ",":
+                        current_i += 1
+                        continue
+
+                    o = block[current_i]
+                    print(f"\n\nset o to {o}\n\n")
+
+                    range.add(o)
+                    current_i += 1
+            else:
+                # irrelevant predicate, skip to next one
+                while current_i < max_i and block[current_i] != ";":
+                    current_i += 1
+            
+
+            # each of the if clauses ends on a current_i where block[current_i] == ";" or >= max_i
+            # setting current_i to next predicate
+            current_i += 1
+
+        # add collected info to ontology
+        if isClass:
+            if super:
+                for sup in super:
+                    ontology.addClass(prefix, extractName(s), extractName(sup))
+            else:
+                ontology.addClass(prefix, extractName(s))
+            
+        if isProperty:
+            print(domain, range)
+            ontology.addProperty(prefix, extractName(s), {extractName(e) for e in domain}, {extractName(e) for e in range})
+
+
+
     with open(ontology_file, 'r', encoding='utf-8') as file:
         block_end = False
         block = []
@@ -53,222 +217,6 @@ def parseOntology(ontology_file:str, ontology:Ontology, prefix:str=""):
                     addOntologyBlock(block, ontology, prefix)
                     block = []
                     block_end = False
-
-"""help function for parseOntology"""
-def checkForType(e):
-    return e.__contains__("type") or e == "a"
-
-"""help function for parseOntology"""
-def checkForClass(types):
-    for t in types:
-        if t.__contains__("Class"):
-            return True
-    return False
-
-"""help function for parseOntology"""
-def checkForSubClass(e):
-    return e.__contains__("subClassOf")
-
-"""help function for parseOntology"""
-def checkForProperty(types):
-    for t in types:
-        if t.__contains__("Property"):
-            return True
-    return False
-
-"""help function for parseOntology"""
-def checkForRange(e):
-    return e.__contains__("range")
-
-"""help function for parseOntology"""
-def checkForDomain(e):
-    return e.__contains__("domain")
-
-"""help function for parseOntology"""
-def extractName(e):
-    # e is whole uri
-    if e[0] == "<":
-        split = e.split("/")
-    # e uses prefix abbreviation
-    else:
-        split = e.split(":")
-    out = split[len(split)-1]
-    while out[len(out)-1] in (">",",",";"):
-        out = out[:-1]
-    return out
-    
-            
-
-# """help function for parseOntology;
-# classify triple and add to ontology"""
-# def addOntologyBlock(block:list[str], ontology:Ontology, prefix):
-#     s, p, o = block[0:3]
-#     if checkForType(p):
-#     # next item is type of s
-
-#         types = set()
-#         types.add(o)
-#         for next_i in range(3, len(block)-1):
-#             if block[next_i] == ";":
-#                 break
-#             if block[next_i] == ",":
-#                 continue
-          
-#             types.add(block[next_i])
-
-#         if checkForClass(types):
-#         # s is a class
-
-#             ontology.addClass(prefix, s)
-#             for next_i in range(3 + 2 * len(types), len(block)-1):
-#                 if checkForSubClass(block[next_i]):
-#                     i = 1
-#                     # add all objects given for subClassOf
-#                     while True:
-#                         ontology.addClass(prefix, s, extractName(block[next_i + i]))
-#                         i += 1
-#                         if not block[next_i + i][len(block[next_i + i])-1] == ",":
-#                             break
-
-#         if checkForProperty(types):
-#             d, r = set(), set()
-#             for next_i in range(3 + 2*len(types), len(block)-1):
-#                 if checkForDomain(block[next_i]):
-#                     i = 1
-#                     # add all objects given for domain
-#                     while True:
-#                         d.add(block[next_i +  i])
-#                         i += 1
-#                         if not block[next_i + i][len(block[next_i + i])-1] == ",":
-#                             break
-#                 if checkForRange(block[next_i]):
-#                     i = 1
-#                     # add all objects given for range
-#                     while True:
-#                         r.add(block[next_i + i])
-#                         i += 1
-#                         if not block[next_i + i][len(block[next_i + i])-1] == ",":
-#                             break
-
-            
-#             ontology.addProperty(prefix, s, {extractName(e) for e in d}, {extractName(e) for e in r})
-
-
-
-def addOntologyBlock(block:list[str], ontology:Ontology, prefix):
-    s = block[0]
-    current_i = 1
-    max_i = len(block)
-    domain = set()
-    range = set()
-    super = set()
-    types = set()
-    isClass = False
-    isProperty = False
-
-    while current_i < max_i:
-        p = block[current_i]
-        print(f"\n\nset p to {p}\n\n")
-        current_i += 1
-        o = block[current_i]
-        print(f"\n\nset o to {o}\n\n")
-        current_i += 1
-
-        if checkForType(p):
-            types.add(o)
-
-            while current_i < max_i:
-
-                if block[current_i] == ";":
-                    break
-                if block[current_i] == ",":
-                    current_i += 1
-                    continue
-
-                o = block[current_i]
-                print(f"\n\nset o to {o}\n\n")
-
-                types.add(o)
-                current_i += 1
-
-            if checkForClass(types):
-                isClass = True
-
-            if checkForProperty(types):
-                isProperty = True
-
-
-        elif checkForSubClass(p):
-            super.add(o)
-            while current_i < max_i:
-
-                if block[current_i] == ";":
-                    break
-                if block[current_i] == ",":
-                    current_i += 1
-                    continue
-
-                o = block[current_i]
-                print(f"\n\nset o to {o}\n\n")
-
-                super.add(o)
-                current_i += 1
-
-
-            
-        elif checkForDomain(p):
-            domain.add(o)
-            while current_i < max_i:
-
-                if block[current_i] == ";":
-                    break
-                if block[current_i] == ",":
-                    current_i += 1
-                    continue
-
-                o = block[current_i]
-                print(f"\n\nset o to {o}\n\n")
-
-                domain.add(o)
-                current_i += 1
-            
-        elif checkForRange(p):
-            range.add(o)
-            while current_i < max_i:
-
-                if block[current_i] == ";":
-                    break
-                if block[current_i] == ",":
-                    current_i += 1
-                    continue
-
-                o = block[current_i]
-                print(f"\n\nset o to {o}\n\n")
-
-                range.add(o)
-                current_i += 1
-        else:
-            # irrelevant predicate, skip to next one
-            while current_i < max_i and block[current_i] != ";":
-                current_i += 1
-        
-
-        # each of the if clauses ends on a current_i where block[current_i] == ";" or >= max_i
-        # setting current_i to next predicate
-        current_i += 1
-
-    # add collected info to ontology
-    if isClass:
-        if super:
-            for sup in super:
-                ontology.addClass(prefix, extractName(s), extractName(sup))
-        else:
-            ontology.addClass(prefix, extractName(s))
-        
-    if isProperty:
-        print(domain, range)
-        ontology.addProperty(prefix, extractName(s), {extractName(e) for e in domain}, {extractName(e) for e in range})
-
 
 
 
@@ -393,7 +341,7 @@ def instantiable(rule:Rule, kg:IncidenceList, pmap:P_map, entity_dict):
         # trivial case
         return True
 
-    # no given instanciations, start with head
+    # no given instanciations, start with head; this is never true as part of cov() call
     if not entity_dict:
         s,p,o = next(t for t in rule.body if not is_literal_comp(t[1]))
         c = {s}
@@ -413,6 +361,7 @@ def instantiable(rule:Rule, kg:IncidenceList, pmap:P_map, entity_dict):
             entity_dict = {}
             for var in c:
                 entity_dict[var] = s
+
             if instantiable(rule, kg, pmap, entity_dict):
                 return True
         return False
@@ -504,8 +453,6 @@ def instantiable(rule:Rule, kg:IncidenceList, pmap:P_map, entity_dict):
                         return True
                 return False
             
-
-
     # no dangling triples, all instanciated -> assumes body is completely connected 
     return True
 
@@ -523,6 +470,9 @@ def covers(r:Rule, kg, ex, pmap):
     b2 = False
     entity_dict = {}
 
+    # needed in order to handle ex no matter if its a triple or only (s,o)
+    ex_o = len(ex) - 1
+
     # find vars that connect to head and instantiate them with the example pairtwitch
 
     for c in r.connections:
@@ -539,10 +489,10 @@ def covers(r:Rule, kg, ex, pmap):
             b2 = True
             if b1:
                 # this is only relevant if there is a body atom between the head entities
-                if not valid_entity_instanciation(ex[1], c, r, entity_dict, pmap, kg):
+                if not valid_entity_instanciation(ex[ex_o], c, r, entity_dict, pmap, kg):
                     return False
             for var in c:
-                entity_dict[var] = ex[1]
+                entity_dict[var] = ex[ex_o]
 
 
         if b1 and b2:
@@ -615,34 +565,62 @@ def cov_g(r, g, rule_dict, R_out_dict):
 
 
 """estimated marginal weight"""
-def est_m_weight(r:Rule, R_out_dict, rule_dict, kg:IncidenceList, g:set, v:set, alpha:float, beta:float, pmap:P_map):
+def est_m_weight(r:Rule, R_out_dict, rule_dict, kg:IncidenceList, g:set, v:set, alpha:float, beta:float, pmap:P_map, R_out_cov_v_cardinality:list, R_out_uncov_v:set):
 
+    # contain only r_out
     R_out = list(R_out_dict.keys())
 
-    cardinality_cov_r_out_v = len(cov(R_out, kg, v, pmap))
-    uncov_r_out_v = uncov(R_out, kg, v, pmap)
-    uncov_r_v = uncov(r, kg, v, pmap)
-    cardinality_uncov_r_out_r_v = len(set.union(uncov_r_out_v, uncov_r_v))
+    # if there is no value pre saved, calculate it else use it
+    if R_out_cov_v_cardinality[0] == None:
+        cardinality_cov_r_out_v = len(cov(R_out, kg, v, pmap))
+        R_out_cov_v_cardinality[0] = cardinality_cov_r_out_v
+    else:
+        cardinality_cov_r_out_v = R_out_cov_v_cardinality[0]
+
+    # if there is no value pre saved, calculate it else use it
+    if R_out_uncov_v == None:
+        uncov_r_out_v = uncov(R_out, kg, v, pmap)
+        R_out_uncov_v = uncov_r_out_v
+    else:
+        uncov_r_out_v = R_out_uncov_v
+
     cardinality_uncov_r_out_v = len(uncov_r_out_v)
+
+
+    # no need to check for the examples already in uncov_r_out_v (--> (v - uncov_r_out_v)),  since uncov_r_v is only used in union 
+    t1 = time.time()
+    uncov_r_v = uncov(r, kg, (v - uncov_r_out_v), pmap)
+    cov_time = time.time() - t1
+    cardinality_uncov_r_out_r_v = len(set.union(uncov_r_out_v, uncov_r_v))
+
 
 
 
     if not cardinality_cov_r_out_v:
-    # if this is zero we know the beta part is zerro, the divisors will also be zero resulting in error, thus removing beta part altogether
-        return -alpha * ((len(cov_g(r, g, rule_dict, R_out_dict) - cov_g(R_out, g, rule_dict, R_out_dict)))/len(g))
+    # if this is zero we know the beta part is zero, the divisors will also be zero resulting in error, thus removing beta part altogether
+        return cov_time, -alpha * ((len(cov_g(r, g, rule_dict, R_out_dict) - cov_g(R_out, g, rule_dict, R_out_dict)))/len(g))
     
     if not cardinality_uncov_r_out_r_v:
     # if this is zero there is division by zero in first fraction of beta part, setting it to zero
-        return -alpha * ((len(cov_g(r, g, rule_dict, R_out_dict) - cov_g(R_out, g, rule_dict, R_out_dict)))/len(g)) - beta * (cardinality_cov_r_out_v / cardinality_uncov_r_out_v)
+        return cov_time, -alpha * ((len(cov_g(r, g, rule_dict, R_out_dict) - cov_g(R_out, g, rule_dict, R_out_dict)))/len(g)) - beta * (cardinality_cov_r_out_v / cardinality_uncov_r_out_v)
 
 
-    return -alpha * ((len(cov_g(r, g, rule_dict, R_out_dict) - cov_g(R_out, g, rule_dict, R_out_dict)))/len(g)) + beta * ((cardinality_cov_r_out_v / cardinality_uncov_r_out_r_v) - (cardinality_cov_r_out_v / cardinality_uncov_r_out_v))
+    return cov_time, -alpha * ((len(cov_g(r, g, rule_dict, R_out_dict) - cov_g(R_out, g, rule_dict, R_out_dict)))/len(g)) + beta * ((cardinality_cov_r_out_v / cardinality_uncov_r_out_r_v) - (cardinality_cov_r_out_v / cardinality_uncov_r_out_v))
 
 
 """
-check if a (sub)rule is a valid rule
+check if a (sub)rule is a valid rule, 
+in its use context it is safe to assume all atoms are transitively connected
+
 """
 def is_valid(r:Rule):
+    return any(r.head[2] in c for c in r.connections)
+
+
+"""
+check if a (sub)rule is a valid rule, old version that exhaustively checks the rules integrity
+"""
+def is_valid_old(r:Rule):
 
     # if head object isn't connected to anything, rule is invalid
     head_o_connected = False
@@ -826,7 +804,7 @@ def literal_type(l:str):
    
 """help function for fits_domain_range()"""
 def is_literal(e:str):
-    # TODO make this check better
+    # TODO maybe make this check better
     return e.__contains__("\"")
         
 """help function for fits_domain_range()
