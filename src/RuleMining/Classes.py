@@ -173,34 +173,10 @@ class Path:
     def copy(self):
         return Path(self.head, self.graph.copy())
 
-    # calculates a paths frontiers by finding all leafs
-    def frontiers(self):
-        
-        out = set()
-        h1 = self.head[0]
-        if h1 not in self.graph.nodes.keys():
-            # head subject is leaf
-            out.add(h1)
 
-        for node, preds in self.graph.nodes.items():
-            # if node has more than one predicate, it can't be a leaf
-            if node == h1 or len(preds) > 1:
-                continue
-
-            # node has only one predicate, count instances of it
-            count = 0
-            for pair in self.graph.edges[next(p for p in preds)]:
-                if node in pair:
-                    if count:
-                        count += 1
-                        break
-                    count = 1
-            if count == 1:
-                out.add(node)
-        return out
     
  # calculates a paths frontier in line with rudik
-    def frontiers_rudik(self):
+    def frontiers_rudik_old(self):
         
         h1 = self.head[0]
         if h1 not in self.graph.nodes.keys():
@@ -224,6 +200,34 @@ class Path:
                 return node
         return None
 
+    def frontiers_rudik(self):
+        
+        h1 = self.head[0]
+        if not self.graph.nodes or (len(self.graph.nodes) == 1 and h1 in self.graph.nodes):
+            # head subject is leaf
+            return h1
+        
+
+
+        for node, preds in self.graph.nodes.items():
+            # count occurences of node, 2 is too many, disregard s=o triples
+            if node == h1:
+                continue
+            found = False
+            for p in preds:
+                for pair in self.graph.edges[p]:
+                    if node in pair:
+                        if not pair[0] == pair[1]:
+                            if found:
+                                # found 2nd occurence (node is not frontier)
+                                break
+                            # found 1st occurence
+                            found = True
+
+            if found:
+                return node
+            
+        return None
 
 
     """returns a rule object corresponding to the paths' structure."""

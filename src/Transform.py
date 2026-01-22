@@ -17,6 +17,7 @@ import time
 from Normalization.Validation import travshacl
 from Normalization.Normalization_transform import transform
 from RuleMining.Rule_mining import mine_rules
+from RuleMining.Classes import removePrefix
 import csv
 import logging
 import shutil
@@ -240,8 +241,45 @@ def csv_to_nt(csv_file, nt_file, prefix='http://example.org/'):
 
     return
 
+
+
+def nt_to_txt(input_file, output_file, prefix):
+    try:
+        with open(input_file, 'r', encoding='utf-8') as nt_file, open(output_file, 'w', encoding='utf-8') as txt_file:
+            for line in nt_file:
+                # Entfernen von Kommentaren und leeren Zeilen
+                line = line.strip()
+                if not line or line.startswith('#'):
+                    continue
+
+
+
+                # Trennen in Subjekt, Prädikat und Objekt
+                parts = line.split(' ')
+
+                
+                subject = removePrefix(parts[0], prefix)
+                predicate = removePrefix(parts[1], prefix)
+                obj = removePrefix(parts[2], prefix)
+
+                # Schreiben in die TXT-Datei mit Tabulator als Trennzeichen
+                txt_file.write(f"{subject}\t{predicate}\t{obj}\n")
+
+        print(f"Konvertierung abgeschlossen. Die tab-separierte Datei wurde als '{output_file}' gespeichert.")
+
+    except FileNotFoundError:
+        print(f"Die Datei '{input_file}' wurde nicht gefunden.")
+    except Exception as e:
+        print(f"Ein Fehler ist aufgetreten: {e}")
+
+
+
+
+
 if __name__== '__main__':
     csvpath = "./Data/KG/musicKG/musicKG.csv"
-    ntpath = "./Data/KG/musicKG/musicKG.nt"
-
-    csv_to_nt(csvpath, ntpath)
+    ntpath = "./Data/KG/FrenchRoyalty/french_royalty.nt"
+    txtpath = "./Data/KG/FrenchRoyalty/french_royalty.txt"
+    # Beispielaufruf
+    nt_to_txt(ntpath, txtpath, "http://FrenchRoyalty.org/")
+    #csv_to_nt(csvpath, ntpath)

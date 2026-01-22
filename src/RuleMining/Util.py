@@ -684,6 +684,140 @@ def is_valid_comp(triple):
         
     return True
 
+
+
+
+def fits_domain_range_new(entity, triple, ontology:Ontology, kg:IncidenceList, pmap:P_map, type_predicate):
+    if entity not in triple:
+        raise ValueError("Entity not in triple.")
+    
+
+    check_domain = False
+    check_range = False
+    literal = is_literal(entity)
+
+    
+
+
+
+    
+    if is_literal_comp(triple[1]):
+        if literal and is_valid_comp(triple):
+            return True
+        
+        # it is a literal comp, but it is not valid as checked before
+        return False
+    
+    
+
+    if entity == triple[0]:
+        if literal:
+            # literal comparisons have been handled before, subject cannot be literal
+            return False
+        check_domain = True
+
+    if entity == triple[2]:
+        check_range = True
+
+    
+    p = triple[1] 
+    original = pmap.original_pred(p)
+    # depending on given predicate (old or new), this insures it is found in ontology
+    if p in ontology.properties:
+        domain_range = ontology.properties[p]
+    elif original in ontology.properties:
+        domain_range = ontology.properties[original]
+    else:
+        return False
+        
+
+    if literal:
+        types = domain_range[1]
+        literal_t = literal_type(entity)
+
+        for t in types:
+            if derivable(literal_t, t, ontology.literal_hierarchy):
+                return True
+        return False
+
+
+    else:
+        # get type predicate(s) the entity has 
+        # TODO are constraints about type predicate allowed?
+        entity_type_predicates = {tp for tp in kg.nodes[entity] if pmap.predicate_mappings.get(tp) == type_predicate}
+        if not entity_type_predicates:
+            # entity is missing type
+            return False
+        
+        if check_domain and check_range:
+            types_d = domain_range[0]
+            types_r = domain_range[1]
+            # get entity's types
+            entity_types = set()
+            fits_d = False
+            fits_r = False
+            for etp in entity_type_predicates:
+                t = next(p for p in kg.edges[etp])[1]
+                if not fits_d and t in types_d:
+                    fits_d = True
+                if not fits_r and t in types_r:
+                    fits_r = True
+                if fits_d and fits_r:
+                    return True
+                entity_types.add(t)
+
+
+
+            # no direct type match so far, check entitys supertypes
+            all_entity_types = set()
+            while entity_types:
+                all_entity_types.update(ontology.classes[entity_types.pop()])
+
+
+
+            if fits_r or types_r.intersection(all_entity_types):
+                if fits_d or types_d.intersection(all_entity_types):
+                    return True
+
+
+            return False
+
+
+
+        else:
+            if check_domain: 
+                types = domain_range[0]
+            else:
+                types = domain_range[1]
+
+            # get entity's types
+            entity_types = set()
+            for etp in entity_type_predicates:
+                t = next(p for p in kg.edges[etp])[1]
+                if t in types:
+                    return True
+                entity_types.add(t)
+
+
+
+            # no direct type match so far, check entitys supertypes
+            all_entity_types = set()
+            while entity_types:
+                all_entity_types.update(ontology.classes[entity_types.pop()])
+
+
+
+            if types.intersection(all_entity_types):
+                return True
+
+            return False
+
+
+
+
+
+
+
 # checks if an entity is allowed in a certain triple using ontology, for literal comparisons, is_valid_comp() is returned
 def fits_domain_range(entity, triple, ontology:Ontology, kg:IncidenceList, pmap:P_map, type_predicate):
     if entity not in triple:
@@ -812,16 +946,13 @@ checks if literal_type can be derived from from t according to the Type hierachy
 def derivable(literal_type, t, hierarchy):
     if literal_type == t:
         return True
-    out = False
 
     if t in hierarchy:
         for st in hierarchy[t]:
-            out = out or derivable(literal_type, st, hierarchy)
-            if out:
-                break
+            if derivable(literal_type, st, hierarchy):
+                return True
 
-
-    return out
+    return False
 
 
 

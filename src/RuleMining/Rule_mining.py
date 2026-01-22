@@ -71,8 +71,11 @@ def mine_rules(transformed_kg:IncidenceList, targets:set, transform_output_dir:s
     w_calls = 0
     cov_time = 0
     fdr_time = 0
+    rule_time = 0
 
     for p in targets:
+
+
 
         # getting post normalization instances of target predicate and the negative instances from validation
         pmap = P_map(p, new_preds(p, predicate_mappings), set() , predicate_mappings, neg_predicate_mappings)
@@ -118,7 +121,7 @@ def mine_rules(transformed_kg:IncidenceList, targets:set, transform_output_dir:s
         #result.extend(mine_rules_for_target_predicate(g, v, pmap, transformed_kg, prefix, type_predicate, ontology, expand_fun, fits_max_depth, max_depth, alpha, beta))
 
         #TODO remove
-        res, exr, exp, find_r, wt, ec, wc, fdr, cov = mine_rules_for_target_predicate(g, v, pmap, transformed_kg, prefix, type_predicate, ontology, expand_fun, fits_max_depth, max_depth, alpha, beta)
+        res, exr, exp, find_r, wt, ec, wc, fdr, cov, rt = mine_rules_for_target_predicate(g, v, pmap, transformed_kg, prefix, type_predicate, ontology, expand_fun, fits_max_depth, max_depth, alpha, beta)
         result.extend(res)
         exr_time += exr
         exp_time += exp
@@ -128,10 +131,11 @@ def mine_rules(transformed_kg:IncidenceList, targets:set, transform_output_dir:s
         w_calls += wc
         fdr_time += fdr
         cov_time += cov
+        rule_time += rt
         
 
     print(result)
-    print(f"exp rule {exr_time}\nexp path {exp_time} for {exp_calls} calls\n find r {find_r_time}\n weight time {w_time} for {w_calls} calls\n fdr {fdr_time}\n cov {cov_time}")
+    print(f"exp rule {exr_time}\nexp path {exp_time} for {exp_calls} calls\n find r {find_r_time}\n weight time {w_time} for {w_calls} calls\n fdr {fdr_time}\n cov {cov_time}\n rule time {rule_time}")
     #TODO add result to csvs
     with open(rules_file, mode='w', newline='', encoding='utf-8') as datei:
         writer = csv.writer(datei)
@@ -182,8 +186,8 @@ def mine_rules_for_target_predicate(g:set, v:set, pmap:P_map, kg:IncidenceList, 
 
 # {
 #   "KG": "SynthLC_1000",
-#   "prefix": "<http://synthetic-LC.org/",
-#   "rules_file": "LC.csv",
+#   "prefix": "<http://synthetic-LC.org/lungCancer/entity/",
+#   "rules_file": "SynthLC_1000.csv",
 #   "rdf_file": "SynthLC_1000.nt",
 #   "constraints_folder": "SynthLC_1000",
 #   "ontology_file": "ontology_LungCancer.ttl",
@@ -574,21 +578,45 @@ def mine_rules_for_target_predicate(g:set, v:set, pmap:P_map, kg:IncidenceList, 
         Path( ('Philip_V_of_Spain', 'parent_Louis_Dauphin_of_France_son_of_Louis_XIV', 'Louis_Dauphin_of_France_son_of_Louis_XIV'), IncidenceList(
          {'spouse_Maria_Amalia_of_Saxony': {('Philip_V_of_Spain', 'Maria_Amalia_of_Saxony')}},
          {'Philip_V_of_Spain': {'spouse_Maria_Amalia_of_Saxony'}, 'Maria_Amalia_of_Saxony': { 'spouse_Maria_Amalia_of_Saxony'}}
-        ))]
+        )),
+        ]
      
+    p = Path (('Robert_I_Duke_of_Burgundy', 'name_Robert_I', 'Robert_I'), IncidenceList(
+            {'parent_Constance_of_Arles': {('Robert_I_Duke_of_Burgundy', 'Constance_of_Arles')},
+            'name_Constance_of_Arles': {('Constance_of_Arles', 'Constance_of_Arles')}},
+            {'Robert_I_Duke_of_Burgundy': {'parent_Constance_of_Arles'},
+            'Constance_of_Arles': {'parent_Constance_of_Arles', 'name_Constance_of_Arles'}}))
+    
+    p3 = Path (('Humbert_II_Count_of_Savoy', 'name_Umberto_II', 'Umberto_II'), IncidenceList(
+            {'parent_Humbert_II_Count_of_Savoy': {('Adelaide_of_Maurienne', 'Humbert_II_Count_of_Savoy')}, 
+            'name_Adelaide_of_Maurienne': {('Adelaide_of_Maurienne', 'Adelaide_of_Maurienne')}},
+            {'Adelaide_of_Maurienne': {'name_Adelaide_of_Maurienne', 'parent_Humbert_II_Count_of_Savoy'}, 
+            'Humbert_II_Count_of_Savoy': {'parent_Humbert_II_Count_of_Savoy'}}))
 
-    # ft = 0
-    # start = time.time()
-    # for i in range(500):
-    #     for p in pathlist:
-    #         ft += expand_path_rudik({}, p, kg, ontology, pmap, type_predicate)
+    p4 = Path (('Philip_of_France_1116_1131', 'name_Philip', 'Philip'), IncidenceList(
+            {'parent_Adelaide_of_Maurienne': {('Philip_of_France_1116_1131', 'Adelaide_of_Maurienne')},
+              'name_Adelaide_of_Maurienne': {('Adelaide_of_Maurienne', 'Adelaide_of_Maurienne')}},
+            {'Philip_of_France_1116_1131': {'parent_Adelaide_of_Maurienne'}, 
+             'Adelaide_of_Maurienne': {'name_Adelaide_of_Maurienne', 'parent_Adelaide_of_Maurienne'}}))
+    
+    p5 = Path (('Henry_IV_of_France', 'name_Henry_IV', 'Henry_IV'),IncidenceList(
+        {'spouse_Marie_de_Medici': {('Henry_IV_of_France', 'Marie_de_Medici')}, 
+         'name_Marie_de_Medici': {('Marie_de_Medici', 'Marie_de_Medici')}},
+        {'Henry_IV_of_France': {'spouse_Marie_de_Medici'}, 
+         'Marie_de_Medici': {'name_Marie_de_Medici', 'spouse_Marie_de_Medici'}}))
 
+    p6 = Path(("a","b","c"), IncidenceList())
+
+    #print(fits_domain_range_old('\"123\"',('Alfonso_XI_of_Castile','child_Fadrique_Alfonso','\"123\"'),ontology,kg,pmap, type_predicate ))
+
+    #print(fits_domain_range('\"123\"',('Alfonso_XI_of_Castile','child_Fadrique_Alfonso','\"123\"'),ontology,kg,pmap, type_predicate ))
+    print(ontology)
             
 
     # end = time.time()
     # print(f" exp time {end - start}\n fitsdr time {ft}")
 
-    # exit()
+    exit()
 
 
     #########################
@@ -657,6 +685,7 @@ def mine_rules_for_target_predicate(g:set, v:set, pmap:P_map, kg:IncidenceList, 
     find_r_time = 0
     w_time = 0
     fdr_time = 0
+    rule_time = 0
     cov_time = 0
 
     exp_calls = 0
@@ -670,7 +699,9 @@ def mine_rules_for_target_predicate(g:set, v:set, pmap:P_map, kg:IncidenceList, 
     for path in paths:
         exp_calls += 1
         t2 = time.time()
-        fdr_time += expand_fun(rule_dict, path, kg, ontology, pmap, type_predicate)
+        fdr, rt = expand_fun(rule_dict, path, kg, ontology, pmap, type_predicate)
+        fdr_time+= fdr
+        rule_time += rt
         t3=time.time()
 
     t4 = time.time()
@@ -711,11 +742,12 @@ def mine_rules_for_target_predicate(g:set, v:set, pmap:P_map, kg:IncidenceList, 
             if fits_max_depth(r, max_depth):
                 print("expand")
                 t1 = time.time()
-                et, ec, fdr = expand_rule(r, rule_dict, kg, ontology, pmap, type_predicate, expand_fun)
+                et, ec, fdr, rt = expand_rule(r, rule_dict, kg, ontology, pmap, type_predicate, expand_fun)
                 exr_time += time.time() - t1
                 exp_time += et
                 exp_calls += ec
                 fdr_time += fdr
+                rule_time += rt
             # remove handled rule
             rule_dict.pop(r)
 
@@ -732,7 +764,7 @@ def mine_rules_for_target_predicate(g:set, v:set, pmap:P_map, kg:IncidenceList, 
 
     
 
-    return list(rule.as_csv_row() for rule in R_out_dict.keys()), exr_time, exp_time, find_r_time, w_time, exp_calls, w_calls, fdr_time, cov_time
+    return list(rule.as_csv_row() for rule in R_out_dict.keys()), exr_time, exp_time, find_r_time, w_time, exp_calls, w_calls, fdr_time, cov_time, rule_time
 
 
 
@@ -781,13 +813,16 @@ def expand_rule(rule, rule_dict, kg:IncidenceList, ontology:Ontology, pmap:P_map
     exp_time = 0
     ec = 0
     fdr_time = 0
+    rule_time = 0
     for path in rule_dict[rule]:
         ec += 1
         t = time.time()
-        fdr_time += expand_fun(rule_dict, path, kg, ontology, pmap, type_predicate)
+        fdr, rt= expand_fun(rule_dict, path, kg, ontology, pmap, type_predicate)
+        fdr_time += fdr
+        rule_time += rt
         exp_time += time.time() - t
           
-    return exp_time, ec, fdr_time
+    return exp_time, ec, fdr_time, rule_time
 
 def fits_max_depth_rudik(r:Rule, max_depth):
     return len(r.body) < max_depth
@@ -796,11 +831,16 @@ def fits_max_depth_rudik(r:Rule, max_depth):
 """expands given path by one from frontiers, creates straight paths in line with RuDiK"""
 def expand_path_rudik(rule_dict:dict, path:Path, kg:IncidenceList, ontology:Ontology, pmap:P_map, type_predicate:str):
 
-    # find all leaves, head object doesn't count
+    # find  leaf, head object doesn't count
     f = path.frontiers_rudik()
 
+    if f == None:
+        print(f"no frontier for {path}")
+        print(path.frontiers_rudik())
+        exit()
 
     tout = 0
+    toutrt = 0
 
     # TODO literal comparisons
     if is_literal(f):
@@ -832,7 +872,7 @@ def expand_path_rudik(rule_dict:dict, path:Path, kg:IncidenceList, ontology:Onto
                 # don't want circles, except when s = o
                     continue
 
-                ift = 0
+                rt = 0
                 t = time.time()
                 if fits_domain_range(e, triple, ontology, kg, pmap, type_predicate):
                     t3 = time.time()
@@ -844,10 +884,11 @@ def expand_path_rudik(rule_dict:dict, path:Path, kg:IncidenceList, ontology:Onto
                     else:
                         rule_dict[r] = {new}
                     t4 = time.time()
-                    ift = t4-t3
+                    rt = t4-t3
                 t2 = time.time()
-                tout += t2 - t - ift
-    return tout
+                tout += t2 - t - rt
+                toutrt += rt
+    return tout, toutrt
 
 
 
