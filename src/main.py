@@ -135,15 +135,17 @@ if __name__ == '__main__':
         print("\nTransforming results...")
         transformed_kg, transform_output_dir, original_predicates = transform(g,constraints_folder, prefix, kg_name)
 
-
+        time_start_parse = time.time()
         kg_transformed_i_list = IncidenceList()
         parseGraph(f"{transform_output_dir}/TransformedKG_{kg_name}.nt", kg_transformed_i_list, prefix)
         o = Ontology()
         parseOntology(ontology_path, o, prefix)
+        time_start_mining = time.time()
         mine_rules(kg_transformed_i_list,  original_predicates, transform_output_dir, o, rules_path, prefix, 3, 15, 0.5)
 
         # Print execution time
         end_time = time.time()
+        print(f"\nTime to parse data: {time_start_mining - time_start_parse} s\nTime for rule mining (incl. example generation):{end_time-time_start_mining}s")
         print(f"\nTotal execution time: {end_time - start_time - (user_input_end_time - user_input_start_time):.2f} seconds")
         print("Process completed successfully!")
 

@@ -11,7 +11,7 @@ import time
 
 
 def mine_rules(transformed_kg:IncidenceList, targets:set, transform_output_dir:str, ontology:Ontology, rules_file:str, prefix:str, max_depth:int=3, set_size:int=100, 
-               alpha:float=0.5, type_predicate:str='http://www.w3.org/1999/02/22-rdf-syntax-ns#type', rule_type:str="rudik"):
+               alpha:float=0.5, type_predicate:str='http://www.w3.org/1999/02/22-rdf-syntax-ns#type', rule_type:str="rudik", negative_rules:bool=False):
     """
     Mines rules for all original predicates of a normalized knowledge graph.
     
@@ -82,42 +82,49 @@ def mine_rules(transformed_kg:IncidenceList, targets:set, transform_output_dir:s
         pmap.neg_predicates = neg_preds(pmap.predicates, neg_predicate_mappings)
 
 
-        print(f"creating input sets G and V for target predicate <{p}>...\n")
-        # create positive examples
-        g = getExamples(transformed_kg, pmap.predicates, set_size)
-        len_g = len(g)
-        if len_g < set_size:
-            print(f"There aren't enough positive examples in the graph, proceeding with {len_g} examples.\n")  
+        if negative_rules:
+            # TODO prepare g and v flipped
+            # meaning, pos examples without predicate as v, negative examples with negative predicate as g
+            pass
 
-        # first, get constraint violating triples
-        v = getNegExamples(transformed_kg, pmap.neg_predicates, set_size)
+        else:
+            print(f"creating input sets G and V for target predicate <{p}>...\n")
+            # create positive examples
+            g = getExamples(transformed_kg, pmap.predicates, set_size)
+            len_g = len(g)
+            if len_g < set_size:
+                print(f"There aren't enough positive examples in the graph, proceeding with {len_g} examples.\n")  
 
-        # if not enough in v fill with lcwa-conform examples
-        len_v = len(v)
-        if len_v < set_size:
-            print(f"{len_v} examples found from constraint violations, selecting remaining {set_size - len_v} examples from graph.\n")
-            v.update(getExamplesLCWA(transformed_kg, ontology, pmap, set_size - len_v, type_predicate))
+            # first, get constraint violating triples
+            v = getNegExamples(transformed_kg, pmap.neg_predicates, set_size)
 
-        # if not enough in v fill with random examples
-        len_v = len(v)
-        if len_v < set_size:
-            print(f"There aren't enough negative examples in the graph, choosing {set_size - len_v} random examples.\n")  
-            v.update(getRandomNegExamples(transformed_kg, pmap.predicates, set_size - len_v, v)) 
+            # if not enough in v fill with lcwa-conform examples
+            len_v = len(v)
+            if len_v < set_size:
+                print(f"{len_v} examples found from constraint violations, selecting remaining {set_size - len_v} examples from graph.\n")
+                v.update(getExamplesLCWA(transformed_kg, ontology, pmap, set_size - len_v, type_predicate))
+
+            # if not enough in v fill with random examples
+            len_v = len(v)
+            if len_v < set_size:
+                print(f"There aren't enough negative examples in the graph, choosing {set_size - len_v} random examples.\n")  
+                v.update(getRandomNegExamples(transformed_kg, pmap.predicates, set_size - len_v, v)) 
 
 
-        len_v = len(v)
-        if len_v < set_size:
-            print(f"There aren't enough negative examples in the graph, proceeding with {len_v} examples.\n")   
+            len_v = len(v)
+            if len_v < set_size:
+                print(f"There aren't enough negative examples in the graph, proceeding with {len_v} examples.\n")   
 
-        if not g:
-            warnings.warn(f"There are no generation examples for {pmap.target}. No rule-mining possible \n", UserWarning)   
-            continue  
-        if not v:
-            warnings.warn(f"There are no validation examples for {pmap.target}. No rule-mining possible \n", UserWarning)   
-            continue
+            if not g:
+                warnings.warn(f"There are no generation examples for {pmap.target}. No rule-mining possible \n", UserWarning)   
+                continue  
+            if not v:
+                warnings.warn(f"There are no validation examples for {pmap.target}. No rule-mining possible \n", UserWarning)   
+                continue
 
         
         print(f"mining rules for target predicate <{p}>...\n")
+
         #result.extend(mine_rules_for_target_predicate(g, v, pmap, transformed_kg, prefix, type_predicate, ontology, expand_fun, fits_max_depth, max_depth, alpha, beta))
 
         #TODO remove
@@ -135,7 +142,7 @@ def mine_rules(transformed_kg:IncidenceList, targets:set, transform_output_dir:s
         
 
     print(result)
-    print(f"exp rule {exr_time}\nexp path {exp_time} for {exp_calls} calls\n find r {find_r_time}\n weight time {w_time} for {w_calls} calls\n fdr {fdr_time}\n cov {cov_time}\n rule time {rule_time}")
+    print(f"exp rule {exr_time}\nexp path {exp_time} for {exp_calls} calls\n find r {find_r_time}\n weight time {w_time} for {w_calls} calls\n fits_domain_range {fdr_time}\n cov/uncov {cov_time}\n path.rule() time {rule_time}")
     #TODO add result to csvs
     with open(rules_file, mode='w', newline='', encoding='utf-8') as datei:
         writer = csv.writer(datei)
@@ -610,13 +617,13 @@ def mine_rules_for_target_predicate(g:set, v:set, pmap:P_map, kg:IncidenceList, 
     #print(fits_domain_range_old('\"123\"',('Alfonso_XI_of_Castile','child_Fadrique_Alfonso','\"123\"'),ontology,kg,pmap, type_predicate ))
 
     #print(fits_domain_range('\"123\"',('Alfonso_XI_of_Castile','child_Fadrique_Alfonso','\"123\"'),ontology,kg,pmap, type_predicate ))
-    print(ontology)
+    #print(ontology)
             
 
     # end = time.time()
     # print(f" exp time {end - start}\n fitsdr time {ft}")
 
-    exit()
+    #exit()
 
 
     #########################
@@ -648,6 +655,15 @@ def mine_rules_for_target_predicate(g:set, v:set, pmap:P_map, kg:IncidenceList, 
 
     # Total execution time: 1972.67 seconds
 
+    # exp rule 1289.1665630340576
+    # exp path 1288.9272735118866 for 43281 calls
+    # find r 225.8708691596985
+    # weight time 215.14681196212769 for 9711 calls
+    # fdr 112.79601550102234
+    # cov 52.896766901016235
+    # rule time 1154.3494980335236
+    # Total execution time: 1531.63 seconds
+
     ################################
 
 
@@ -663,7 +679,7 @@ def mine_rules_for_target_predicate(g:set, v:set, pmap:P_map, kg:IncidenceList, 
     ###########################
 
 
-    #TODO when expanding, exclude bad paths better?
+    #TODO when expanding, excluding bad paths better?
     # TODO save weight in rule dict, to make find r faster, if sensible, bc weight changes wwhen new rule is added
     # TODO when finding r, mind rules with same weight, collect all and look through those until a rule is found
 
@@ -691,10 +707,10 @@ def mine_rules_for_target_predicate(g:set, v:set, pmap:P_map, kg:IncidenceList, 
     exp_calls = 0
     w_calls = 0
 
-    rule = None 
     paths = {Path((s, p , o), IncidenceList()) for s,p,o in g}
 
     # TODO call expand rule here, duplicate code
+
     t1 = time.time()
     for path in paths:
         exp_calls += 1
@@ -721,10 +737,10 @@ def mine_rules_for_target_predicate(g:set, v:set, pmap:P_map, kg:IncidenceList, 
     while True:
 
 
-        print(f"ruledict {len(rule_dict)}\n\n cov == g {cov_g(list(R_out_dict.keys()), g, rule_dict, R_out_dict) == g}\n\nmw {min_weight}\n\n")
+        print(f"ruledict {len(rule_dict)}\n\n cov == g {cov_g(list(R_out_dict.keys()), rule_dict, R_out_dict) == g}\n\nmw {min_weight}\n\n")
 
-        if not rule_dict or cov_g(list(R_out_dict.keys()), g, rule_dict, R_out_dict) == g or min_weight >= 0:
-            print(f"END ruledict {len(rule_dict)}\n\n cov == g {cov_g(list(R_out_dict.keys()), g, rule_dict, R_out_dict) == g}\n\nmw {min_weight}\n\n")
+        if not rule_dict or cov_g(list(R_out_dict.keys()), rule_dict, R_out_dict) == g or min_weight >= 0:
+            print(f"END ruledict {len(rule_dict)}\n\n cov == g {cov_g(list(R_out_dict.keys()), rule_dict, R_out_dict) == g}\n\nmw {min_weight}\n\n")
             break
         
         if is_valid(r):
@@ -849,8 +865,8 @@ def expand_path_rudik(rule_dict:dict, path:Path, kg:IncidenceList, ontology:Onto
     preds = kg.nodes.get(f)
 
     for p in preds:
-        # don't want to traverse type triples
-        if pmap.original_pred(p) == type_predicate:
+        # don't want to traverse type triples or negative triples
+        if pmap.original_pred(p) == type_predicate or p in pmap.neg_predicate_mappings:
             continue
         pairs = kg.edges.get(p)
 

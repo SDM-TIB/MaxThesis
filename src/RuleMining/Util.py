@@ -283,11 +283,6 @@ def instantiate(rule:Rule, kg:IncidenceList, entity_dict, pmap):
     entity_dict: dict: var in rule -> entity in graph"""
 def valid_entity_instanciation(e, c, r:Rule, entity_dict, pmap:P_map, kg:IncidenceList):
     
-    if not is_literal(e) and len(kg.nodes[e]) < len(c):
-        # except for literals, entities cannot appear more often in rule than the amount of triples they're apart of, in which the otherr variable isn't dangling!!!
-        # TODO try to see if this check makes it faster, need to add that triples where the other var is dangling don't count bc that can be the same triple as one alrready used...
-        # return False
-        pass
     for var in c:
 
         found = False
@@ -373,6 +368,7 @@ def instantiable(rule:Rule, kg:IncidenceList, pmap:P_map, entity_dict):
         is_s = triple[0] in entity_dict
         is_o = triple[2] in entity_dict
 
+        # TODO this might be checked in further code anyway, maybe delete
         if is_literal_comp(triple[1]) and is_s and is_o:
             if not is_valid_comp((entity_dict[triple[0]], triple[1], entity_dict[triple[2]])):
                 return False
@@ -504,7 +500,7 @@ def covers(r:Rule, kg, ex, pmap):
 """
 covarage of a rule/rules over set
 """
-def cov(r:Rule, kg, ex_set:set, pmap:P_map):
+def cov(r, kg, ex_set:set, pmap:P_map):
     c = set()
     if not r:
         return c
@@ -540,7 +536,7 @@ def uncov(r:Rule, kg, ex_set:set, pmap):
 """
 coverage of r over g
 """
-def cov_g(r, g, rule_dict, R_out_dict):
+def cov_g(r, rule_dict, R_out_dict):
     # TODO special case, just check dict entries for each rule and see the heads of the paths and compare to g
     c = set()
     if not r:
@@ -555,9 +551,8 @@ def cov_g(r, g, rule_dict, R_out_dict):
         else: 
             raise ValueError("unknown rule")  
     elif type(r) == list and r and type(r[0]) == Rule:
-        g_copy = g.copy()
         for rule in r:
-            c.update(cov_g(rule, g_copy, rule_dict, R_out_dict))
+            c.update(cov_g(rule, rule_dict, R_out_dict))
     else:
         raise ValueError("r must be type Rule or list[Rule]")
     
@@ -566,6 +561,7 @@ def cov_g(r, g, rule_dict, R_out_dict):
 
 """estimated marginal weight"""
 def est_m_weight(r:Rule, R_out_dict, rule_dict, kg:IncidenceList, g:set, v:set, alpha:float, beta:float, pmap:P_map, R_out_cov_v_cardinality:list, R_out_uncov_v:set):
+    t1 = time.time()
 
     # contain only r_out
     R_out = list(R_out_dict.keys())
@@ -588,7 +584,6 @@ def est_m_weight(r:Rule, R_out_dict, rule_dict, kg:IncidenceList, g:set, v:set, 
 
 
     # no need to check for the examples already in uncov_r_out_v (--> (v - uncov_r_out_v)),  since uncov_r_v is only used in union 
-    t1 = time.time()
     uncov_r_v = uncov(r, kg, (v - uncov_r_out_v), pmap)
     cov_time = time.time() - t1
     cardinality_uncov_r_out_r_v = len(set.union(uncov_r_out_v, uncov_r_v))
@@ -598,14 +593,14 @@ def est_m_weight(r:Rule, R_out_dict, rule_dict, kg:IncidenceList, g:set, v:set, 
 
     if not cardinality_cov_r_out_v:
     # if this is zero we know the beta part is zero, the divisors will also be zero resulting in error, thus removing beta part altogether
-        return cov_time, -alpha * ((len(cov_g(r, g, rule_dict, R_out_dict) - cov_g(R_out, g, rule_dict, R_out_dict)))/len(g))
+        return cov_time, -alpha * ((len(cov_g(r, rule_dict, R_out_dict) - cov_g(R_out, rule_dict, R_out_dict)))/len(g))
     
     if not cardinality_uncov_r_out_r_v:
     # if this is zero there is division by zero in first fraction of beta part, setting it to zero
-        return cov_time, -alpha * ((len(cov_g(r, g, rule_dict, R_out_dict) - cov_g(R_out, g, rule_dict, R_out_dict)))/len(g)) - beta * (cardinality_cov_r_out_v / cardinality_uncov_r_out_v)
+        return cov_time, -alpha * ((len(cov_g(r, rule_dict, R_out_dict) - cov_g(R_out, rule_dict, R_out_dict)))/len(g)) - beta * (cardinality_cov_r_out_v / cardinality_uncov_r_out_v)
 
 
-    return cov_time, -alpha * ((len(cov_g(r, g, rule_dict, R_out_dict) - cov_g(R_out, g, rule_dict, R_out_dict)))/len(g)) + beta * ((cardinality_cov_r_out_v / cardinality_uncov_r_out_r_v) - (cardinality_cov_r_out_v / cardinality_uncov_r_out_v))
+    return cov_time, -alpha * ((len(cov_g(r, rule_dict, R_out_dict) - cov_g(R_out, rule_dict, R_out_dict)))/len(g)) + beta * ((cardinality_cov_r_out_v / cardinality_uncov_r_out_r_v) - (cardinality_cov_r_out_v / cardinality_uncov_r_out_v))
 
 
 """
@@ -617,58 +612,6 @@ def is_valid(r:Rule):
     return any(r.head[2] in c for c in r.connections)
 
 
-"""
-check if a (sub)rule is a valid rule, old version that exhaustively checks the rules integrity
-"""
-def is_valid_old(r:Rule):
-
-    # if head object isn't connected to anything, rule is invalid
-    head_o_connected = False
-    for c in r.connections:
-        if r.head[2] in c:
-            head_o_connected = True
-            break
-
-    if not head_o_connected:
-        return False
-    
-
-    con = r.connections.copy()
-
-    #########
-    # DEFINITION knot: graph entity with more than one triple --> each connection tuple represents one knot
-    #########
-
-
-    # iterate over atoms, fuse connection tuples that are connected by handled atoms
-    for atom in r.body:
-
-        # get all vars s and o are connected to
-        s_c = next((c for c in con if atom[0] in c), None)
-        o_c = next((c for c in con if atom[2] in c ), None)
-        
-        # atom isn't connected to body
-        if not s_c and not o_c:
-            return False
-        
-        if len(con) > 1:
-            # fuse connections, if s_c and o_c are the same, nothing happens, no two knots are being connected...
-            if s_c and o_c:
-                if s_c != o_c:
-
-                    # if it's a literal comparison "=" , s and o must be the same literal
-                    if atom[1] == "=":
-                        return False
-                    con.remove(s_c)
-                    con.remove(o_c)
-                    con.add(tuple(set(s_c).union(set(o_c))))
-
-
-    if len(con) != 1: 
-    # all connected knots are fused --> there is am unconnected subgraph
-        return False
-
-    return True
 
 def is_valid_comp(triple):
     if not is_literal_comp(triple[1]) or (literal_type(triple[0]) != literal_type(triple[2])):
@@ -687,7 +630,7 @@ def is_valid_comp(triple):
 
 
 
-def fits_domain_range_new(entity, triple, ontology:Ontology, kg:IncidenceList, pmap:P_map, type_predicate):
+def fits_domain_range(entity, triple, ontology:Ontology, kg:IncidenceList, pmap:P_map, type_predicate):
     if entity not in triple:
         raise ValueError("Entity not in triple.")
     
@@ -813,111 +756,7 @@ def fits_domain_range_new(entity, triple, ontology:Ontology, kg:IncidenceList, p
             return False
 
 
-
-
-
-
-
-# checks if an entity is allowed in a certain triple using ontology, for literal comparisons, is_valid_comp() is returned
-def fits_domain_range(entity, triple, ontology:Ontology, kg:IncidenceList, pmap:P_map, type_predicate):
-    if entity not in triple:
-        raise ValueError("Entity not in triple.")
-    
-
-    check_domain = False
-    check_range = False
-    literal = False
-
-    
-    if is_literal(entity):
-        # need to handle differently if entity is a literal
-        literal = True
-
-    if literal and is_valid_comp(triple):
-        return True
-    
-    if is_literal_comp(triple[1]):
-        # it is a literal comp, but it is not valid as checked before
-        return False
-    
-
-    if entity == triple[0]:
-        if literal:
-            # literal comparisons have been handled before, subject cannot be literal
-            return False
-        check_domain = True
-
-    if entity == triple[2]:
-        check_range = True
-
-    
-    
-    original = pmap.original_pred(triple[1])
-    # depending on given predicate (old or new), this insures it is found in ontology
-    if triple[1] in ontology.properties:
-        domain_range = ontology.properties[triple[1]]
-    elif original in ontology.properties:
-        domain_range = ontology.properties[original]
-    else:
-        return False
-        
-
-    if literal:
-        types_r = domain_range[1]
-        literal_t = literal_type(entity)
-
-        for t in types_r:
-            if derivable(literal_t, t, ontology.literal_hierarchy):
-                return True
-        return False
-
-
-    else:
-        # get type predicate(s) the entity has 
-        type_predicates = {k for k in pmap.predicate_mappings if pmap.predicate_mappings[k] == type_predicate}
-
-        if entity in kg.nodes:
-            entity_type_predicates = type_predicates.intersection(kg.nodes[entity])
-        else:
-            raise ValueError("Entity is not in knowledge graph.")
-        if check_domain: 
-            types_d = set()
-            types_d.update(domain_range[0])
-        if check_range:
-            types_r = set()
-            types_r.update(domain_range[1])
-    
-
-        if not entity_type_predicates:
-            # entity is missing type
-            return False
-        
-        # get entity's types
-        entity_types = set()
-        for etp in entity_type_predicates:
-            if etp in kg.edges:
-                for e in kg.edges[etp]:
-                    if e[0] == entity:
-                        entity_types.add(e[1])
-
-
-
-        # derive and add supertypes of entity
-        all_entity_types = set()
-        while entity_types:
-            t = entity_types.pop()
-            all_entity_types.add(t)
-            if t in ontology.classes:
-                entity_types.update(ontology.classes[t])
-
-        if check_domain:
-            if not types_d.intersection(all_entity_types):
-                return False
-        if check_range:
-            if not types_r.intersection(all_entity_types):
-                return False
-        return True
-    
+  
 
 """help function for fits_domain_range()"""
 def literal_type(l:str):
@@ -1025,8 +864,6 @@ def getExamples(kg:IncidenceList, preds:set, count:int):
         g.pop()
     return g
 
-
-
 """get distributed negative examples for given predicates, by finding instances of negative predicates, limited by count"""
 def getNegExamples(kg:IncidenceList, preds:set, count:int):
     v = set()
@@ -1067,8 +904,6 @@ def getNegExamples(kg:IncidenceList, preds:set, count:int):
     for _ in range(-diff):
         v.pop()
     return v
-
-
 
 """get negative examples for given predicates that satisfy the local closed world assumption, limited by count"""
 def getExamplesLCWA(kg:IncidenceList, ontology:Ontology, pmap:P_map, count:int, type_predicate:str):
@@ -1124,7 +959,6 @@ def getExamplesLCWA(kg:IncidenceList, ontology:Ontology, pmap:P_map, count:int, 
                 break
 
             if (not found1 and not found2):
-                # if all instances of predicate are used
                 j -= 1
 
         if j < 1:
@@ -1169,3 +1003,163 @@ def getRandomNegExamples(kg:IncidenceList, preds:set, count:int, v=set()):
         if pair not in v and pair not in forbidden_pairs:
             out.add(pair)
     return out
+
+
+
+##############################
+# old function versions
+##############################
+
+# checks if an entity is allowed in a certain triple using ontology, for literal comparisons, is_valid_comp() is returned
+def fits_domain_range_old(entity, triple, ontology:Ontology, kg:IncidenceList, pmap:P_map, type_predicate):
+    if entity not in triple:
+        raise ValueError("Entity not in triple.")
+    
+
+    check_domain = False
+    check_range = False
+    literal = False
+
+    
+    if is_literal(entity):
+        # need to handle differently if entity is a literal
+        literal = True
+
+    if literal and is_valid_comp(triple):
+        return True
+    
+    if is_literal_comp(triple[1]):
+        # it is a literal comp, but it is not valid as checked before
+        return False
+    
+
+    if entity == triple[0]:
+        if literal:
+            # literal comparisons have been handled before, subject cannot be literal
+            return False
+        check_domain = True
+
+    if entity == triple[2]:
+        check_range = True
+
+    
+    
+    original = pmap.original_pred(triple[1])
+    # depending on given predicate (old or new), this insures it is found in ontology
+    if triple[1] in ontology.properties:
+        domain_range = ontology.properties[triple[1]]
+    elif original in ontology.properties:
+        domain_range = ontology.properties[original]
+    else:
+        return False
+        
+
+    if literal:
+        types_r = domain_range[1]
+        literal_t = literal_type(entity)
+
+        for t in types_r:
+            if derivable(literal_t, t, ontology.literal_hierarchy):
+                return True
+        return False
+
+
+    else:
+        # get type predicate(s) the entity has 
+        type_predicates = {k for k in pmap.predicate_mappings if pmap.predicate_mappings[k] == type_predicate}
+
+        if entity in kg.nodes:
+            entity_type_predicates = type_predicates.intersection(kg.nodes[entity])
+        else:
+            raise ValueError("Entity is not in knowledge graph.")
+        if check_domain: 
+            types_d = set()
+            types_d.update(domain_range[0])
+        if check_range:
+            types_r = set()
+            types_r.update(domain_range[1])
+    
+
+        if not entity_type_predicates:
+            # entity is missing type
+            return False
+        
+        # get entity's types
+        entity_types = set()
+        for etp in entity_type_predicates:
+            if etp in kg.edges:
+                for e in kg.edges[etp]:
+                    if e[0] == entity:
+                        entity_types.add(e[1])
+
+
+
+        # derive and add supertypes of entity
+        all_entity_types = set()
+        while entity_types:
+            t = entity_types.pop()
+            all_entity_types.add(t)
+            if t in ontology.classes:
+                entity_types.update(ontology.classes[t])
+
+        if check_domain:
+            if not types_d.intersection(all_entity_types):
+                return False
+        if check_range:
+            if not types_r.intersection(all_entity_types):
+                return False
+        return True
+  
+
+"""
+check if a (sub)rule is a valid rule, old version that exhaustively checks the rules integrity
+"""
+def is_valid_old(r:Rule):
+
+    # if head object isn't connected to anything, rule is invalid
+    head_o_connected = False
+    for c in r.connections:
+        if r.head[2] in c:
+            head_o_connected = True
+            break
+
+    if not head_o_connected:
+        return False
+    
+
+    con = r.connections.copy()
+
+    #########
+    # DEFINITION knot: graph entity with more than one triple --> each connection tuple represents one knot
+    #########
+
+
+    # iterate over atoms, fuse connection tuples that are connected by handled atoms
+    for atom in r.body:
+
+        # get all vars s and o are connected to
+        s_c = next((c for c in con if atom[0] in c), None)
+        o_c = next((c for c in con if atom[2] in c ), None)
+        
+        # atom isn't connected to body
+        if not s_c and not o_c:
+            return False
+        
+        if len(con) > 1:
+            # fuse connections, if s_c and o_c are the same, nothing happens, no two knots are being connected...
+            if s_c and o_c:
+                if s_c != o_c:
+
+                    # if it's a literal comparison "=" , s and o must be the same literal
+                    if atom[1] == "=":
+                        return False
+                    con.remove(s_c)
+                    con.remove(o_c)
+                    con.add(tuple(set(s_c).union(set(o_c))))
+
+
+    if len(con) != 1: 
+    # all connected knots are fused --> there is am unconnected subgraph
+        return False
+
+    return True

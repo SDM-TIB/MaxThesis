@@ -44,8 +44,6 @@ class IncidenceList:
         else:
             if not (x,y) in self.edges[l]:
                 self.edges[l].add((x,y))
-
-            
         
     def delete(self, l):
         del self.edges[l]
@@ -53,6 +51,19 @@ class IncidenceList:
     
     def triples(self):
         return {(pair[0], p, pair[1])  for p in self.edges for pair in self.edges[p]}
+    
+    def neighbors(self, n):
+        neighbors = set()
+        edges = self.nodes.get(n)
+        if edges:
+            for edge in edges:
+                for pair in self.edges[edge]:
+                    if n in pair:
+                        if n in pair[0]:
+                            neighbors.add(pair[1])
+                        else:
+                            neighbors.add(pair[0])
+        return neighbors
     
 
 
@@ -164,9 +175,7 @@ class Path:
         self.head = head
         return
     def __repr__(self):
-        # TODO uncomment
-        # return f"Path with:\n {self.graph}head: {self.head}.\n\n"
-        return f"Path {self.head}{self.graph}\n"
+        return f"Path with:\n head: {self.head}\n{self.graph}\n"
         
     
 
@@ -230,6 +239,46 @@ class Path:
         return None
 
 
+
+
+    def rule_new(self, pmap:P_map):
+
+        def original_triple(triple, pmap:P_map):
+            if is_literal_comp(triple[1]):
+                return triple
+            return((triple[0], pmap.predicate_mappings[triple[1]] ,triple[2]))
+
+        def traverse_dfs(self, pmap, current_node):            
+            pass
+            # 1. find next p and o, switch to original predicate
+            
+
+            # 2. add (current_node, p, o) to result
+
+
+            # 3. a if single best triple, recurse and queue solution
+            # 3. b if multiple options recurse all and only add "best" one
+
+
+
+            
+
+        def create_rule(triple_queue:list):
+            pass
+
+        # head is a special case, add it first then order the body triples
+        triple_queue = [original_triple(self.head, pmap)].extend(traverse_dfs(pmap, self.head[0]))
+
+        return create_rule(triple_queue)
+
+
+
+
+
+
+
+
+
     """returns a rule object corresponding to the paths' structure."""
     def rule(self, pmap:P_map): 
 
@@ -241,7 +290,7 @@ class Path:
 
         triple_order = dfs(self.graph.nodes, self.graph.edges, head[0], head)     
 
-
+        # TODO maybe remove, since we also assume connectedness elsewhere
         if len(triple_order) < sum(len(self.graph.edges[p]) for p in self.graph.edges):
             raise ValueError("The given path is faulty, all triples must be reachable from head subject.")
         
@@ -298,6 +347,8 @@ def dfs(nodes, edges, start, triple, visited=None):
             for k in del_set:
                 subpaths[key].remove(k)
 
+
+    # TODO there is a mistake here, need to compare original predicates, not the new ones
     if visited == None:
         visited = set()
     order = [triple]
@@ -348,6 +399,7 @@ class Rule:
         self.head = head
         self.body = body
         self.connections = connections
+
 
     def __key(self):
         return (self.head, self.body, self.connections)
