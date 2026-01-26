@@ -146,6 +146,7 @@ def mine_rules(transformed_kg:IncidenceList, targets:set, transform_output_dir:s
     #TODO add result to csvs
     with open(rules_file, mode='w', newline='', encoding='utf-8') as datei:
         writer = csv.writer(datei)
+        writer.writerow(["head", "body"])
         writer.writerows(result)
 
     return

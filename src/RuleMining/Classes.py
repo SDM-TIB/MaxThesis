@@ -1,5 +1,6 @@
 from hashlib import sha256
 from copy import deepcopy
+import itertools
 
 
 ###############################################
@@ -428,10 +429,20 @@ class Rule:
             s,p,o = triple
             return f"{p}({s};{o})"
         
-        out = [triple_csv(self.head)]
-        out.extend(list(triple_csv(t) for t in self.body))
-        for knot in self.connections:
-            out.append("=".join(knot))
+        name_dict = {}
+        non_head_var = 3
+        for c in self.connections:
+            # head vars are always var1 and var 2, after that, need to ensure that no var is skipped for a more intuitive output (e.g. not V1, V2, and V5 as only vars)
+            m = min(c)
+            if m >= "?VAR3":
+                m = f"?VAR{non_head_var}"
+                non_head_var += 1
+            for var in c: 
+                name_dict[var] = m
+        
+        out = [triple_csv((name_dict[self.head[0]], self.head[1], name_dict[self.head[2]]))]
+        out.extend(list(triple_csv((name_dict[t[0]], t[1], name_dict[t[2]])) for t in self.body))
+
         return out
     
 
