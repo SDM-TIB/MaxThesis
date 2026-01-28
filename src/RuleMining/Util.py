@@ -1,6 +1,6 @@
 import random
 import numpy as np
-from itertools import combinations
+from itertools import combinations 
 from RuleMining.Classes import Path, Rule, P_map, IncidenceList, Ontology, dfs, is_literal_comp
 import time
 
@@ -80,10 +80,8 @@ def parseOntology(ontology_file:str, ontology:Ontology, prefix:str=""):
 
         while current_i < max_i:
             p = block[current_i]
-            print(f"\n\nset p to {p}\n\n")
             current_i += 1
             o = block[current_i]
-            print(f"\n\nset o to {o}\n\n")
             current_i += 1
 
             if checkForType(p):
@@ -98,7 +96,6 @@ def parseOntology(ontology_file:str, ontology:Ontology, prefix:str=""):
                         continue
 
                     o = block[current_i]
-                    print(f"\n\nset o to {o}\n\n")
 
                     types.add(o)
                     current_i += 1
@@ -121,7 +118,6 @@ def parseOntology(ontology_file:str, ontology:Ontology, prefix:str=""):
                         continue
 
                     o = block[current_i]
-                    print(f"\n\nset o to {o}\n\n")
 
                     super.add(o)
                     current_i += 1
@@ -139,7 +135,6 @@ def parseOntology(ontology_file:str, ontology:Ontology, prefix:str=""):
                         continue
 
                     o = block[current_i]
-                    print(f"\n\nset o to {o}\n\n")
 
                     domain.add(o)
                     current_i += 1
@@ -155,7 +150,6 @@ def parseOntology(ontology_file:str, ontology:Ontology, prefix:str=""):
                         continue
 
                     o = block[current_i]
-                    print(f"\n\nset o to {o}\n\n")
 
                     range.add(o)
                     current_i += 1
@@ -178,7 +172,6 @@ def parseOntology(ontology_file:str, ontology:Ontology, prefix:str=""):
                 ontology.addClass(prefix, extractName(s))
             
         if isProperty:
-            print(domain, range)
             ontology.addProperty(prefix, extractName(s), {extractName(e) for e in domain}, {extractName(e) for e in range})
 
 
@@ -213,13 +206,15 @@ def parseOntology(ontology_file:str, ontology:Ontology, prefix:str=""):
                         block.append(e)
 
                 if block_end:
-                    print(f"ONTOLOGY BLOCK {block}")
                     addOntologyBlock(block, ontology, prefix)
                     block = []
                     block_end = False
 
 
-
+def check_preds_in_graph(neg_predicate_mappings, kg:IncidenceList):
+    for p in neg_predicate_mappings.values():
+        if p not in kg.edges:
+            kg.edges[p] = set()
 
 
 
@@ -537,7 +532,7 @@ def uncov(r:Rule, kg, ex_set:set, pmap):
 coverage of r over g
 """
 def cov_g(r, rule_dict, R_out_dict):
-    # TODO special case, just check dict entries for each rule and see the heads of the paths and compare to g
+    # special case, just check dict entries for each rule and see the heads of the paths and compare to g
     c = set()
     if not r:
         return c
@@ -559,6 +554,137 @@ def cov_g(r, rule_dict, R_out_dict):
     return c
 
 
+"""backtracking function that checks wether a rule covers a given example pair"""
+def covers_example(r:Rule, example_pair, kg:IncidenceList, pmap:P_map, current_var=None, name_dict=None, handled_triples=None, initialize=True):
+    c = None
+    if initialize:
+        print("initialize")
+    # instantiate the head s and o with example values
+        handled_triples = set()
+        current_var = r.head[0]
+        name_dict = {}
+        s_equals_o = example_pair[0] == example_pair[1]
+        
+        c = r.get_connections(r.head[0])
+        if r.head[2] in c:
+        # special case, head is s=o
+            if not s_equals_o:
+                return False
+            for var in c:
+                name_dict[var] = example_pair[0]
+
+        else:
+            if s_equals_o:
+                return False
+            c2 = r.get_connections(r.head[2])
+            for var in c:
+                name_dict[var] = example_pair[0]
+
+            for var in c2:
+                name_dict[var] = example_pair[1]
+
+
+    # find triples in rule with current node, ignore s=o triples(--> directly add to visited)
+    if not c:
+        c = r.get_connections(current_var)
+
+    print(f"CALL current var {current_var}\nnamedict {name_dict}\nhandled {handled_triples}\n")
+    # TODO for non rudik rules use and fill this set
+    #connecting_triples = set()
+    next_triple = None
+    triples_left = False
+    for triple in r.body:
+        if triple in handled_triples:
+            continue
+        if triple[0] in c:
+            if initialize and triple[2] in c:
+                # instantly add s=o triples to ignore them
+                handled_triples.add(triple)
+            # TODO for non rudik remove break
+            next_triple = triple
+            current_i = 0
+            break
+
+        if triple[2] in c:
+            if initialize and triple[0] in c:
+                # instantly add s=o triples to ignore them
+                handled_triples.add(triple)
+
+            # TODO for non rudik remove break
+            next_triple = triple
+            current_i = 1
+            break
+        triples_left = True
+
+    
+    if not next_triple and not triples_left:
+        if initialize:
+            print(f"{example_pair}621")
+        return True
+    
+    # TODO for non rudik rules loop here for all connecting triples
+    handled_triples.add(next_triple)
+    new_preds = pmap.new_preds(triple[1])
+    possible_next_nodes = set()
+    for p in new_preds:
+        for pair in kg.edges[p]:
+            if pair[current_i] == name_dict[current_var] and pair[0] != pair[1]:
+                possible_next_nodes.add(pair[(current_i + 1) % 2])
+
+    next_var = next_triple[0] if name_dict.get(next_triple[2]) == name_dict[current_var] else next_triple[2]
+    for node in possible_next_nodes:
+        cn = r.get_connections(next_var)
+        for var in cn:
+            name_dict[var] = node
+        if covers_example(r, example_pair, kg, pmap, next_var, name_dict, handled_triples, False):
+            if initialize:
+                print(f"{example_pair}639")
+            return True
+        
+    if handled_triples != r.body:
+        # we have an unbound rule that is not transitively connected, need to traverse from head-o aswell
+        return covers_example(r, example_pair, kg, pmap, r.head[2], name_dict, handled_triples, False)
+    return False
+
+
+    # for each, find possible instantiations in graph
+        # if any rule triple has 0 --> return False
+        # go through each predicates possible instantiations and recurse
+            # -> add only the predicate we are recursing with to handled, or all connecting, since their handling is "queued"
+        # TODO for rudik rule shape, there will be only one unhandled connecting triple, if other shapes add and test the functionality for more triples
+
+def coverage(r, v, kg, pmap):
+    out = set()
+    for example_pair in v:
+        if example_pair not in out:
+            if covers_example(r, example_pair, kg, pmap):
+                out.add(example_pair)
+    return out
+
+def unbounded_coverage(r, v, kg, pmap):
+    coverage(unbind(r), v, kg, pmap)
+
+def rulelist_call_coverage(r, v, kg, pmap, out):
+# contains duplicate code to coverage(), runtime purposes...
+    for example_pair in v:
+        if example_pair not in out:
+            if covers_example(r, example_pair, kg, pmap):
+                out.add(example_pair)
+
+
+
+def rulelist_coverage(R, v, kg, pmap):
+    out = set()
+    for rule in R:    
+        rulelist_call_coverage(rule, v, kg, pmap, out)
+    return out
+
+def rulelist_unbounded_coverage(R, v, kg, pmap):
+    out = set()
+    for rule in R:    
+        rulelist_call_coverage(unbind(rule), v, kg, pmap, out)
+    return out
+
 """estimated marginal weight"""
 def est_m_weight(r:Rule, R_out_dict, rule_dict, kg:IncidenceList, g:set, v:set, alpha:float, beta:float, pmap:P_map, R_out_cov_v_cardinality:list, R_out_uncov_v:set):
     t1 = time.time()
@@ -576,6 +702,13 @@ def est_m_weight(r:Rule, R_out_dict, rule_dict, kg:IncidenceList, g:set, v:set, 
     # if there is no value pre saved, calculate it else use it
     if R_out_uncov_v == None:
         uncov_r_out_v = uncov(R_out, kg, v, pmap)
+        # test = rulelist_coverage(R_out, v, kg, pmap)
+        # cove = cov(R_out, kg, v, pmap)
+        # if cove != test:
+        #     print(f"cov {cove}\n\ntest{test}\n\v {v}\n\n")
+        #     for r in R_out:
+        #         print(r)
+        #     exit()
         R_out_uncov_v = uncov_r_out_v
     else:
         uncov_r_out_v = R_out_uncov_v
@@ -609,19 +742,22 @@ in its use context it is safe to assume all atoms are transitively connected
 
 """
 def is_valid(r:Rule):
-    return any(r.head[2] in c for c in r.connections)
+    for c in r.connections:
+        if r.head[2] in c:
+            if r.head[0] in c:
+                # must be at least 4 vars in c, 2 are from head, need one more to go away and one to come back
+                return len(c) >= 4
+            return True
+    return False
 
-
-
-def is_valid_comp(triple):
+def is_valid_comp(triple, kg, pmap:P_map):
     if not is_literal_comp(triple[1]) or (literal_type(triple[0]) != literal_type(triple[2])):
         return False  
-    # TODO maybe ensure s and o are object of same predicate
     
     if triple[1] == "=":
         if triple[0] != triple[2]:
             return False
-    if triple[1] == "<":
+    elif triple[1] == "<":
         if triple[0] >= triple[2]:
             return False
         

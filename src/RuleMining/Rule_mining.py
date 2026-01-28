@@ -60,6 +60,11 @@ def mine_rules(transformed_kg:IncidenceList, targets:set, transform_output_dir:s
         predicate_mappings = json.load(p_map_file)
     with open(f"{transform_output_dir}/no_predicate_mappings.json", "r", encoding="utf-8") as np_map_file:
         neg_predicate_mappings = json.load(np_map_file)
+
+
+    # need to ensure predicate mapping consistency, every new predicate mentioned in mappings must be in kg, even if there is no corresponding triple
+    check_preds_in_graph(neg_predicate_mappings, transformed_kg)
+
     result = []
 
     # TODO remove
@@ -74,7 +79,6 @@ def mine_rules(transformed_kg:IncidenceList, targets:set, transform_output_dir:s
     rule_time = 0
 
     for p in targets:
-
 
 
         # getting post normalization instances of target predicate and the negative instances from validation
@@ -122,7 +126,6 @@ def mine_rules(transformed_kg:IncidenceList, targets:set, transform_output_dir:s
                 warnings.warn(f"There are no validation examples for {pmap.target}. No rule-mining possible \n", UserWarning)   
                 continue
 
-        
         print(f"mining rules for target predicate <{p}>...\n")
 
         #result.extend(mine_rules_for_target_predicate(g, v, pmap, transformed_kg, prefix, type_predicate, ontology, expand_fun, fits_max_depth, max_depth, alpha, beta))
@@ -173,10 +176,12 @@ def mine_rules_for_target_predicate(g:set, v:set, pmap:P_map, kg:IncidenceList, 
     
 
     
-    # isGenre_g = {('Dire_Straits(Album)', 'isGenre_Rock', 'Rock'), ('Let_It_Be', 'isGenre_Rock', 'Rock'), ('Rosanna', 'isGenre_Rock', 'Rock'), ('Regatta_De_Blanc', 'isGenre_Reggae', 'Reggae'), ('Outlandos_D%27Amour', 'isGenre_Punk', 'Punk'), ('The_Beatles(Album)', 'isGenre_Jazz', 'Jazz'), ('In_The_Gallery', 'isGenre_Rock', 'Rock'), ('Lions', 'isGenre_Rock', 'Rock'), ('Africa', 'isGenre_Rock', 'Rock'), ('Shape_of_my_Heart', 'isGenre_Pop', 'Pop'), ('Let_It_Be', 'isGenre_Pop', 'Pop'), ('Making_Movies', 'isGenre_Pop', 'Pop'), ('461_Ocean_Blvd.', 'isGenre_Blues', 'Blues'), ('Ten_Summoner%27s_Tales', 'isGenre_Pop', 'Pop'), ('Down_To_The_Waterline', 'isGenre_Rock', 'Rock')}    # isGenre_v = {('Africa', 'Funk'), ('Toto_IV', 'Metal'), ('Making_Movies', 'Metal'), ('Ten_Summoner%27s_Tales', 'Rock'), ('Make_Beleive', 'Jazz'), ('Make_Beleive', 'Rock'), ('Africa', 'Soul'), ('Toto', 'Metal'), ('Make_Beleive', 'Funk'), ('Outlandos_D%27Amour', 'Metal'), ('Dire_Straits(Album)', 'Metal'), ('Africa', 'Jazz'), ('Let_It_Be', 'Metal'), ('Ten_Summoner%27s_Tales', 'Metal'), ('461_Ocean_Blvd.', 'Rock')}
-    # isGenre_v = {('Sultans_Of_Swing', 'NONONOFunk'), ('Make_Believe', 'NONONOMetal'), ('Water_Of_Love', 'NONONOCountry'), ('Outlandos_D%27Amour', 'Pop'), ('The_Seventh_One', 'Jazz'), ('The_Beatles(Album)', 'Rock'), ('It%27s_a_Feeling', 'NONONOSoul'), ('Outlandos_D%27Amour', 'Jazz'), ('Lovers_in_the_Night', 'NONONOCountry'), ('The_Seventh_One', 'Pop'), ('The_Seventh_One', 'Reggae'), ('Regatta_De_Blanc', 'Jazz'), ('Making_Movies', 'Reggae'), ('461_Ocean_Blvd.', 'Rock'), ('Ten_Summoner%27s_Tales', 'Rock')}
-
-    # #valid rule
+    isGenre_g = {('Dire_Straits(Album)', 'isGenre_Rock', 'Rock'), ('Let_It_Be', 'isGenre_Rock', 'Rock'), ('Rosanna', 'isGenre_Rock', 'Rock'), ('Regatta_De_Blanc', 'isGenre_Reggae', 'Reggae'), ('Outlandos_D%27Amour', 'isGenre_Punk', 'Punk'), ('The_Beatles(Album)', 'isGenre_Jazz', 'Jazz'), ('In_The_Gallery', 'isGenre_Rock', 'Rock'), ('Lions', 'isGenre_Rock', 'Rock'), ('Africa', 'isGenre_Rock', 'Rock'), ('Shape_of_my_Heart', 'isGenre_Pop', 'Pop'), ('Let_It_Be', 'isGenre_Pop', 'Pop'), ('Making_Movies', 'isGenre_Pop', 'Pop'), ('461_Ocean_Blvd.', 'isGenre_Blues', 'Blues'), ('Ten_Summoner%27s_Tales', 'isGenre_Pop', 'Pop'), ('Down_To_The_Waterline', 'isGenre_Rock', 'Rock')}    # isGenre_v = {('Africa', 'Funk'), ('Toto_IV', 'Metal'), ('Making_Movies', 'Metal'), ('Ten_Summoner%27s_Tales', 'Rock'), ('Make_Beleive', 'Jazz'), ('Make_Beleive', 'Rock'), ('Africa', 'Soul'), ('Toto', 'Metal'), ('Make_Beleive', 'Funk'), ('Outlandos_D%27Amour', 'Metal'), ('Dire_Straits(Album)', 'Metal'), ('Africa', 'Jazz'), ('Let_It_Be', 'Metal'), ('Ten_Summoner%27s_Tales', 'Metal'), ('461_Ocean_Blvd.', 'Rock')}
+    isGenre_v = {('Sultans_Of_Swing', 'NONONOFunk'), ('Make_Believe', 'NONONOMetal'), ('Water_Of_Love', 'NONONOCountry'), ('Outlandos_D%27Amour', 'Pop'), ('The_Seventh_One', 'Jazz'), ('The_Beatles(Album)', 'Rock'), ('It%27s_a_Feeling', 'NONONOSoul'), ('Outlandos_D%27Amour', 'Jazz'), ('Lovers_in_the_Night', 'NONONOCountry'), ('The_Seventh_One', 'Pop'), ('The_Seventh_One', 'Reggae'), ('Regatta_De_Blanc', 'Jazz'), ('Making_Movies', 'Reggae'), ('461_Ocean_Blvd.', 'Rock'), ('Ten_Summoner%27s_Tales', 'Rock')}
+    isGenre_v = {("Making_Movies", "Pop"), ("Rubber_Soul","Rock")}
+    parent_g = {('Duchess_Helene_of_Mecklenburg_Schwerin', 'parent_Princess_Caroline_Louise_of_Saxe_Weimar_Eisenach', 'Princess_Caroline_Louise_of_Saxe_Weimar_Eisenach'), ('Maria_Carolina_of_Austria', 'parent_Maria_Theresa', 'Maria_Theresa'), ('Welf_I_Duke_of_Bavaria', 'parent_Kunigunde_of_Altdorf', 'Kunigunde_of_Altdorf'), ('Humbert_II_Count_of_Savoy', 'parent_Joan_of_Geneva', 'Joan_of_Geneva'), ('Francesco_I_Sforza', 'parent_Muzio_Attendolo_Sforza', 'Muzio_Attendolo_Sforza'), ('John_Count_of_Chalon', 'parent_Stephen_III_of_Auxonne', 'Stephen_III_of_Auxonne'), ('Joan_Beaufort_Queen_of_Scots', 'parent_John_Beaufort_1st_Earl_of_Somerset', 'John_Beaufort_1st_Earl_of_Somerset'), ('Marie_of_Brabant_Queen_of_France', 'parent_Henry_III_Duke_of_Brabant', 'Henry_III_Duke_of_Brabant'), ('Mary_de_Bohun', 'parent_Humphrey_de_Bohun_7th_Earl_of_Hereford', 'Humphrey_de_Bohun_7th_Earl_of_Hereford'), ('Eckhard_I_Count_of_Scheyern', 'parent_Otto_I_Count_of_Scheyern', 'Otto_I_Count_of_Scheyern'), ('Maria_Anna_of_Bavaria_born_1551', 'parent_Albert_V_Duke_of_Bavaria', 'Albert_V_Duke_of_Bavaria'), ('Matilda_of_Carinthia', 'parent_Engelbert_Duke_of_Carinthia', 'Engelbert_Duke_of_Carinthia'), ('Maria_Theresa_of_Savoy', 'parent_Victor_Amadeus_III_of_Sardinia', 'Victor_Amadeus_III_of_Sardinia'), ('Philip_II_of_Spain', 'parent_Charles_V_Holy_Roman_Emperor', 'Charles_V_Holy_Roman_Emperor'), ('Charles_V_Duke_of_Lorraine', 'parent_Claude_Fran_oise_de_Lorraine', 'Claude_Fran_oise_de_Lorraine')}
+    parent_v = {('John_of_Gaunt', 'Theodoric_II_Duke_of_Lorraine'), ('Humbert_II_Count_of_Savoy', 'Theodoric_II_Duke_of_Lorraine'), ('Simon_I_Duke_of_Lorraine', 'Douce_I_Countess_of_Provence'), ('Simon_I_Duke_of_Lorraine', 'Charles_I_Duke_of_Bourbon'), ('Stephen_II_Duke_of_Bavaria', 'Theodoric_II_Duke_of_Lorraine'), ('Simon_I_Duke_of_Lorraine', 'Philippa_of_Hainault'), ('Simon_I_Duke_of_Lorraine', 'Louis_X_of_France'), ('Afonso_IV_of_Portugal', 'Theodoric_II_Duke_of_Lorraine'), ('Simon_I_Duke_of_Lorraine', 'Ranulf_II_of_Aquitaine'), ('Berengaria_of_Barcelona', 'Theodoric_II_Duke_of_Lorraine'), ('Simon_I_Duke_of_Lorraine', 'Elizabeth_of_Portugal'), ('Simon_I_Duke_of_Lorraine', 'Amadeus_II_Count_of_Savoy'), ('Joan_II_of_Navarre', 'Theodoric_II_Duke_of_Lorraine'), ('Ebalus_Duke_of_Aquitaine', 'Theodoric_II_Duke_of_Lorraine'), ('Margaret_of_Bourbon_1438_1483', 'Theodoric_II_Duke_of_Lorraine')}
+    #valid rule
     # r = Rule(head=("?VAR1","isGenre", "?VAR2"), 
     #          body={("?VAR3", "collaboratedWith", "?VAR4"), ("?VAR5", "hasAlbum", "?VAR6"), ("?VAR7", "isGenre", "?VAR8"), 
     #                ("?VAR9", "hasAlbum", "?VAR10"), ("?VAR11", "releaseYear", "?VAR12"), ("?VAR13", "releaseYear", "?VAR14"), ("?VAR15", "<", "?VAR16")}, 
@@ -229,11 +234,11 @@ def mine_rules_for_target_predicate(g:set, v:set, pmap:P_map, kg:IncidenceList, 
     # exit()
 
     p2 = Path()
-    p2.head = ("I_Shot_the_Sheriff","isGenre_Rock","Rock")
+    p2.head = ("Here_Comes_the_Sun","isGenre_Rock","Rock")
     p2.graph.add("Here_Comes_the_Sun","releaseYear_1969","\"1969\"^^<http://www.w3.org/2001/XMLSchema#/int>")
     p2.graph.add("461_Ocean_Blvd.","releaseYear_1974","\"1974\"^^<http://www.w3.org/2001/XMLSchema#/int>")
     p2.graph.add("\"1969\"^^<http://www.w3.org/2001/XMLSchema#/int>","<","\"1974\"^^<http://www.w3.org/2001/XMLSchema#/int>")
-    p2.graph.add("I_Shot_the_Sheriff","includedIn_461_Ocean_Blvd.","461_Ocean_Blvd.")
+    p2.graph.add("\"1969\"^^<http://www.w3.org/2001/XMLSchema#/int>","=","\"1969\"^^<http://www.w3.org/2001/XMLSchema#/int>")
     p2.graph.add("461_Ocean_Blvd.","isGenre_Rock","Rock")
 
     # print(p2)
@@ -565,27 +570,39 @@ def mine_rules_for_target_predicate(g:set, v:set, pmap:P_map, kg:IncidenceList, 
     
 
     pathlist = [ Path( ('Blanche_of_Burgundy', 'parent_Mahaut_Countess_of_Artois', 'Mahaut_Countess_of_Artois'), IncidenceList(
-        {'spouse_Charles_IV_of_France': {('Blanche_of_Burgundy', 'Charles_IV_of_France')}, 'spouse_Joan_of__vreux': {('Charles_IV_of_France', 'Joan_of__vreux')}},        
-        {'Blanche_of_Burgundy': {'spouse_Charles_IV_of_France'}, 'Charles_IV_of_France': {'spouse_Charles_IV_of_France', 'spouse_Joan_of__vreux'}, 'Joan_of__vreux': {'spouse_Joan_of__vreux'}}
+        {'spouse_Charles_IV_of_France': {('Blanche_of_Burgundy', 'Charles_IV_of_France')}, 
+         'spouse_Joan_of__vreux': {('Charles_IV_of_France', 'Joan_of__vreux')}},        
+        {'Blanche_of_Burgundy': {'spouse_Charles_IV_of_France'}, 
+         'Charles_IV_of_France': {'spouse_Charles_IV_of_France', 'spouse_Joan_of__vreux'},
+           'Joan_of__vreux': {'spouse_Joan_of__vreux'}}
         )),
 
         Path( ('Philip_V_of_Spain', 'parent_Louis_Dauphin_of_France_son_of_Louis_XIV', 'Louis_Dauphin_of_France_son_of_Louis_XIV'), IncidenceList(
-         {'spouse_Maria_Amalia_of_Saxony': {('Philip_V_of_Spain', 'Maria_Amalia_of_Saxony'), ('Charles_III_of_Spain', 'Maria_Amalia_of_Saxony')}},
-         {'Philip_V_of_Spain': {'spouse_Maria_Amalia_of_Saxony'}, 'Maria_Amalia_of_Saxony': {'spouse_Maria_Amalia_of_Saxony'}, 'Charles_III_of_Spain': {'spouse_Maria_Amalia_of_Saxony'}}
+         {'spouse_Maria_Amalia_of_Saxony': {('Philip_V_of_Spain', 'Maria_Amalia_of_Saxony'),
+                                             ('Charles_III_of_Spain', 'Maria_Amalia_of_Saxony')}},
+         {'Philip_V_of_Spain': {'spouse_Maria_Amalia_of_Saxony'}, 
+          'Maria_Amalia_of_Saxony': {'spouse_Maria_Amalia_of_Saxony'}, 
+          'Charles_III_of_Spain': {'spouse_Maria_Amalia_of_Saxony'}}
         )),
         Path( ('Philip_V_of_Spain', 'parent_Louis_Dauphin_of_France_son_of_Louis_XIV', 'Louis_Dauphin_of_France_son_of_Louis_XIV'), IncidenceList(
-         {'spouse_Maria_Amalia_of_Saxony': {('Philip_V_of_Spain', 'Maria_Amalia_of_Saxony')}, 'marriedTo_Elisabeth_Farnese': {('Maria_Amalia_of_Saxony', 'Elisabeth_Farnese')}},
-         {'Philip_V_of_Spain': {'spouse_Maria_Amalia_of_Saxony'}, 'Maria_Amalia_of_Saxony': {'marriedTo_Elisabeth_Farnese', 'spouse_Maria_Amalia_of_Saxony'}, 'Elisabeth_Farnese': {'marriedTo_Elisabeth_Farnese'}}
+         {'spouse_Maria_Amalia_of_Saxony': {('Philip_V_of_Spain', 'Maria_Amalia_of_Saxony')},
+           'marriedTo_Elisabeth_Farnese': {('Maria_Amalia_of_Saxony', 'Elisabeth_Farnese')}},
+         {'Philip_V_of_Spain': {'spouse_Maria_Amalia_of_Saxony'},
+           'Maria_Amalia_of_Saxony': {'marriedTo_Elisabeth_Farnese', 'spouse_Maria_Amalia_of_Saxony'},
+             'Elisabeth_Farnese': {'marriedTo_Elisabeth_Farnese'}}
         )), 
 
 
         Path( ('Philip_V_of_Spain', 'parent_Louis_Dauphin_of_France_son_of_Louis_XIV', 'Louis_Dauphin_of_France_son_of_Louis_XIV'), IncidenceList(
          {'spouse_Maria_Amalia_of_Saxony': {('Philip_V_of_Spain', 'Maria_Amalia_of_Saxony'), ('Charles_III_of_Spain', 'Maria_Amalia_of_Saxony')}},
-         {'Philip_V_of_Spain': {'spouse_Maria_Amalia_of_Saxony'}, 'Maria_Amalia_of_Saxony': {'spouse_Maria_Amalia_of_Saxony'}, 'Charles_III_of_Spain': {'spouse_Maria_Amalia_of_Saxony'}}
+         {'Philip_V_of_Spain': {'spouse_Maria_Amalia_of_Saxony'},
+           'Maria_Amalia_of_Saxony': {'spouse_Maria_Amalia_of_Saxony'},
+             'Charles_III_of_Spain': {'spouse_Maria_Amalia_of_Saxony'}}
         )),
         Path( ('Philip_V_of_Spain', 'parent_Louis_Dauphin_of_France_son_of_Louis_XIV', 'Louis_Dauphin_of_France_son_of_Louis_XIV'), IncidenceList(
          {'spouse_Maria_Amalia_of_Saxony': {('Philip_V_of_Spain', 'Maria_Amalia_of_Saxony')}},
-         {'Philip_V_of_Spain': {'spouse_Maria_Amalia_of_Saxony'}, 'Maria_Amalia_of_Saxony': { 'spouse_Maria_Amalia_of_Saxony'}}
+         {'Philip_V_of_Spain': {'spouse_Maria_Amalia_of_Saxony'},
+           'Maria_Amalia_of_Saxony': { 'spouse_Maria_Amalia_of_Saxony'}}
         )),
         ]
      
@@ -615,17 +632,14 @@ def mine_rules_for_target_predicate(g:set, v:set, pmap:P_map, kg:IncidenceList, 
 
     p6 = Path(("a","b","c"), IncidenceList())
 
-    #print(fits_domain_range_old('\"123\"',('Alfonso_XI_of_Castile','child_Fadrique_Alfonso','\"123\"'),ontology,kg,pmap, type_predicate ))
+    ru = Rule(("?VAR1", "isGenre", "?VAR2"), {("?VAR3", "hasAlbum", "?VAR4"), ("?VAR5","collaboratedWith","?VAR6")}, {("?VAR1", "?VAR4"), ("?VAR3", "?VAR6")})
 
-    #print(fits_domain_range('\"123\"',('Alfonso_XI_of_Castile','child_Fadrique_Alfonso','\"123\"'),ontology,kg,pmap, type_predicate ))
-    #print(ontology)
             
-
-    # end = time.time()
-    # print(f" exp time {end - start}\n fitsdr time {ft}")
-
-    #exit()
-
+    # print(covers_example(ru,("Making_Movies", "Reggae"), kg, pmap))
+    # print(coverage(ru,isGenre_v,kg,pmap))
+    # # for r in rulelist:
+    # #     print(r, coverage(r, parent_v, kg, pmap))
+    # exit()
 
     #########################
     # FR runtime
@@ -738,10 +752,10 @@ def mine_rules_for_target_predicate(g:set, v:set, pmap:P_map, kg:IncidenceList, 
     while True:
 
 
-        print(f"ruledict {len(rule_dict)}\n\n cov == g {cov_g(list(R_out_dict.keys()), rule_dict, R_out_dict) == g}\n\nmw {min_weight}\n\n")
+        #print(f"ruledict {len(rule_dict)}\n\n cov == g {cov_g(list(R_out_dict.keys()), rule_dict, R_out_dict) == g}\n\nmw {min_weight}\n\n")
 
         if not rule_dict or cov_g(list(R_out_dict.keys()), rule_dict, R_out_dict) == g or min_weight >= 0:
-            print(f"END ruledict {len(rule_dict)}\n\n cov == g {cov_g(list(R_out_dict.keys()), rule_dict, R_out_dict) == g}\n\nmw {min_weight}\n\n")
+            #print(f"END ruledict {len(rule_dict)}\n\n cov == g {cov_g(list(R_out_dict.keys()), rule_dict, R_out_dict) == g}\n\nmw {min_weight}\n\n")
             break
         
         if is_valid(r):
@@ -757,7 +771,7 @@ def mine_rules_for_target_predicate(g:set, v:set, pmap:P_map, kg:IncidenceList, 
         else:
             # expand
             if fits_max_depth(r, max_depth):
-                print("expand")
+                #print("expand")
                 t1 = time.time()
                 et, ec, fdr, rt = expand_rule(r, rule_dict, kg, ontology, pmap, type_predicate, expand_fun)
                 exr_time += time.time() - t1
@@ -769,7 +783,7 @@ def mine_rules_for_target_predicate(g:set, v:set, pmap:P_map, kg:IncidenceList, 
             rule_dict.pop(r)
 
         # find next r
-        print("find_r")
+        #print("find_r")
         t1 = time.time()
         r, min_weight, wt, wc, ct = find_r(R_out_dict, R_out_cov_v_cardinality, R_out_uncov_v, rule_dict, rule_weight_dict, kg, g, v, alpha, beta, pmap, fits_max_depth, max_depth)
         find_r_time += time.time() -t1
@@ -818,7 +832,7 @@ def find_r(R_out_dict:dict, R_out_cov_v_cardinality:list, R_out_uncov_v:set, rul
 
     
     # remove hopeless rules, declutter rule_dict
-    print(f"removing {len(rules_to_remove)} hopeless rules")
+    #print(f"removing {len(rules_to_remove)} hopeless rules")
     for rule in rules_to_remove:
         rule_dict.pop(rule)
 

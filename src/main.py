@@ -145,7 +145,7 @@ if __name__ == '__main__':
 
         # Print execution time
         end_time = time.time()
-        print(f"\nTime to parse data: {time_start_mining - time_start_parse} s\nTime for rule mining (incl. example generation):{end_time-time_start_mining}s")
+        print(f"\nTime to parse data: {time_start_mining - time_start_parse} s\nTime for rule mining (incl. example generation):{end_time-time_start_mining} s")
         print(f"\nTotal execution time: {end_time - start_time - (user_input_end_time - user_input_start_time):.2f} seconds")
         print("Process completed successfully!")
 
