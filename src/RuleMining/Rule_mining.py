@@ -80,7 +80,8 @@ def mine_rules(transformed_kg:IncidenceList, targets:set, transform_output_dir:s
 
     for p in targets:
 
-
+        if p != "isGenre":
+            continue
         # getting post normalization instances of target predicate and the negative instances from validation
         pmap = P_map(p, new_preds(p, predicate_mappings), set() , predicate_mappings, neg_predicate_mappings)
         pmap.neg_predicates = neg_preds(pmap.predicates, neg_predicate_mappings)
@@ -178,7 +179,7 @@ def mine_rules_for_target_predicate(g:set, v:set, pmap:P_map, kg:IncidenceList, 
     
     isGenre_g = {('Dire_Straits(Album)', 'isGenre_Rock', 'Rock'), ('Let_It_Be', 'isGenre_Rock', 'Rock'), ('Rosanna', 'isGenre_Rock', 'Rock'), ('Regatta_De_Blanc', 'isGenre_Reggae', 'Reggae'), ('Outlandos_D%27Amour', 'isGenre_Punk', 'Punk'), ('The_Beatles(Album)', 'isGenre_Jazz', 'Jazz'), ('In_The_Gallery', 'isGenre_Rock', 'Rock'), ('Lions', 'isGenre_Rock', 'Rock'), ('Africa', 'isGenre_Rock', 'Rock'), ('Shape_of_my_Heart', 'isGenre_Pop', 'Pop'), ('Let_It_Be', 'isGenre_Pop', 'Pop'), ('Making_Movies', 'isGenre_Pop', 'Pop'), ('461_Ocean_Blvd.', 'isGenre_Blues', 'Blues'), ('Ten_Summoner%27s_Tales', 'isGenre_Pop', 'Pop'), ('Down_To_The_Waterline', 'isGenre_Rock', 'Rock')}    # isGenre_v = {('Africa', 'Funk'), ('Toto_IV', 'Metal'), ('Making_Movies', 'Metal'), ('Ten_Summoner%27s_Tales', 'Rock'), ('Make_Beleive', 'Jazz'), ('Make_Beleive', 'Rock'), ('Africa', 'Soul'), ('Toto', 'Metal'), ('Make_Beleive', 'Funk'), ('Outlandos_D%27Amour', 'Metal'), ('Dire_Straits(Album)', 'Metal'), ('Africa', 'Jazz'), ('Let_It_Be', 'Metal'), ('Ten_Summoner%27s_Tales', 'Metal'), ('461_Ocean_Blvd.', 'Rock')}
     isGenre_v = {('Sultans_Of_Swing', 'NONONOFunk'), ('Make_Believe', 'NONONOMetal'), ('Water_Of_Love', 'NONONOCountry'), ('Outlandos_D%27Amour', 'Pop'), ('The_Seventh_One', 'Jazz'), ('The_Beatles(Album)', 'Rock'), ('It%27s_a_Feeling', 'NONONOSoul'), ('Outlandos_D%27Amour', 'Jazz'), ('Lovers_in_the_Night', 'NONONOCountry'), ('The_Seventh_One', 'Pop'), ('The_Seventh_One', 'Reggae'), ('Regatta_De_Blanc', 'Jazz'), ('Making_Movies', 'Reggae'), ('461_Ocean_Blvd.', 'Rock'), ('Ten_Summoner%27s_Tales', 'Rock')}
-    isGenre_v = {("Making_Movies", "Pop"), ("Rubber_Soul","Rock")}
+    isGenre_v =  {('Make_Believe', 'Making_Movies'), ('Make_Believe', 'Abbey_Road'), ('I_Won%27t_Hold_You_Back', 'Dire_Straits(Album)'), ('Make_Believe', '461_Ocean_Blvd.'), ('I_Won%27t_Hold_You_Back', 'Making_Movies'), ('Water_Of_Love', 'Toto_IV'), ('Sultans_Of_Swing', 'Toto_IV'), ('Make_Believe', 'Communiqué(Album)'), ('Lions', 'Toto_IV'), ('Down_To_The_Waterline', 'Toto_IV'), ('In_The_Gallery', 'Toto_IV'), ('I_Won%27t_Hold_You_Back', '461_Ocean_Blvd.'), ('Six_Blade_Knife', 'Toto_IV'), ('Setting_Me_Up', 'Toto_IV'), ('Wild_West_End', 'Toto_IV')}
     parent_g = {('Duchess_Helene_of_Mecklenburg_Schwerin', 'parent_Princess_Caroline_Louise_of_Saxe_Weimar_Eisenach', 'Princess_Caroline_Louise_of_Saxe_Weimar_Eisenach'), ('Maria_Carolina_of_Austria', 'parent_Maria_Theresa', 'Maria_Theresa'), ('Welf_I_Duke_of_Bavaria', 'parent_Kunigunde_of_Altdorf', 'Kunigunde_of_Altdorf'), ('Humbert_II_Count_of_Savoy', 'parent_Joan_of_Geneva', 'Joan_of_Geneva'), ('Francesco_I_Sforza', 'parent_Muzio_Attendolo_Sforza', 'Muzio_Attendolo_Sforza'), ('John_Count_of_Chalon', 'parent_Stephen_III_of_Auxonne', 'Stephen_III_of_Auxonne'), ('Joan_Beaufort_Queen_of_Scots', 'parent_John_Beaufort_1st_Earl_of_Somerset', 'John_Beaufort_1st_Earl_of_Somerset'), ('Marie_of_Brabant_Queen_of_France', 'parent_Henry_III_Duke_of_Brabant', 'Henry_III_Duke_of_Brabant'), ('Mary_de_Bohun', 'parent_Humphrey_de_Bohun_7th_Earl_of_Hereford', 'Humphrey_de_Bohun_7th_Earl_of_Hereford'), ('Eckhard_I_Count_of_Scheyern', 'parent_Otto_I_Count_of_Scheyern', 'Otto_I_Count_of_Scheyern'), ('Maria_Anna_of_Bavaria_born_1551', 'parent_Albert_V_Duke_of_Bavaria', 'Albert_V_Duke_of_Bavaria'), ('Matilda_of_Carinthia', 'parent_Engelbert_Duke_of_Carinthia', 'Engelbert_Duke_of_Carinthia'), ('Maria_Theresa_of_Savoy', 'parent_Victor_Amadeus_III_of_Sardinia', 'Victor_Amadeus_III_of_Sardinia'), ('Philip_II_of_Spain', 'parent_Charles_V_Holy_Roman_Emperor', 'Charles_V_Holy_Roman_Emperor'), ('Charles_V_Duke_of_Lorraine', 'parent_Claude_Fran_oise_de_Lorraine', 'Claude_Fran_oise_de_Lorraine')}
     parent_v = {('John_of_Gaunt', 'Theodoric_II_Duke_of_Lorraine'), ('Humbert_II_Count_of_Savoy', 'Theodoric_II_Duke_of_Lorraine'), ('Simon_I_Duke_of_Lorraine', 'Douce_I_Countess_of_Provence'), ('Simon_I_Duke_of_Lorraine', 'Charles_I_Duke_of_Bourbon'), ('Stephen_II_Duke_of_Bavaria', 'Theodoric_II_Duke_of_Lorraine'), ('Simon_I_Duke_of_Lorraine', 'Philippa_of_Hainault'), ('Simon_I_Duke_of_Lorraine', 'Louis_X_of_France'), ('Afonso_IV_of_Portugal', 'Theodoric_II_Duke_of_Lorraine'), ('Simon_I_Duke_of_Lorraine', 'Ranulf_II_of_Aquitaine'), ('Berengaria_of_Barcelona', 'Theodoric_II_Duke_of_Lorraine'), ('Simon_I_Duke_of_Lorraine', 'Elizabeth_of_Portugal'), ('Simon_I_Duke_of_Lorraine', 'Amadeus_II_Count_of_Savoy'), ('Joan_II_of_Navarre', 'Theodoric_II_Duke_of_Lorraine'), ('Ebalus_Duke_of_Aquitaine', 'Theodoric_II_Duke_of_Lorraine'), ('Margaret_of_Bourbon_1438_1483', 'Theodoric_II_Duke_of_Lorraine')}
     #valid rule
@@ -632,14 +633,18 @@ def mine_rules_for_target_predicate(g:set, v:set, pmap:P_map, kg:IncidenceList, 
 
     p6 = Path(("a","b","c"), IncidenceList())
 
-    ru = Rule(("?VAR1", "isGenre", "?VAR2"), {("?VAR3", "hasAlbum", "?VAR4"), ("?VAR5","collaboratedWith","?VAR6")}, {("?VAR1", "?VAR4"), ("?VAR3", "?VAR6")})
+    ru = Rule(('?VAR1', 'includedIn', '?VAR2'),
+        {('?VAR5', 'isGenre', '?VAR6'), ('?VAR3', 'isGenre', '?VAR4')},
+        {('?VAR2', '?VAR5'), ('?VAR3', '?VAR1'), ('?VAR6', '?VAR4')})
 
             
     # print(covers_example(ru,("Making_Movies", "Reggae"), kg, pmap))
-    # print(coverage(ru,isGenre_v,kg,pmap))
-    # # for r in rulelist:
-    # #     print(r, coverage(r, parent_v, kg, pmap))
-    # exit()
+    print(coverage(ru,isGenre_v,kg,pmap))
+    print(cov(ru,kg,isGenre_v,pmap))
+    # for r in rulelist:
+    #     print(r, coverage(r, parent_v, kg, pmap))
+    
+    exit()
 
     #########################
     # FR runtime

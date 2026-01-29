@@ -646,30 +646,28 @@ def covers_example(r:Rule, example_pair, kg:IncidenceList, pmap:P_map, current_v
         return covers_example(r, example_pair, kg, pmap, r.head[2], name_dict, handled_triples, False)
     return False
 
-
+    # TODO for rudik rule shape, there will be only one unhandled connecting triple, if other shapes add and test the functionality for more triples
     # for each, find possible instantiations in graph
         # if any rule triple has 0 --> return False
         # go through each predicates possible instantiations and recurse
             # -> add only the predicate we are recursing with to handled, or all connecting, since their handling is "queued"
-        # TODO for rudik rule shape, there will be only one unhandled connecting triple, if other shapes add and test the functionality for more triples
 
 def coverage(r, v, kg, pmap):
     out = set()
     for example_pair in v:
-        if example_pair not in out:
-            if covers_example(r, example_pair, kg, pmap):
-                out.add(example_pair)
+        if covers_example(r, example_pair, kg, pmap):
+            out.add(example_pair)
     return out
 
 def unbounded_coverage(r, v, kg, pmap):
     coverage(unbind(r), v, kg, pmap)
 
-def rulelist_call_coverage(r, v, kg, pmap, out):
-# contains duplicate code to coverage(), runtime purposes...
+def rulelist_call_coverage(r, v, kg, pmap, out:set):
     for example_pair in v:
-        if example_pair not in out:
-            if covers_example(r, example_pair, kg, pmap):
-                out.add(example_pair)
+        if example_pair in out:
+            continue
+        if covers_example(r, example_pair, kg, pmap):
+            out.add(example_pair)
 
 
 
@@ -702,13 +700,13 @@ def est_m_weight(r:Rule, R_out_dict, rule_dict, kg:IncidenceList, g:set, v:set, 
     # if there is no value pre saved, calculate it else use it
     if R_out_uncov_v == None:
         uncov_r_out_v = uncov(R_out, kg, v, pmap)
-        # test = rulelist_coverage(R_out, v, kg, pmap)
-        # cove = cov(R_out, kg, v, pmap)
-        # if cove != test:
-        #     print(f"cov {cove}\n\ntest{test}\n\v {v}\n\n")
-        #     for r in R_out:
-        #         print(r)
-        #     exit()
+        test = rulelist_coverage(R_out, v, kg, pmap)
+        cove = cov(R_out, kg, v, pmap)
+        if cove != test:
+            print(f"cov {cove}\n\ntest{test}\n\v {v}\n\n")
+            for r in R_out:
+                print(r)
+            exit()
         R_out_uncov_v = uncov_r_out_v
     else:
         uncov_r_out_v = R_out_uncov_v
