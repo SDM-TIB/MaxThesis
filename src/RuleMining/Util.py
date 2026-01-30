@@ -574,6 +574,7 @@ def covers_example(r:Rule, example_pair, kg:IncidenceList, pmap:P_map, current_v
                 name_dict[var] = example_pair[0]
 
         else:
+            # TODO is this correct or also allow s=o even if head vars arent connected in rule
             if s_equals_o:
                 return False
             c2 = r.get_connections(r.head[2])

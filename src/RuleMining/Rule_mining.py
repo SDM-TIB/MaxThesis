@@ -639,11 +639,17 @@ def mine_rules_for_target_predicate(g:set, v:set, pmap:P_map, kg:IncidenceList, 
 
             
     # print(covers_example(ru,("Making_Movies", "Reggae"), kg, pmap))
-    print(coverage(ru,isGenre_v,kg,pmap))
-    print(cov(ru,kg,isGenre_v,pmap))
+    covera = coverage(ru,isGenre_v,kg,pmap)
+    co = cov(ru,kg,isGenre_v,pmap)
+    print(covera)
+    print(co)
+    print(covera - co)
+
     # for r in rulelist:
     #     print(r, coverage(r, parent_v, kg, pmap))
-    
+    #('Make_Believe', 'Making_Movies'), ('Make_Believe', 'Abbey_Road'), ('Make_Believe', '461_Ocean_Blvd.'), ('Water_Of_Love', 'Toto_IV'), ('Sultans_Of_Swing', 'Toto_IV'), 
+    # ('Make_Believe', 'Communiqué(Album)'), ('I_Won%27t_Hold_You_Back', '461_Ocean_Blvd.')
+    print(covers_example(ru, ('Make_Believe', 'Making_Movies'), kg, pmap))
     exit()
 
     #########################
