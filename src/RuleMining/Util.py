@@ -554,97 +554,126 @@ def cov_g(r, rule_dict, R_out_dict):
     return c
 
 
+def triple_exists(pair, original_p, kg, pmap):
+    s, o = pair
+    for object_pred in kg.nodes[o]:
+        if pmap.original_pred(object_pred) == original_p:
+            if not (s, o) in kg.edges[object_pred]:
+                return False
+            
+
 """backtracking function that checks wether a rule covers a given example pair"""
-def covers_example(r:Rule, example_pair, kg:IncidenceList, pmap:P_map, current_var=None, name_dict=None, handled_triples=None, initialize=True):
+def covers_example(r:Rule, example_pair, kg:IncidenceList, pmap:P_map, current_var=None, name_dict=None, handled_atoms=None, initialize=True):
     c = None
     if initialize:
         print("initialize")
     # instantiate the head s and o with example values
-        handled_triples = set()
+        handled_atoms = set()
         current_var = r.head[0]
         name_dict = {}
         s_equals_o = example_pair[0] == example_pair[1]
         
         c = r.get_connections(r.head[0])
+        for var in c:
+            name_dict[var] = example_pair[0]
+
+
         if r.head[2] in c:
         # special case, head is s=o
             if not s_equals_o:
                 return False
-            for var in c:
-                name_dict[var] = example_pair[0]
 
         else:
-            # TODO is this correct or also allow s=o even if head vars arent connected in rule
-            if s_equals_o:
-                return False
             c2 = r.get_connections(r.head[2])
-            for var in c:
-                name_dict[var] = example_pair[0]
-
+            # head s will be done after initialize bracket
             for var in c2:
                 name_dict[var] = example_pair[1]
+                # TODO is this correct or also allow s=o even if head vars arent connected in rule
+            if s_equals_o:
+                return False
 
+    print(f"CALL current var {current_var}\nnamedict {name_dict}\nhandled {handled_atoms}\n")
 
-    # find triples in rule with current node, ignore s=o triples(--> directly add to visited)
-    if not c:
+    if c == None:
         c = r.get_connections(current_var)
-
-    print(f"CALL current var {current_var}\nnamedict {name_dict}\nhandled {handled_triples}\n")
     # TODO for non rudik rules use and fill this set
     #connecting_triples = set()
-    next_triple = None
-    triples_left = False
-    for triple in r.body:
-        if triple in handled_triples:
+    next_atom = None
+    atoms_left = False
+
+    # find triples in rule with current node, ignore s=o triples(--> directly add to visited)
+    for atom in r.body:
+        # s and p are vars, p is an original predicate
+        s,p,o = atom
+
+        if atom in handled_atoms:
             continue
-        if triple[0] in c:
-            if initialize and triple[2] in c:
+
+        # check if both triple vars already in name dict, if so, test if exists, else False
+        if s in name_dict and o in name_dict:
+            if not triple_exists((name_dict[s], name_dict[o]), p, kg, pmap):
+                return False
+                    
+
+
+        if s in c:
+            if initialize and o in c:
                 # instantly add s=o triples to ignore them
-                handled_triples.add(triple)
+                handled_atoms.add(atom)
             # TODO for non rudik remove break
-            next_triple = triple
+            next_atom = atom
             current_i = 0
             break
 
-        if triple[2] in c:
-            if initialize and triple[0] in c:
+        if o in c:
+            if initialize and s in c:
                 # instantly add s=o triples to ignore them
-                handled_triples.add(triple)
+                handled_atoms.add(atom)
 
             # TODO for non rudik remove break
-            next_triple = triple
+            next_atom = atom
             current_i = 1
             break
-        triples_left = True
+        atoms_left = True
 
     
-    if not next_triple and not triples_left:
+    if not next_atom and not atoms_left:
         if initialize:
             print(f"{example_pair}621")
         return True
     
     # TODO for non rudik rules loop here for all connecting triples
-    handled_triples.add(next_triple)
-    new_preds = pmap.new_preds(triple[1])
-    possible_next_nodes = set()
-    for p in new_preds:
-        for pair in kg.edges[p]:
-            if pair[current_i] == name_dict[current_var] and pair[0] != pair[1]:
-                possible_next_nodes.add(pair[(current_i + 1) % 2])
+    handled_atoms.add(next_atom)
 
-    next_var = next_triple[0] if name_dict.get(next_triple[2]) == name_dict[current_var] else next_triple[2]
+    # TODO probably better not to iterate over new preds, but rather see for object the preds, that correspond to original and work from there
+    possible_next_nodes = set()
+    for p in kg.nodes[name_dict[current_var]]:
+        if p in pmap.neg_predicate_mappings:
+            continue
+        if pmap.original_pred(p) == next_atom[1]:
+            for pair in kg.edges[p]:
+                if pair[current_i] == name_dict[current_var]:
+                    possible_next_nodes.add(pair[(current_i + 1) % 2])
+
+    print(f"possible {next_atom} {possible_next_nodes}")
+    if not possible_next_nodes:
+        # cannot complete path
+        return False
+    next_var = next_atom[0] if name_dict.get(next_atom[2]) == name_dict[current_var] else next_atom[2]
     for node in possible_next_nodes:
-        cn = r.get_connections(next_var)
-        for var in cn:
-            name_dict[var] = node
-        if covers_example(r, example_pair, kg, pmap, next_var, name_dict, handled_triples, False):
+        c = r.get_connections(next_var)
+        for v in c:
+            name_dict[v] = node
+        print("RECURSE")
+        if covers_example(r, example_pair, kg, pmap, next_var, name_dict, handled_atoms, False):
             if initialize:
                 print(f"{example_pair}639")
             return True
         
-    if handled_triples != r.body:
+    if initialize and handled_atoms != r.body:
+        print(f"unbound {handled_atoms}  body {r.body}")
         # we have an unbound rule that is not transitively connected, need to traverse from head-o aswell
-        return covers_example(r, example_pair, kg, pmap, r.head[2], name_dict, handled_triples, False)
+        return covers_example(r, example_pair, kg, pmap, r.head[2], name_dict, handled_atoms, False)
     return False
 
     # TODO for rudik rule shape, there will be only one unhandled connecting triple, if other shapes add and test the functionality for more triples

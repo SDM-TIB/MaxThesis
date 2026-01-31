@@ -650,6 +650,11 @@ def mine_rules_for_target_predicate(g:set, v:set, pmap:P_map, kg:IncidenceList, 
     #('Make_Believe', 'Making_Movies'), ('Make_Believe', 'Abbey_Road'), ('Make_Believe', '461_Ocean_Blvd.'), ('Water_Of_Love', 'Toto_IV'), ('Sultans_Of_Swing', 'Toto_IV'), 
     # ('Make_Believe', 'Communiqué(Album)'), ('I_Won%27t_Hold_You_Back', '461_Ocean_Blvd.')
     print(covers_example(ru, ('Make_Believe', 'Making_Movies'), kg, pmap))
+    true_ex = [('Lions', 'Toto_IV'), ('I_Won%27t_Hold_You_Back', 'Making_Movies'), ('In_The_Gallery', 'Toto_IV'), ('Down_To_The_Waterline', 'Toto_IV'), ('Wild_West_End', 'Toto_IV'), ('Six_Blade_Knife', 'Toto_IV'), ('Setting_Me_Up', 'Toto_IV'), ('I_Won%27t_Hold_You_Back', 'Dire_Straits(Album)')]
+    for ex in true_ex:
+        print(f"------------{ex}------------")
+        print(covers_example(ru, ex, kg, pmap))
+
     exit()
 
     #########################
