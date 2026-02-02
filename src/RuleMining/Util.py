@@ -553,17 +553,8 @@ def cov_g(r, rule_dict, R_out_dict):
     
     return c
 
-
-def triple_exists(pair, original_p, kg, pmap):
-    s, o = pair
-    for object_pred in kg.nodes[o]:
-        if pmap.original_pred(object_pred) == original_p:
-            if not (s, o) in kg.edges[object_pred]:
-                return False
-            
-
 """backtracking function that checks wether a rule covers a given example pair"""
-def covers_example(r:Rule, example_pair, kg:IncidenceList, pmap:P_map, current_var=None, name_dict=None, handled_atoms=None, initialize=True):
+def covers_example_old(r:Rule, example_pair, kg:IncidenceList, pmap:P_map, current_var=None, name_dict=None, handled_atoms=None, initialize=True):
     c = None
     if initialize:
         print("initialize")
@@ -601,7 +592,7 @@ def covers_example(r:Rule, example_pair, kg:IncidenceList, pmap:P_map, current_v
     next_atom = None
     atoms_left = False
 
-    # find triples in rule with current node, ignore s=o triples(--> directly add to visited)
+    # find triple in rule with current node, ignore s=o triples(--> directly add to visited)
     for atom in r.body:
         # s and p are vars, p is an original predicate
         s,p,o = atom
@@ -645,7 +636,9 @@ def covers_example(r:Rule, example_pair, kg:IncidenceList, pmap:P_map, current_v
     # TODO for non rudik rules loop here for all connecting triples
     handled_atoms.add(next_atom)
 
-    # TODO probably better not to iterate over new preds, but rather see for object the preds, that correspond to original and work from there
+    next_var = next_atom[0] if name_dict.get(next_atom[2]) == name_dict[current_var] else next_atom[2]
+
+    # get all nodes that are possible
     possible_next_nodes = set()
     for p in kg.nodes[name_dict[current_var]]:
         if p in pmap.neg_predicate_mappings:
@@ -659,13 +652,13 @@ def covers_example(r:Rule, example_pair, kg:IncidenceList, pmap:P_map, current_v
     if not possible_next_nodes:
         # cannot complete path
         return False
-    next_var = next_atom[0] if name_dict.get(next_atom[2]) == name_dict[current_var] else next_atom[2]
+
     for node in possible_next_nodes:
         c = r.get_connections(next_var)
         for v in c:
             name_dict[v] = node
         print("RECURSE")
-        if covers_example(r, example_pair, kg, pmap, next_var, name_dict, handled_atoms, False):
+        if covers_example_old(r, example_pair, kg, pmap, next_var, name_dict, handled_atoms, False):
             if initialize:
                 print(f"{example_pair}639")
             return True
@@ -673,7 +666,7 @@ def covers_example(r:Rule, example_pair, kg:IncidenceList, pmap:P_map, current_v
     if initialize and handled_atoms != r.body:
         print(f"unbound {handled_atoms}  body {r.body}")
         # we have an unbound rule that is not transitively connected, need to traverse from head-o aswell
-        return covers_example(r, example_pair, kg, pmap, r.head[2], name_dict, handled_atoms, False)
+        return covers_example_old(r, example_pair, kg, pmap, r.head[2], name_dict, handled_atoms, False)
     return False
 
     # TODO for rudik rule shape, there will be only one unhandled connecting triple, if other shapes add and test the functionality for more triples
@@ -681,6 +674,228 @@ def covers_example(r:Rule, example_pair, kg:IncidenceList, pmap:P_map, current_v
         # if any rule triple has 0 --> return False
         # go through each predicates possible instantiations and recurse
             # -> add only the predicate we are recursing with to handled, or all connecting, since their handling is "queued"
+
+
+def patterns_in_graph(rule:Rule, triple_patterns, name_dict, kg:IncidenceList, pmap:P_map):
+    #print(f"call with {triple_patterns} and dict {name_dict}")
+
+    # init: pick 1st triple pattern:
+    # for all possible triples, create a solution object: pick head-s triple pattern
+
+        # II. while unhadled triple patterns:
+                # - pick next triple pattern --> prioritise patterns partly instantiated in solution objects
+                # - for all solution objects, keep and extend the ones that fit
+                # - if no solution objects --> FALSE
+
+        # --> TRUE
+
+    if not triple_patterns:
+        return True
+
+    # init 
+    # find 1st pattern
+    handled_triple_patterns = set()
+    current_pattern = None
+
+    for pattern in triple_patterns:
+        if pattern[0] in name_dict:
+            if pattern[2] in name_dict:
+                if not triple_exists((name_dict[pattern[0]], name_dict[pattern[2]]), pattern[1], kg, pmap):
+                    return False
+                else: 
+                    handled_triple_patterns.add(pattern)
+                    if handled_triple_patterns == triple_patterns:
+                        return True
+                    continue
+            current_pattern = pattern
+            pattern_i = 0
+            pattern_j = 2
+            break
+        if pattern[2] in name_dict:
+            current_pattern = pattern
+            pattern_i = 2
+            pattern_j = 0
+            # TODO check if faster without this break, also in parallel place later, idea: there are objects with a lot of connections e.g. "male", not so much subjects
+            break
+    if not current_pattern:
+        current_pattern = pattern
+        #print(f"current {current_pattern} dict {name_dict}")
+        exit()
+
+    #print(f"pick pattern {current_pattern}")
+    new_dict = {}
+    solutions = []
+    new_entities = set()
+    new_connections = rule.get_connections(current_pattern[pattern_j])
+
+    for p in kg.nodes[name_dict[current_pattern[pattern_i]]]:
+        if pmap.original_pred(p) == current_pattern[1] and p not in pmap.neg_predicate_mappings:
+            for pair in kg.edges[p]:
+                if pair[int(pattern_i/2)] == name_dict[current_pattern[pattern_i]]:
+                    new_entities.add(pair[int(pattern_j/2)])
+
+    #print(f"found these entities {new_entities}")
+
+    for e in new_entities:
+        for var in new_connections:
+            new_dict[var] = e
+        solutions.append(name_dict | new_dict)
+    handled_triple_patterns.add(current_pattern)
+    if not solutions:
+        return False
+    if handled_triple_patterns == triple_patterns:
+        return True
+
+    #print(f"createtd solutions: {solutions}")
+    while True:
+        # - pick next triple pattern --> prioritise patterns partly instantiated in solution objects
+        #print(f"\n+++start while {handled_triple_patterns}")
+        current_pattern = None
+        for pattern in triple_patterns:
+            if pattern in handled_triple_patterns:
+                continue
+
+            # each solution has the same set of keys
+            current_solution = solutions[0]
+            if pattern[0] in current_solution:
+                if pattern[2] in current_solution:
+                    remaining_solutions = []
+                    for sol in solutions:
+                        if triple_exists((sol[pattern[0]], sol[pattern[2]]), pattern[1], kg, pmap):
+                            remaining_solutions.append(sol)
+                    if not remaining_solutions:
+                        return False
+                    else: 
+                        solutions = remaining_solutions
+                        handled_triple_patterns.add(pattern)
+                        #print(f"add to handled {pattern}")
+                        if handled_triple_patterns == triple_patterns:
+                            #print(f"return true with {solutions}")
+                            return True
+                        continue
+                current_pattern = pattern
+                pattern_i = 0
+                pattern_j = 2
+                break
+            if pattern[2] in current_solution:
+                current_pattern = pattern
+                pattern_i = 2
+                pattern_j = 0
+                break
+
+        if not current_pattern:
+            current_pattern = pattern
+            #print(f"current {current_pattern} dict {name_dict}")
+            exit()
+        #print(f"picked pattern {current_pattern}")
+
+        # - for all solution objects, keep and extend the ones that fit 
+        # --> all erroneous solutions are already removed, extend now
+        new_connections = rule.get_connections(current_pattern[pattern_j])
+        new_dict.clear()
+        new_solutions = []
+        for sol in solutions:
+            # if a solution is not expandable, it is not added to new solutions
+            new_entities.clear()
+            for p in kg.nodes[sol[current_pattern[pattern_i]]]:
+                if pmap.original_pred(p) == current_pattern[1]:
+                    for pair in kg.edges[p]:
+                        if pair[int(pattern_i/2)] == sol[current_pattern[pattern_i]]:
+                            new_entities.add(pair[int(pattern_j/2)])
+            for e in new_entities:
+                for var in new_connections:
+                    new_dict[var] = e
+                new_solutions.append(sol | new_dict)
+
+        if not new_solutions:
+            return False
+        handled_triple_patterns.add(current_pattern)
+        if handled_triple_patterns == triple_patterns:
+            return True
+        solutions = new_solutions
+        #print(f"got these solutions left {solutions}")
+
+
+def covers_example(rule:Rule, example:tuple[str, str], kg:IncidenceList, pmap:P_map):
+
+# I: in triple patterns, find connected groups, for each:
+
+    # call subfunction:
+        # init: pick 1st triple pattern:
+            # for all possible triples, create a solution object: pick head-s triple pattern
+
+        # II. while unhadled triple patterns:
+                # - pick next triple pattern --> prioritise patterns partly instantiated in solution objects
+                # - for all solution objects, keep and extend the ones that fit
+                # - if no solution objects --> FALSE
+
+        # --> TRUE
+
+
+
+    c_head_s = rule.get_connections(rule.head[0])
+    name_dict_s = {var:example[0] for var in c_head_s}
+
+    if rule.head[2] in c_head_s:
+        if example[0] != example[1]:
+            # ex s and o must be the same if rule.head s and o are
+            return False
+        c_head_o = c_head_s
+        # head s=o, so everything is connected
+        return patterns_in_graph(rule, rule.body, name_dict_s|name_dict_o, kg, pmap)
+    c_head_o = rule.get_connections(rule.head[2])
+    name_dict_o = {var:example[1] for var in c_head_o}
+
+    if not c_head_o:
+        # nothing connected to head o, so everything to head s
+
+        return  patterns_in_graph(rule, rule.body, name_dict_s, kg, pmap)
+
+    # find out if there are two unconnected groups of patterns
+    head_s_connected_patterns = set()
+    var_queue = {c_head_s}
+    vars_checked = set()
+    while True:
+        vars_to_check = var_queue.pop()
+        for triple_pattern in rule.body:
+            if triple_pattern in head_s_connected_patterns:
+                continue
+
+            if triple_pattern[0] in vars_to_check:
+                head_s_connected_patterns.add(triple_pattern)
+                if triple_pattern[2] not in vars_to_check and not any(c for c in vars_checked if triple_pattern[2] in c):
+                    var_queue.add(rule.get_connections(triple_pattern[2]))
+
+            if triple_pattern[2] in vars_to_check:
+                head_s_connected_patterns.add(triple_pattern)
+                if not any(c for c in vars_checked if triple_pattern[0] in c):
+                    var_queue.add(rule.get_connections(triple_pattern[0]))
+
+        vars_checked.add(vars_to_check)
+        if not var_queue:
+            break
+    
+
+    if len(head_s_connected_patterns) != len(rule.body):
+        # there are two groups of patterns, start with head o group
+        if not patterns_in_graph(rule, rule.body - head_s_connected_patterns, name_dict_o, kg, pmap):
+            return False
+
+    # check everything connected to head s
+    return patterns_in_graph(rule, head_s_connected_patterns, name_dict_s|name_dict_o, kg, pmap)
+
+
+
+
+
+
+def triple_exists(pair, original_p, kg:IncidenceList, pmap:P_map):
+    s, o = pair
+    for object_pred in kg.nodes[o]:
+        if pmap.original_pred(object_pred) == original_p:
+            if pair in kg.edges[object_pred]:
+                return True
+    return False
 
 def coverage(r, v, kg, pmap):
     out = set()
@@ -690,7 +905,7 @@ def coverage(r, v, kg, pmap):
     return out
 
 def unbounded_coverage(r, v, kg, pmap):
-    coverage(unbind(r), v, kg, pmap)
+    return coverage(unbind(r), v, kg, pmap)
 
 def rulelist_call_coverage(r, v, kg, pmap, out:set):
     for example_pair in v:
@@ -698,8 +913,6 @@ def rulelist_call_coverage(r, v, kg, pmap, out:set):
             continue
         if covers_example(r, example_pair, kg, pmap):
             out.add(example_pair)
-
-
 
 def rulelist_coverage(R, v, kg, pmap):
     out = set()
@@ -730,13 +943,18 @@ def est_m_weight(r:Rule, R_out_dict, rule_dict, kg:IncidenceList, g:set, v:set, 
     # if there is no value pre saved, calculate it else use it
     if R_out_uncov_v == None:
         uncov_r_out_v = uncov(R_out, kg, v, pmap)
-        test = rulelist_coverage(R_out, v, kg, pmap)
-        cove = cov(R_out, kg, v, pmap)
-        if cove != test:
-            print(f"cov {cove}\n\ntest{test}\n\v {v}\n\n")
-            for r in R_out:
-                print(r)
-            exit()
+
+        # TEST BLOCK
+        # test = rulelist_coverage(R_out, v, kg, pmap)
+        # cove = cov(R_out, kg, v, pmap)
+        # if cove != test:
+        #     print(f"cov {cove}\n\ntest{test}\n\v {v}\n\n")
+        #     for r in R_out:
+        #         print(r)
+        #     exit()
+        # TEST BLOCK END
+
+
         R_out_uncov_v = uncov_r_out_v
     else:
         uncov_r_out_v = R_out_uncov_v
@@ -746,6 +964,70 @@ def est_m_weight(r:Rule, R_out_dict, rule_dict, kg:IncidenceList, g:set, v:set, 
 
     # no need to check for the examples already in uncov_r_out_v (--> (v - uncov_r_out_v)),  since uncov_r_v is only used in union 
     uncov_r_v = uncov(r, kg, (v - uncov_r_out_v), pmap)
+    cov_time = time.time() - t1
+    cardinality_uncov_r_out_r_v = len(set.union(uncov_r_out_v, uncov_r_v))
+
+
+
+
+    if not cardinality_cov_r_out_v:
+    # if this is zero we know the beta part is zero, the divisors will also be zero resulting in error, thus removing beta part altogether
+        return cov_time, -alpha * ((len(cov_g(r, rule_dict, R_out_dict) - cov_g(R_out, rule_dict, R_out_dict)))/len(g))
+    
+    if not cardinality_uncov_r_out_r_v:
+    # if this is zero there is division by zero in first fraction of beta part, setting it to zero
+        return cov_time, -alpha * ((len(cov_g(r, rule_dict, R_out_dict) - cov_g(R_out, rule_dict, R_out_dict)))/len(g)) - beta * (cardinality_cov_r_out_v / cardinality_uncov_r_out_v)
+
+
+    return cov_time, -alpha * ((len(cov_g(r, rule_dict, R_out_dict) - cov_g(R_out, rule_dict, R_out_dict)))/len(g)) + beta * ((cardinality_cov_r_out_v / cardinality_uncov_r_out_r_v) - (cardinality_cov_r_out_v / cardinality_uncov_r_out_v))
+
+"""estimated marginal weight"""
+def est_m_weightö(r:Rule, R_out_dict, rule_dict, kg:IncidenceList, g:set, v:set, alpha:float, beta:float, pmap:P_map, R_out_cov_v_cardinality:list, R_out_uncov_v:set):
+    t1 = time.time()
+
+    # contain only r_out
+    R_out = list(R_out_dict.keys())
+
+    # if there is no value pre saved, calculate it else use it
+    if R_out_cov_v_cardinality[0] == None:
+        cardinality_cov_r_out_v = len(rulelist_coverage(R_out, v,kg,  pmap))
+        R_out_cov_v_cardinality[0] = cardinality_cov_r_out_v
+    else:
+        cardinality_cov_r_out_v = R_out_cov_v_cardinality[0]
+
+    # if there is no value pre saved, calculate it else use it
+    if R_out_uncov_v == None:
+        uncov_r_out_v = rulelist_unbounded_coverage(R_out,  v,kg, pmap)
+
+        # TEST BLOCK
+        # test = uncov(R_out, kg, v, pmap)
+        # if test != uncov_r_out_v:
+        #     print("Du Hurensohn")
+        #     exit()
+
+
+
+
+        # test = rulelist_coverage(R_out, v, kg, pmap)
+        # cove = cov(R_out, kg, v, pmap)
+        # if cove != test:
+        #     print(f"cov {cove}\n\ntest{test}\n\v {v}\n\n")
+        #     for r in R_out:
+        #         print(r)
+        #         print(coverage(r, v, kg, pmap))
+        #     exit()
+        # TEST BLOCK END
+
+
+        R_out_uncov_v = uncov_r_out_v
+    else:
+        uncov_r_out_v = R_out_uncov_v
+
+    cardinality_uncov_r_out_v = len(uncov_r_out_v)
+
+
+    # no need to check for the examples already in uncov_r_out_v (--> (v - uncov_r_out_v)),  since uncov_r_v is only used in union 
+    uncov_r_v = unbounded_coverage(r, (v - uncov_r_out_v), kg, pmap)
     cov_time = time.time() - t1
     cardinality_uncov_r_out_r_v = len(set.union(uncov_r_out_v, uncov_r_v))
 

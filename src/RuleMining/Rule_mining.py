@@ -80,8 +80,8 @@ def mine_rules(transformed_kg:IncidenceList, targets:set, transform_output_dir:s
 
     for p in targets:
 
-        if p != "isGenre":
-            continue
+
+
         # getting post normalization instances of target predicate and the negative instances from validation
         pmap = P_map(p, new_preds(p, predicate_mappings), set() , predicate_mappings, neg_predicate_mappings)
         pmap.neg_predicates = neg_preds(pmap.predicates, neg_predicate_mappings)
@@ -636,26 +636,70 @@ def mine_rules_for_target_predicate(g:set, v:set, pmap:P_map, kg:IncidenceList, 
     ru = Rule(('?VAR1', 'includedIn', '?VAR2'),
         {('?VAR5', 'isGenre', '?VAR6'), ('?VAR3', 'isGenre', '?VAR4')},
         {('?VAR2', '?VAR5'), ('?VAR3', '?VAR1'), ('?VAR6', '?VAR4')})
-
+    ru = Rule(
+        ('?VAR1', 'isGenre', '?VAR2'),
+        {('?VAR7', 'isGenre', '?VAR8'), ('?VAR3', 'hasAlbum', '?VAR4'), ('?VAR5', 'hasAlbum', '?VAR6')},
+        {('?VAR4', '?VAR1'), ('?VAR6', '?VAR7'), ('?VAR3', '?VAR5'), ('?VAR2', '?VAR8')})
             
     # print(covers_example(ru,("Making_Movies", "Reggae"), kg, pmap))
-    covera = coverage(ru,isGenre_v,kg,pmap)
-    co = cov(ru,kg,isGenre_v,pmap)
-    print(covera)
-    print(co)
-    print(covera - co)
+    # tcovera = time.time()
+    # for i in range(100):
+    #     covera = coverage(ru,isGenre_v,kg,pmap)
+    # tcov = time.time()
+    # for i in range(100):
+    #     co = cov(ru,kg,isGenre_v,pmap)
+    # tcovend = time.time()
+    # print(covera)
+    # print(co)
+    # print(covera - co)
+    # print(tcov-tcovera, tcovend -tcov)
 
     # for r in rulelist:
     #     print(r, coverage(r, parent_v, kg, pmap))
-    #('Make_Believe', 'Making_Movies'), ('Make_Believe', 'Abbey_Road'), ('Make_Believe', '461_Ocean_Blvd.'), ('Water_Of_Love', 'Toto_IV'), ('Sultans_Of_Swing', 'Toto_IV'), 
-    # ('Make_Believe', 'Communiqué(Album)'), ('I_Won%27t_Hold_You_Back', '461_Ocean_Blvd.')
-    print(covers_example(ru, ('Make_Believe', 'Making_Movies'), kg, pmap))
-    true_ex = [('Lions', 'Toto_IV'), ('I_Won%27t_Hold_You_Back', 'Making_Movies'), ('In_The_Gallery', 'Toto_IV'), ('Down_To_The_Waterline', 'Toto_IV'), ('Wild_West_End', 'Toto_IV'), ('Six_Blade_Knife', 'Toto_IV'), ('Setting_Me_Up', 'Toto_IV'), ('I_Won%27t_Hold_You_Back', 'Dire_Straits(Album)')]
-    for ex in true_ex:
-        print(f"------------{ex}------------")
-        print(covers_example(ru, ex, kg, pmap))
 
-    exit()
+    #cov {('The_Beatles(Album)', 'Rock'), ('Revolver', 'Pop'), ('Let_It_Be', 'Jazz'), ('Love_Over_Gold', 'Pop')}
+
+    #test{('Revolver', 'Pop'), ('Let_It_Be', 'Jazz'), ('Synchronicity', 'Pop'), ('The_Beatles(Album)', 'Rock'), 
+     #    ('Ten_Summoner%27s_Tales', 'Rock'), ('Love_Over_Gold', 'Pop'), ('Toto_IV', 'Pop'), ('461_Ocean_Blvd.', 'Rock')}
+
+    ru = Rule(
+ ('?VAR1', 'successor', '?VAR2'),
+ {('?VAR7', 'gender', '?VAR8'), ('?VAR5', 'gender', '?VAR6'), ('?VAR3', 'child', '?VAR4')},
+ {('?VAR4', '?VAR5'), ('?VAR6', '?VAR8'), ('?VAR7', '?VAR2'), ('?VAR3', '?VAR1')})
+
+    rul = Rule(
+ ('?VAR1', 'successor', '?VAR2'),
+{('?VAR3', 'predecessor', '?VAR4')},
+ {('?VAR3', '?VAR2'), ('?VAR4', '?VAR1')})
+
+    true_ex = [('Lions', 'Toto_IV'), ('I_Won%27t_Hold_You_Back', 'Making_Movies'), ('In_The_Gallery', 'Toto_IV'), ('Down_To_The_Waterline', 'Toto_IV'), ('Wild_West_End', 'Toto_IV'), ('Six_Blade_Knife', 'Toto_IV'), ('Setting_Me_Up', 'Toto_IV'), ('I_Won%27t_Hold_You_Back', 'Dire_Straits(Album)')]
+    false_ex = [e for e in isGenre_v if e not in true_ex]
+    
+
+    v = {('Maria_Teresa_Cybo_Malaspina_Duchess_of_Massa', 'Wilfred_the_Hairy'), ('Cosimo_I_de_Medici_Grand_Duke_of_Tuscany', 'Wilfred_the_Hairy'), ('George_I_of_Great_Britain', 'Wilfred_the_Hairy'), ('Bernard_of_Gothia', 'Charles_IV_of_Anjou'), ('Frederick_the_Fair', 'Wilfred_the_Hairy'), ('Bernard_of_Gothia', 'Maria_Beatrice_d_Este_Duchess_of_Massa'), ('Petronilla_of_Aragon', 'Wilfred_the_Hairy'), ('Bernard_of_Gothia', 'Francesco_I_de_Medici_Grand_Duke_of_Tuscany'), ('Ren__of_Anjou', 'Wilfred_the_Hairy'), ('Louis_Duke_of_Orl_ans_1703_1752', 'Wilfred_the_Hairy'), ('Bernard_of_Gothia', 'George_II_of_Great_Britain'), ('Bernard_of_Gothia', 'Philip_I_of_Castile'), ('Bernard_of_Gothia', 'Albert_II_Duke_of_Austria'), ('Bernard_of_Gothia', 'Louis_Philippe_I_Duke_of_Orl_ans'), ('Joanna_of_Castile', 'Wilfred_the_Hairy')}
+    v = {('Maria_Teresa_Cybo_Malaspina_Duchess_of_Massa', 'Wilfred_the_Hairy'), ('George_I_of_Great_Britain', 'Wilfred_the_Hairy'), ('Louis_Duke_of_Orl_ans_1703_1752', 'Wilfred_the_Hairy'), ('Bernard_of_Gothia', 'George_II_of_Great_Britain'), ('Joanna_of_Castile', 'Wilfred_the_Hairy')}
+    # R_out =[rul,ru]
+    # test = rulelist_coverage(R_out, v, kg, pmap)
+    # cove = cov(R_out, kg, v, pmap)
+    # if cove != test:
+    #     print(f"cov {cove}\n\ntest{test}\n\v {v}\n\n")
+    #     for r in R_out:
+    #         print(r)
+    #         print(coverage(r, v, kg, pmap))
+    
+    #print(coverage(ru, v, kg, pmap))
+    #exit()
+    # for ex in false_ex:
+    #     print(f"-----FALSE-------{ex}------------")
+    #     print(covers_example(ru, ex, kg, pmap))
+    # for ex in true_ex:
+    #     print(f"-------TRUE-----{ex}------------")
+    #     print(covers_example(ru, ex, kg, pmap))
+
+
+
+    #('Charles_IX_of_France', 'Eleanor_of_Aquitaine'), ('Joan_III_Countess_of_Burgundy', 'Eleanor_of_Aquitaine')
+    #exit()
 
     #########################
     # FR runtime
