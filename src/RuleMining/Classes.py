@@ -145,7 +145,7 @@ class P_map:
             return self.predicate_mappings[self.neg_predicate_mappings[new_pred]]
         if is_literal_comp(new_pred):
             return new_pred
-        return ""
+        return new_pred
 
 
     """
@@ -164,9 +164,6 @@ class P_map:
         return {k for k, v in self.neg_predicate_mappings.items() if v in new_preds}
 
 
-
-
-    
 
 
 """ represents a path in the graph"""
@@ -247,10 +244,90 @@ class Path:
             
         return None
 
+    """converts a path into a rule, assusemes the body is a straight path starting from head subject with the the exception of possible reflexive predicates/triples"""
+    def rule_rudik(self, pmap:P_map):
+        def original_triple(triple, pmap:P_map):
+            return((triple[0], pmap.original_pred(triple[1]) ,triple[2]))
+        
+        def generate_var(count):
+            return f"?VAR{count}"
+          
 
+        name_dict = {}
+        name_dict[self.head[0]] = {generate_var(1)}
+        if self.head[0] != self.head[2]:
+            name_dict[self.head[2]] = {generate_var(2)}
+        else: name_dict[self.head[0]].add(generate_var(2))
+        count = 3
+    
+        triple_set = set()
+
+        nodes = set(self.graph.nodes.keys())
+        node = self.head[0]
+
+        # collect reflexive triples, to sort in case there are multiple
+        ref_triples = []
+
+
+
+        while nodes:
+            # single triple that leaves from current node
+            next_triple = None 
+            nodes.discard(node)
+            # get connecting triple(s), instantly add reflexive, then the other one and traverse it
+
+            for p in self.graph.nodes[node]:
+                for pair in self.graph.edges[p]:
+                    if node in pair:
+                        if pair[0] == pair[1]:
+                            ref_triples.append(original_triple((node, p, node), pmap))
+                        elif pair[0] == node and pair[1] in nodes: 
+                            next_triple = original_triple((node, p, pair[1]), pmap)
+                            next_node = pair[1]
+                        elif pair[1] == node and pair[0] in nodes:
+                            next_triple = original_triple((pair[0], p, node),pmap)
+                            next_node = pair[0]
+
+            if ref_triples:
+                ref_triples.sort()
+                for t in ref_triples:
+                    var_s = generate_var(count)
+                    var_o = generate_var(count +1)
+                    count += 2
+                    name_dict[t[0]].add(var_s)
+                    name_dict[t[2]].add(var_o)
+                    triple_set.add((var_s, t[1], var_o))
+                ref_triples.clear()
+
+            if next_triple:
+                var_s = generate_var(count)
+                var_o = generate_var(count +1)
+                count += 2
+                if next_triple[0] in name_dict:
+                    name_dict[next_triple[0]].add(var_s)
+                else:
+                    name_dict[next_triple[0]] = {var_s}
+
+                if next_triple[2] in name_dict:
+                    name_dict[next_triple[2]].add(var_o)
+                else:
+                    name_dict[next_triple[2]] = {var_o}
+                triple_set.add((var_s, next_triple[1], var_o))
+            else:
+                return Rule(original_triple((generate_var(1), self.head[1], generate_var(2)), pmap), triple_set, {tuple(c) for c in name_dict.values() if len(c) > 1})
+            node = next_node
+
+        return Rule(original_triple((generate_var(1), self.head[1], generate_var(2)), pmap), triple_set, {tuple(c) for c in name_dict.values() if len(c) > 1})
 
 
     def rule(self, pmap:P_map):
+        ###################
+        #
+        # !!ATTENTION!!
+        # has a problem with reflexive predicates, requires fix
+        #
+        #
+        ##################
 
         def original_triple(triple, pmap:P_map):
             return((triple[0], pmap.original_pred(triple[1]) ,triple[2]))
@@ -321,6 +398,7 @@ class Path:
 
 
             # increments p counter and generates a unique variable 
+        
         def generate_var(count):
             return f"?VAR{count}"
             
@@ -518,9 +596,11 @@ class Rule:
         return ()
 
     
-    def as_csv_row(self):
-        def triple_csv(triple):
+    def as_csv_row(self, negative_rules):
+        def triple_csv(triple, negative=False):
             s,p,o = triple
+            if negative:
+                return f"NOT{p}({s};{o})"
             return f"{p}({s};{o})"
             
         # TODO refactor, also special case if head s=o should be adressed (no mistake, but inconsistency)
@@ -545,8 +625,10 @@ class Rule:
                 if triple[2] not in name_dict:
                     name_dict[triple[2]] = f"?VAR{non_head_var}"
                     non_head_var += 1
-
-            out = [triple_csv((name_dict[self.head[0]], self.head[1], name_dict[self.head[2]]))]
+            if negative_rules:
+                out = [triple_csv((name_dict[self.head[0]], self.head[1], name_dict[self.head[2]]), negative_rules)]
+            else:
+                out = [triple_csv((name_dict[self.head[0]], self.head[1], name_dict[self.head[2]]))]
             out.extend(list(triple_csv((name_dict[t[0]], t[1], name_dict[t[2]])) for t in self.body))
 
             return out

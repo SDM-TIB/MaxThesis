@@ -835,6 +835,7 @@ def covers_example(rule:Rule, example:tuple[str, str], kg:IncidenceList, pmap:P_
 
     c_head_s = rule.get_connections(rule.head[0])
     name_dict_s = {var:example[0] for var in c_head_s}
+    
 
     if rule.head[2] in c_head_s:
         if example[0] != example[1]:
@@ -842,7 +843,7 @@ def covers_example(rule:Rule, example:tuple[str, str], kg:IncidenceList, pmap:P_
             return False
         c_head_o = c_head_s
         # head s=o, so everything is connected
-        return patterns_in_graph(rule, rule.body, name_dict_s|name_dict_o, kg, pmap)
+        return patterns_in_graph(rule, rule.body, name_dict_s, kg, pmap)
     c_head_o = rule.get_connections(rule.head[2])
     name_dict_o = {var:example[1] for var in c_head_o}
 
@@ -927,7 +928,7 @@ def rulelist_unbounded_coverage(R, v, kg, pmap):
     return out
 
 """estimated marginal weight"""
-def est_m_weight(r:Rule, R_out_dict, rule_dict, kg:IncidenceList, g:set, v:set, alpha:float, beta:float, pmap:P_map, R_out_cov_v_cardinality:list, R_out_uncov_v:set):
+def est_m_weight_old(r:Rule, R_out_dict, rule_dict, kg:IncidenceList, g:set, v:set, alpha:float, beta:float, pmap:P_map, R_out_cov_v_cardinality:list, R_out_uncov_v:set):
     t1 = time.time()
 
     # contain only r_out
@@ -982,7 +983,7 @@ def est_m_weight(r:Rule, R_out_dict, rule_dict, kg:IncidenceList, g:set, v:set, 
     return cov_time, -alpha * ((len(cov_g(r, rule_dict, R_out_dict) - cov_g(R_out, rule_dict, R_out_dict)))/len(g)) + beta * ((cardinality_cov_r_out_v / cardinality_uncov_r_out_r_v) - (cardinality_cov_r_out_v / cardinality_uncov_r_out_v))
 
 """estimated marginal weight"""
-def est_m_weightö(r:Rule, R_out_dict, rule_dict, kg:IncidenceList, g:set, v:set, alpha:float, beta:float, pmap:P_map, R_out_cov_v_cardinality:list, R_out_uncov_v:set):
+def est_m_weight(r:Rule, R_out_dict, rule_dict, kg:IncidenceList, g:set, v:set, alpha:float, beta:float, pmap:P_map, R_out_cov_v_cardinality:list, R_out_uncov_v:set):
     t1 = time.time()
 
     # contain only r_out

@@ -80,8 +80,6 @@ def mine_rules(transformed_kg:IncidenceList, targets:set, transform_output_dir:s
 
     for p in targets:
 
-
-
         # getting post normalization instances of target predicate and the negative instances from validation
         pmap = P_map(p, new_preds(p, predicate_mappings), set() , predicate_mappings, neg_predicate_mappings)
         pmap.neg_predicates = neg_preds(pmap.predicates, neg_predicate_mappings)
@@ -91,7 +89,40 @@ def mine_rules(transformed_kg:IncidenceList, targets:set, transform_output_dir:s
             # TODO prepare g and v flipped
             # meaning, pos examples without predicate as v, negative examples with negative predicate as g
             pass
+            print(f"creating input sets G and V in order to mine negative rules for target predicate <{p}>...\n")
 
+            v_temp = getExamples(transformed_kg, pmap.predicates, set_size)
+            len_v = len(v_temp)
+            if len_v < set_size:
+                print(f"There aren't enough positive examples in the graph, proceeding with {len_v} examples in V.\n")  
+            v = set()
+            for ex in v_temp:
+                v.add((ex[0], ex[2]))
+
+
+            # first, get constraint violating triples
+            g_temp = getNegExamples(transformed_kg, pmap.neg_predicates, set_size)
+
+            # if not enough in v fill with lcwa-conform examples
+            len_g = len(g_temp)
+            if len_g < set_size:
+                print(f"{len_g} examples found from constraint violations, selecting remaining {set_size - len_g} examples from graph for G.\n")
+                g_temp.update(getExamplesLCWA(transformed_kg, ontology, pmap, set_size - len_g, type_predicate))
+
+            # if not enough in v fill with random examples
+            len_g = len(g_temp)
+            if len_g < set_size:
+                print(f"There aren't enough negative examples in the graph, choosing {set_size - len_g} random examples for G.\n")  
+                v.update(getRandomNegExamples(transformed_kg, pmap.predicates, set_size - len_g, g_temp)) 
+
+
+            len_g = len(g_temp)
+            if len_g < set_size:
+                print(f"There aren't enough negative examples in the graph, proceeding with {len_g} examples for G.\n")   
+
+            g = set()
+            for ex in g_temp:
+                g.add((ex[0], pmap.target, ex[1]))
         else:
             print(f"creating input sets G and V for target predicate <{p}>...\n")
             # create positive examples
@@ -132,7 +163,7 @@ def mine_rules(transformed_kg:IncidenceList, targets:set, transform_output_dir:s
         #result.extend(mine_rules_for_target_predicate(g, v, pmap, transformed_kg, prefix, type_predicate, ontology, expand_fun, fits_max_depth, max_depth, alpha, beta))
 
         #TODO remove
-        res, exr, exp, find_r, wt, ec, wc, fdr, cov, rt = mine_rules_for_target_predicate(g, v, pmap, transformed_kg, prefix, type_predicate, ontology, expand_fun, fits_max_depth, max_depth, alpha, beta)
+        res, exr, exp, find_r, wt, ec, wc, fdr, cov, rt = mine_rules_for_target_predicate(g, v, pmap, transformed_kg, prefix, type_predicate, ontology, expand_fun, fits_max_depth, negative_rules, max_depth, alpha, beta)
         result.extend(res)
         exr_time += exr
         exp_time += exp
@@ -155,7 +186,8 @@ def mine_rules(transformed_kg:IncidenceList, targets:set, transform_output_dir:s
 
     return
 
-def mine_rules_for_target_predicate(g:set, v:set, pmap:P_map, kg:IncidenceList, prefix:str, type_predicate:str, ontology:Ontology, expand_fun, fits_max_depth,  max_depth:int=3, alpha:float=0.5, beta:float=0.5):
+def mine_rules_for_target_predicate(g:set, v:set, pmap:P_map, kg:IncidenceList, prefix:str, type_predicate:str, ontology:Ontology, 
+                                    expand_fun, fits_max_depth, negative_rules,  max_depth:int=3, alpha:float=0.5, beta:float=0.5):
     
     """
     Args:
@@ -641,6 +673,8 @@ def mine_rules_for_target_predicate(g:set, v:set, pmap:P_map, kg:IncidenceList, 
         {('?VAR7', 'isGenre', '?VAR8'), ('?VAR3', 'hasAlbum', '?VAR4'), ('?VAR5', 'hasAlbum', '?VAR6')},
         {('?VAR4', '?VAR1'), ('?VAR6', '?VAR7'), ('?VAR3', '?VAR5'), ('?VAR2', '?VAR8')})
             
+
+
     # print(covers_example(ru,("Making_Movies", "Reggae"), kg, pmap))
     # tcovera = time.time()
     # for i in range(100):
@@ -676,8 +710,6 @@ def mine_rules_for_target_predicate(g:set, v:set, pmap:P_map, kg:IncidenceList, 
     false_ex = [e for e in isGenre_v if e not in true_ex]
     
 
-    v = {('Maria_Teresa_Cybo_Malaspina_Duchess_of_Massa', 'Wilfred_the_Hairy'), ('Cosimo_I_de_Medici_Grand_Duke_of_Tuscany', 'Wilfred_the_Hairy'), ('George_I_of_Great_Britain', 'Wilfred_the_Hairy'), ('Bernard_of_Gothia', 'Charles_IV_of_Anjou'), ('Frederick_the_Fair', 'Wilfred_the_Hairy'), ('Bernard_of_Gothia', 'Maria_Beatrice_d_Este_Duchess_of_Massa'), ('Petronilla_of_Aragon', 'Wilfred_the_Hairy'), ('Bernard_of_Gothia', 'Francesco_I_de_Medici_Grand_Duke_of_Tuscany'), ('Ren__of_Anjou', 'Wilfred_the_Hairy'), ('Louis_Duke_of_Orl_ans_1703_1752', 'Wilfred_the_Hairy'), ('Bernard_of_Gothia', 'George_II_of_Great_Britain'), ('Bernard_of_Gothia', 'Philip_I_of_Castile'), ('Bernard_of_Gothia', 'Albert_II_Duke_of_Austria'), ('Bernard_of_Gothia', 'Louis_Philippe_I_Duke_of_Orl_ans'), ('Joanna_of_Castile', 'Wilfred_the_Hairy')}
-    v = {('Maria_Teresa_Cybo_Malaspina_Duchess_of_Massa', 'Wilfred_the_Hairy'), ('George_I_of_Great_Britain', 'Wilfred_the_Hairy'), ('Louis_Duke_of_Orl_ans_1703_1752', 'Wilfred_the_Hairy'), ('Bernard_of_Gothia', 'George_II_of_Great_Britain'), ('Joanna_of_Castile', 'Wilfred_the_Hairy')}
     # R_out =[rul,ru]
     # test = rulelist_coverage(R_out, v, kg, pmap)
     # cove = cov(R_out, kg, v, pmap)
@@ -794,10 +826,10 @@ def mine_rules_for_target_predicate(g:set, v:set, pmap:P_map, kg:IncidenceList, 
         fdr_time+= fdr
         rule_time += rt
         t3=time.time()
+        exp_time += t3 - t2
 
     t4 = time.time()
     exr_time = t4 - t1
-    exp_time = t3 - t2
 
     r, min_weight,wt, wc, ct = find_r(R_out_dict, R_out_cov_v_cardinality, R_out_uncov_v, rule_dict, rule_weight_dict, kg, g, v, alpha, beta, pmap, fits_max_depth, max_depth)
     t5= time.time()
@@ -855,7 +887,7 @@ def mine_rules_for_target_predicate(g:set, v:set, pmap:P_map, kg:IncidenceList, 
 
     
 
-    return list(rule.as_csv_row() for rule in R_out_dict.keys()), exr_time, exp_time, find_r_time, w_time, exp_calls, w_calls, fdr_time, cov_time, rule_time
+    return list(rule.as_csv_row(negative_rules) for rule in R_out_dict.keys()), exr_time, exp_time, find_r_time, w_time, exp_calls, w_calls, fdr_time, cov_time, rule_time
 
 
 
@@ -925,6 +957,7 @@ def expand_path_rudik(rule_dict:dict, path:Path, kg:IncidenceList, ontology:Onto
     # find  leaf, head object doesn't count
     f = path.frontiers_rudik()
 
+
     if f == None:
         print(f"no frontier for {path}")
         print(path.frontiers_rudik())
@@ -964,20 +997,24 @@ def expand_path_rudik(rule_dict:dict, path:Path, kg:IncidenceList, ontology:Onto
                     continue
 
                 rt = 0
+                subtime = 0
                 t = time.time()
                 if fits_domain_range(e, triple, ontology, kg, pmap, type_predicate):
                     t3 = time.time()
                     new = path.copy()
                     new.graph.add(pair[0], p, pair[1])
-                    r = new.rule(pmap)
+                    t5 = time.time()
+                    r = new.rule_rudik(pmap)
+                    t6 = time.time()
                     if r in rule_dict:
                         rule_dict[r].add(new)
                     else:
                         rule_dict[r] = {new}
                     t4 = time.time()
-                    rt = t4-t3
+                    subtime = t4-t3
+                    rt = t6-t5
                 t2 = time.time()
-                tout += t2 - t - rt
+                tout += t2 - t - subtime
                 toutrt += rt
     return tout, toutrt
 

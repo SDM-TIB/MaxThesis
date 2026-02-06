@@ -72,7 +72,6 @@ def extract_triple_patterns(query_text: str) -> List[TriplePattern]:
     if filter_query:
         extract_from_text(filter_query, True)
 
-    print(is_not_exists)
     return patterns
 
 

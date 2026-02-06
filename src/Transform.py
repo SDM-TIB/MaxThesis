@@ -278,8 +278,8 @@ def nt_to_txt(input_file, output_file, prefix):
 
 if __name__== '__main__':
     csvpath = "./Data/KG/musicKG/musicKG.csv"
-    ntpath = "./Data/KG/FrenchRoyalty/french_royalty.nt"
-    txtpath = "./Data/KG/FrenchRoyalty/french_royalty.txt"
+    ntpath = "./Data/KG/musicKG-example/musicKG-example.nt"
+    txtpath = "./Data/KG/musicKG-example/musicKG-example.txt"
     # Beispielaufruf
-    nt_to_txt(ntpath, txtpath, "http://FrenchRoyalty.org/")
+    nt_to_txt(ntpath, txtpath, "http://example.org/")
     #csv_to_nt(csvpath, ntpath)
