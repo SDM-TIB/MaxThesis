@@ -227,18 +227,23 @@ def mine_rules_for_target_predicate(g:set, v:set, pmap:P_map, kg:IncidenceList, 
 #   "rdf_file": "musicKG.nt",
 #   "constraints_folder": "musicKG",
 #   "ontology_file": "musicKGOntology.ttl",
-#   "pca_threshold": 0.75
-# }
+#   "max_body_length": "",
+#   "example_set_size": "",
+#   "type_predicate":  "",
+#   "alpha": "",
+#   "mine_negative_rules": ""
+#   }
 
 # {
 #   "KG": "SynthLC_1000",
-#   "prefix": "<http://synthetic-LC.org/lungCancer/entity/",
+#   "prefix": "http://synthetic-LC.org/lungCancer/",
 #   "rules_file": "SynthLC_1000.csv",
 #   "rdf_file": "SynthLC_1000.nt",
 #   "constraints_folder": "SynthLC_1000",
 #   "ontology_file": "ontology_LungCancer.ttl",
 #   "pca_threshold": 0.75
 # }
+
 
 # {
 #   "KG": "FrenchRoyalty",
@@ -249,121 +254,6 @@ def mine_rules_for_target_predicate(g:set, v:set, pmap:P_map, kg:IncidenceList, 
 #   "ontology_file": "ontology_FrenchRoyalty.ttl",
 #   "pca_threshold": 0.75
 # }
-
-
-    p1 = Path()
-    p1.head = ("Ten_Summoner%27s_Tales","isGenre_Pop","Pop")
-    p1.graph.add("Dire_Straits","hasAlbum_Making_Movies", "Making_Movies")
-    p1.graph.add("Sting", "collaboratedWith_Dire_Straits", "Dire_Straits")
-    p1.graph.add("Sting","hasAlbum_Ten_Summoner%27s_Tales","Ten_Summoner%27s_Tales")
-    p1.graph.add("Making_Movies","isGenre_Pop","Pop")
-    p1.graph.add("Ten_Summoner%27s_Tales","releaseYear_1993","\"1993\"^^<http://www.w3.org/2001/XMLSchema#/int>")
-    p1.graph.add("Making_Movies","releaseYear_1980","\"1980\"^^<http://www.w3.org/2001/XMLSchema#/int>")
-    p1.graph.add("\"1980\"^^<http://www.w3.org/2001/XMLSchema#/int>","<","\"1993\"^^<http://www.w3.org/2001/XMLSchema#/int>")
-    p1.graph.add("Shape_of_my_Heart","writer_Sting","Sting")
-
-    # print(p1)
-    # print(p1.frontiers_rudik())
-    # exit()
-
-    p2 = Path()
-    p2.head = ("Here_Comes_the_Sun","isGenre_Rock","Rock")
-    p2.graph.add("Here_Comes_the_Sun","releaseYear_1969","\"1969\"^^<http://www.w3.org/2001/XMLSchema#/int>")
-    p2.graph.add("461_Ocean_Blvd.","releaseYear_1974","\"1974\"^^<http://www.w3.org/2001/XMLSchema#/int>")
-    p2.graph.add("\"1969\"^^<http://www.w3.org/2001/XMLSchema#/int>","<","\"1974\"^^<http://www.w3.org/2001/XMLSchema#/int>")
-    p2.graph.add("\"1969\"^^<http://www.w3.org/2001/XMLSchema#/int>","=","\"1969\"^^<http://www.w3.org/2001/XMLSchema#/int>")
-    p2.graph.add("461_Ocean_Blvd.","isGenre_Rock","Rock")
-
-    # print(p2)
-    # print(p2.rule(pmap))
-    # print(p2.graph)
-    # r1 = p1.rule(pmap)
-
-    # r2 = p2.rule(pmap)
-
-    # r3 = Rule(
-    #     head=('?VAR1', 'isGenre', '?VAR2'),
-    #     body={('?VAR9', 'isGenre', '?VAR10'), ('?VAR15', 'releaseYear', '?VAR16'), ('?VAR3', 'hasAlbum', '?VAR4')},
-    #     connections={('?VAR4', '?VAR1', '?VAR15'), ('?VAR10', '?VAR2')})
-
-
-    # if pmap.target == "isGenre":
-    #     rule_dict = {}
-    #     rule_dict[p1.rule(pmap)] = set()
-    #     rule_dict[p2.rule(pmap)] = set()
-    #     rule_dict[r3] = set()
-    #     R_out = [r1,r2]
-    #     #print(v)
-    #     for egg in isGenre_g:
-    #         eg = Path(head=(egg[0], pmap.target, egg[1]))
-    #         if covers(r1, kg, egg, pmap):
-    #             rule_dict[r1].add(eg)
-    #         if covers(r2, kg, egg, pmap):
-    #             rule_dict[r2].add(eg)
-    #         if covers(r3, kg, egg, pmap):
-    #             rule_dict[r3].add(eg)
-    #     print(est_m_weight(r3, R_out, rule_dict, kg, isGenre_g, isGenre_v, alpha, beta, pmap))
-    #     print(cov(r2, kg, isGenre_v, pmap))
-
-
-    # ('Outlandos_D%27Amour', 'Punk') ('461_Ocean_Blvd.', 'Blues'), ('Regatta_De_Blanc', 'Reggae')
-    # {('Let_It_Be', 'Pop'), ('Dire_Straits(Album)', 'Rock'), ('Rubber_Soul', 'Rock'), ('The_Beatles(Album)', 'Jazz'), ('Ten_Summoner%27s_Tales', 'Pop'), ('Making_Movies', 'Pop')}
-
-
-    # #boolean that marks if R_out has changed since the last calculation of marginal weight
-    # R_out_changed = False
-
-    # #TODO Nf in RuDiK
-    # frontiers = {t[0] for t in g}
-
-
-    # #TODO potential (sub)rules (Qr in RuDiK)
-    # candidates = expand_ft(frontiers, kg, g)
-
-
-    # # find most promising (sub)rule, the one with the lowest marginal weight
-    # for rule in candidates:
-    #     continue
-
-
-    # # main loop
-    # while candidates and r.cur_emw < 0 and len(cov(R_out, kg, g)) < len(g):
-        
-    #     candidates = candidates.remove(r)
-
-    #     # if r is a valid rule, add it to solution
-    #     if is_valid(r):
-    #         R_out.append(r)
-    #         R_out_changed = True
-
-    #     # if r is not a valid rule, expand on it
-    #     else:
-    #         #expand r
-    #         if len(r.body) < max_depth:
-    #             #the last visited nodes in all search paths that correspond to r
-    #             frontiers = ft(r)
-    #             new_rules = expand_ft(frontiers, kg, g)
-    #             candidates.append(new_rules)
-
-    #     # find new r
-    #     if R_out_changed:
-    #         r.cur_emw = est_m_weight(r, R_out, kg, g, v, alpha, beta)
-    #         for rule in candidates:
-    #             continue
-
-    #     else:
-    #         for new_rule in new_rules:
-    #             continue
-
-
-
-
-    #     R_out_changed = False
-
-    # print(f"g----{g}\n\nv---{v}")
-
-
-
 
 
 
@@ -639,99 +529,8 @@ def mine_rules_for_target_predicate(g:set, v:set, pmap:P_map, kg:IncidenceList, 
         )),
         ]
      
-    p = Path (('Robert_I_Duke_of_Burgundy', 'name_Robert_I', 'Robert_I'), IncidenceList(
-            {'parent_Constance_of_Arles': {('Robert_I_Duke_of_Burgundy', 'Constance_of_Arles')},
-            'name_Constance_of_Arles': {('Constance_of_Arles', 'Constance_of_Arles')}},
-            {'Robert_I_Duke_of_Burgundy': {'parent_Constance_of_Arles'},
-            'Constance_of_Arles': {'parent_Constance_of_Arles', 'name_Constance_of_Arles'}}))
-    
-    p3 = Path (('Humbert_II_Count_of_Savoy', 'name_Umberto_II', 'Umberto_II'), IncidenceList(
-            {'parent_Humbert_II_Count_of_Savoy': {('Adelaide_of_Maurienne', 'Humbert_II_Count_of_Savoy')}, 
-            'name_Adelaide_of_Maurienne': {('Adelaide_of_Maurienne', 'Adelaide_of_Maurienne')}},
-            {'Adelaide_of_Maurienne': {'name_Adelaide_of_Maurienne', 'parent_Humbert_II_Count_of_Savoy'}, 
-            'Humbert_II_Count_of_Savoy': {'parent_Humbert_II_Count_of_Savoy'}}))
-
-    p4 = Path (('Philip_of_France_1116_1131', 'name_Philip', 'Philip'), IncidenceList(
-            {'parent_Adelaide_of_Maurienne': {('Philip_of_France_1116_1131', 'Adelaide_of_Maurienne')},
-              'name_Adelaide_of_Maurienne': {('Adelaide_of_Maurienne', 'Adelaide_of_Maurienne')}},
-            {'Philip_of_France_1116_1131': {'parent_Adelaide_of_Maurienne'}, 
-             'Adelaide_of_Maurienne': {'name_Adelaide_of_Maurienne', 'parent_Adelaide_of_Maurienne'}}))
-    
-    p5 = Path (('Henry_IV_of_France', 'name_Henry_IV', 'Henry_IV'),IncidenceList(
-        {'spouse_Marie_de_Medici': {('Henry_IV_of_France', 'Marie_de_Medici')}, 
-         'name_Marie_de_Medici': {('Marie_de_Medici', 'Marie_de_Medici')}},
-        {'Henry_IV_of_France': {'spouse_Marie_de_Medici'}, 
-         'Marie_de_Medici': {'name_Marie_de_Medici', 'spouse_Marie_de_Medici'}}))
-
-    p6 = Path(("a","b","c"), IncidenceList())
-
-    ru = Rule(('?VAR1', 'includedIn', '?VAR2'),
-        {('?VAR5', 'isGenre', '?VAR6'), ('?VAR3', 'isGenre', '?VAR4')},
-        {('?VAR2', '?VAR5'), ('?VAR3', '?VAR1'), ('?VAR6', '?VAR4')})
-    ru = Rule(
-        ('?VAR1', 'isGenre', '?VAR2'),
-        {('?VAR7', 'isGenre', '?VAR8'), ('?VAR3', 'hasAlbum', '?VAR4'), ('?VAR5', 'hasAlbum', '?VAR6')},
-        {('?VAR4', '?VAR1'), ('?VAR6', '?VAR7'), ('?VAR3', '?VAR5'), ('?VAR2', '?VAR8')})
-            
 
 
-    # print(covers_example(ru,("Making_Movies", "Reggae"), kg, pmap))
-    # tcovera = time.time()
-    # for i in range(100):
-    #     covera = coverage(ru,isGenre_v,kg,pmap)
-    # tcov = time.time()
-    # for i in range(100):
-    #     co = cov(ru,kg,isGenre_v,pmap)
-    # tcovend = time.time()
-    # print(covera)
-    # print(co)
-    # print(covera - co)
-    # print(tcov-tcovera, tcovend -tcov)
-
-    # for r in rulelist:
-    #     print(r, coverage(r, parent_v, kg, pmap))
-
-    #cov {('The_Beatles(Album)', 'Rock'), ('Revolver', 'Pop'), ('Let_It_Be', 'Jazz'), ('Love_Over_Gold', 'Pop')}
-
-    #test{('Revolver', 'Pop'), ('Let_It_Be', 'Jazz'), ('Synchronicity', 'Pop'), ('The_Beatles(Album)', 'Rock'), 
-     #    ('Ten_Summoner%27s_Tales', 'Rock'), ('Love_Over_Gold', 'Pop'), ('Toto_IV', 'Pop'), ('461_Ocean_Blvd.', 'Rock')}
-
-    ru = Rule(
- ('?VAR1', 'successor', '?VAR2'),
- {('?VAR7', 'gender', '?VAR8'), ('?VAR5', 'gender', '?VAR6'), ('?VAR3', 'child', '?VAR4')},
- {('?VAR4', '?VAR5'), ('?VAR6', '?VAR8'), ('?VAR7', '?VAR2'), ('?VAR3', '?VAR1')})
-
-    rul = Rule(
- ('?VAR1', 'successor', '?VAR2'),
-{('?VAR3', 'predecessor', '?VAR4')},
- {('?VAR3', '?VAR2'), ('?VAR4', '?VAR1')})
-
-    true_ex = [('Lions', 'Toto_IV'), ('I_Won%27t_Hold_You_Back', 'Making_Movies'), ('In_The_Gallery', 'Toto_IV'), ('Down_To_The_Waterline', 'Toto_IV'), ('Wild_West_End', 'Toto_IV'), ('Six_Blade_Knife', 'Toto_IV'), ('Setting_Me_Up', 'Toto_IV'), ('I_Won%27t_Hold_You_Back', 'Dire_Straits(Album)')]
-    false_ex = [e for e in isGenre_v if e not in true_ex]
-    
-
-    # R_out =[rul,ru]
-    # test = rulelist_coverage(R_out, v, kg, pmap)
-    # cove = cov(R_out, kg, v, pmap)
-    # if cove != test:
-    #     print(f"cov {cove}\n\ntest{test}\n\v {v}\n\n")
-    #     for r in R_out:
-    #         print(r)
-    #         print(coverage(r, v, kg, pmap))
-    
-    #print(coverage(ru, v, kg, pmap))
-    #exit()
-    # for ex in false_ex:
-    #     print(f"-----FALSE-------{ex}------------")
-    #     print(covers_example(ru, ex, kg, pmap))
-    # for ex in true_ex:
-    #     print(f"-------TRUE-----{ex}------------")
-    #     print(covers_example(ru, ex, kg, pmap))
-
-
-
-    #('Charles_IX_of_France', 'Eleanor_of_Aquitaine'), ('Joan_III_Countess_of_Burgundy', 'Eleanor_of_Aquitaine')
-    #exit()
 
     #########################
     # FR runtime
@@ -787,7 +586,6 @@ def mine_rules_for_target_predicate(g:set, v:set, pmap:P_map, kg:IncidenceList, 
 
 
     #TODO when expanding, excluding bad paths better?
-    # TODO save weight in rule dict, to make find r faster, if sensible, bc weight changes wwhen new rule is added
     # TODO when finding r, mind rules with same weight, collect all and look through those until a rule is found
 
     # initialise
@@ -822,9 +620,9 @@ def mine_rules_for_target_predicate(g:set, v:set, pmap:P_map, kg:IncidenceList, 
     for path in paths:
         exp_calls += 1
         t2 = time.time()
-        fdr, rt = expand_fun(rule_dict, path, kg, ontology, pmap, type_predicate)
-        fdr_time+= fdr
-        rule_time += rt
+        frontier, time_add_Copy = expand_fun(rule_dict, path, kg, ontology, pmap, type_predicate)
+        fdr_time+= frontier
+        rule_time += time_add_Copy
         t3=time.time()
         exp_time += t3 - t2
 
@@ -957,15 +755,13 @@ def expand_path_rudik(rule_dict:dict, path:Path, kg:IncidenceList, ontology:Onto
     # find  leaf, head object doesn't count
     f = path.frontiers_rudik()
 
-
     if f == None:
         print(f"no frontier for {path}")
         print(path.frontiers_rudik())
         exit()
 
-    tout = 0
-    toutrt = 0
-
+    time_copy_add = 0
+    t_if = 0
     # TODO literal comparisons
     if is_literal(f):
         pass
@@ -976,15 +772,15 @@ def expand_path_rudik(rule_dict:dict, path:Path, kg:IncidenceList, ontology:Onto
         # don't want to traverse type triples or negative triples
         if pmap.original_pred(p) == type_predicate or p in pmap.neg_predicate_mappings:
             continue
-        pairs = kg.edges.get(p)
 
 
-        for pair in pairs:
+        for pair in kg.edges.get(p):
             if f in pair:
             # cannot jump through kg
+
                 triple = (pair[0],p, pair[1])
                 edges_p = path.graph.edges.get(p)
-                if triple == path.head or( edges_p and  pair in edges_p):
+                if ( edges_p and  pair in edges_p) or triple == path.head:
                 # we only want triples that are not in path, need to check head seperately here
                     continue
 
@@ -996,27 +792,30 @@ def expand_path_rudik(rule_dict:dict, path:Path, kg:IncidenceList, ontology:Onto
                 # don't want circles, except when s = o
                     continue
 
-                rt = 0
                 subtime = 0
                 t = time.time()
                 if fits_domain_range(e, triple, ontology, kg, pmap, type_predicate):
                     t3 = time.time()
+
+                    # check path.copy() -> is slow
                     new = path.copy()
-                    new.graph.add(pair[0], p, pair[1])
                     t5 = time.time()
+
+                    new.graph.add(pair[0], p, pair[1])
+
                     r = new.rule_rudik(pmap)
-                    t6 = time.time()
+
+
                     if r in rule_dict:
                         rule_dict[r].add(new)
                     else:
                         rule_dict[r] = {new}
-                    t4 = time.time()
-                    subtime = t4-t3
-                    rt = t6-t5
+
+                    time_copy_add += (t5-t3)
                 t2 = time.time()
-                tout += t2 - t - subtime
-                toutrt += rt
-    return tout, toutrt
+                t_if += (t2-t)
+
+    return t_if, time_copy_add
 
 
 

@@ -1,42 +1,47 @@
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix owl: <http://www.w3.org/2002/07/owl#>.
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#>.
-@prefix lc: <http://LungCancer.org/>.
+@prefix lc: <http://synthetic-LC.org/lungCancer/>.
 @prefix foaf: <http://xmlns.com/foaf/0.1/>.
 
 lc:Patient  a  rdfs:Class .
-lc:LCPatient  a  rdfs:Class .
+lc:Answer   a  rdfs:Class .
+lc:Drug     a  rdfs:Class .
+lc:Comorbidity  a  rdfs:Class .
+lc:Biomarker    a  rdfs:Class .
+lc:Stage        a  rdfs:Class .
+lc:Sex          a  rdfs:Class .
+lc:AgeCategory  a rdfs:Class .
 
-lc:LCPatient rdfs:subClassOf lc:Patient.
- 
-lc:hasStage a rdfs:Property , owl:ObjectProperty;
+lc:stage a rdfs:Property , owl:ObjectProperty;
     rdfs:domain lc:Patient ;
-    rdfs:range  lc:Patient .
+    rdfs:range  lc:Stage .
 
-lc:hasSmokingHabit a rdfs:Property , owl:ObjectProperty;
+lc:smokingHabit a rdfs:Property , owl:ObjectProperty;
     rdfs:domain lc:Patient ;
-    rdfs:range  lc:Patient .
+    rdfs:range  lc:Answer .
 
-lc:treatmentType a rdfs:Property , owl:ObjectProperty;
+lc:biomarker a rdfs:Property , owl:ObjectProperty;
     rdfs:domain lc:Patient ;
-    rdfs:range  lc:Patient .
+    rdfs:range  lc:Biomarker .
 
-lc:hasBiomarker a rdfs:Property , owl:ObjectProperty;
+lc:sex a rdfs:Property , owl:ObjectProperty;
     rdfs:domain lc:Patient ;
-    rdfs:range  lc:Patient .
+    rdfs:range  lc:Sex .
 
-lc:hasRelapse_Progression a rdfs:Property , owl:ObjectProperty;
+lc:ageCategory a rdfs:Property , owl:ObjectProperty;
     rdfs:domain lc:Patient ;
-    rdfs:range  lc:Patient .
+    rdfs:range  lc:AgeCategory .
 
-lc:patientDrug a rdfs:Property , owl:ObjectProperty;
+lc:comorbidity a rdfs:Property , owl:ObjectProperty;
     rdfs:domain lc:Patient ;
-    rdfs:range  lc:Patient .
+    rdfs:range  lc:Comorbidity .
 
-lc:hasGender a rdfs:Property , owl:ObjectProperty;
+lc:hasRelapse a rdfs:Property , owl:ObjectProperty;
     rdfs:domain lc:Patient ;
-    rdfs:range  lc:Patient .
+    rdfs:range  lc:Answer .
 
-lc:hasAgeCategory a rdfs:Property , owl:ObjectProperty;
+lc:drug a rdfs:Property , owl:ObjectProperty;
     rdfs:domain lc:Patient ;
-    rdfs:range  lc:Patient .
+    rdfs:range  lc:Drug .
+

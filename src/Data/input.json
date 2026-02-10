@@ -5,5 +5,9 @@
   "rdf_file": "musicKG.nt",
   "constraints_folder": "musicKG",
   "ontology_file": "musicKGOntology.ttl",
-  "pca_threshold": 0.75
-}
+  "max_body_length": "",
+  "example_set_size": "",
+  "type_predicate":  "",
+  "alpha": "",
+  "mine_negative_rules": ""
+  }

@@ -48,7 +48,20 @@ def initialize(input_config):
     ontology_path = os.path.join('Data', 'Ontology', input_data['ontology_file'])
     predictions_folder = os.path.join('Data', 'Predictions', input_data['KG'] + "_predictions")
     constraints_folder = os.path.join('Data', 'Constraints',input_data['constraints_folder'])
-    pca_threshold = input_data['pca_threshold']
+
+    max_depth = input_data['max_body_length']
+    if not max_depth:
+        max_depth = 3
+    set_size = input_data['example_set_size']
+    if not set_size:
+        set_size = 15
+    type_predicate = input_data['type_predicate']
+    if not type_predicate:
+        type_predicate = 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type'
+    alpha = input_data['alpha']
+    if not alpha:
+        alpha = 0.5
+    negative_rules = True if input_data["mine_negative_rules"] else False
 
     logger.info(f"Configuration loaded:\n "
           f"- Prefix: {prefix}\n"
@@ -56,9 +69,13 @@ def initialize(input_config):
           f"- RDF file: {rdf_path}\n"
           f"- Predictions folder: {predictions_folder}\n"
           f"- Constraints folder: {constraints_folder}\n"
-          f"- PCA Threshold: {pca_threshold}")
-
-    return prefix, rules_path, rdf_path, kg_path, ontology_path, predictions_folder, constraints_folder, kg_name, pca_threshold
+          f"- maximum path length: {max_depth}\n"
+          f"- example set size: {set_size}\n"
+          f"- type_predicate: {type_predicate}\n"
+          f"- alpha: {alpha}\n"
+          f"- mining {"negative" if negative_rules else "positive"} rules\n"
+    )
+    return prefix, rules_path, rdf_path, kg_path, ontology_path, predictions_folder, constraints_folder, kg_name, max_depth, set_size, type_predicate, alpha, negative_rules
 
 def delete_existing_result(pfad):
     if os.path.exists(pfad) and os.path.isdir(pfad):
@@ -113,7 +130,7 @@ if __name__ == '__main__':
         logger = logging.getLogger(__name__)
 
         #Initializaing from the input.json file
-        prefix, rules_path, rdf_path, kg_path, ontology_path, predictions_folder, constraints_folder, kg_name, pca_threshold = initialize(input_config)
+        prefix, rules_path, rdf_path, kg_path, ontology_path, predictions_folder, constraints_folder, kg_name, max_depth, set_size, type_predicate, alpha, negative_rules = initialize(input_config)
 
 
         #delete result folder
@@ -141,7 +158,7 @@ if __name__ == '__main__':
         o = Ontology()
         parseOntology(ontology_path, o, prefix)
         time_start_mining = time.time()
-        mine_rules(kg_transformed_i_list,  original_predicates, transform_output_dir, o, rules_path, prefix, 3, 15, 0.5, negative_rules=False)
+        mine_rules(kg_transformed_i_list,  original_predicates, transform_output_dir, o, rules_path, prefix, max_depth, set_size, alpha, type_predicate, negative_rules=negative_rules)
 
         # Print execution time
         end_time = time.time()

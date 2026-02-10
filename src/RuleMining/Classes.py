@@ -17,11 +17,14 @@ class IncidenceList:
         self.edges = edges
         self.nodes = nodes
 
-    def __repr__(self):
-        return f"Graph:\nedges: {self.edges},\nnodes: {self.nodes}.\n"
 
     def copy(self):
-        return IncidenceList(deepcopy(self.edges), deepcopy(self.nodes))
+        copied_edges = {key: value.copy() for key, value in self.edges.items()}
+        copied_nodes = {key: value.copy() for key, value in self.nodes.items()}
+        return IncidenceList(copied_edges, copied_nodes)
+    
+    def __repr__(self):
+        return f"Graph:\nedges: {self.edges},\nnodes: {self.nodes}.\n"
 
 
     def addNode(self, n, edges=None):
@@ -174,13 +177,15 @@ class Path:
         self.graph = graph
         self.head = head
         return
+    
+    
+    def copy(self):
+        return Path(self.head, self.graph.copy())
     def __repr__(self):
         return f"Path with:\n head: {self.head}\n{self.graph}\n"
         
     
 
-    def copy(self):
-        return Path(self.head, self.graph.copy())
 
 
     
