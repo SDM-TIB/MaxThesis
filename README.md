@@ -1,4 +1,18 @@
-# Inputs:
+# notes
+
+- cwd should be src/
+
+- rule output: first atom is head, rest is body
+
+# add data
+
+In ./Data/KG add a folder containing an .nt file with the same name as the folder.
+
+In src/Data/Constraints add a folder containing a .ttl file containing SHACL-constraints both with the same name as used before. - if there are SPARQL querys in the constraints please use "$this" when referencing the target node. Also reuires writing "SELECT ($this AS ?this)". This is needed for error free validation with TravSHACL.
+
+In ./Data/Constraints add a .ttl file containing the ontology. Here the name doesn't matter.
+
+# input.json:
 
 "KG": name of KG
 "prefix": namespace prefix
@@ -10,4 +24,22 @@
 "example_set_size": num of pos/ neg examples per target predicate, leave empty for default 15
 "type_predicate": leave empty for default of 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type',
 "alpha": alpha used in weight formula, leave empty for default 0.5,
-"mine_negative_rules": leave empty for False --> positiv rules, put anything for True
+"mine_negative_rules": leave empty for False --> will mine positive rules, put anything for True
+
+# example input
+
+use this as input.json for testing
+
+{
+"KG": "musicKG",
+"prefix": "http://example.org/",
+"rules_file": "musicKG.csv",
+"rdf_file": "musicKG.nt",
+"constraints_folder": "musicKG",
+"ontology_file": "musicKGOntology.ttl",
+"max_body_length": "",
+"example_set_size": "",
+"type_predicate": "",
+"alpha": "",
+"mine_negative_rules": ""
+}
