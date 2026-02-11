@@ -8,7 +8,7 @@
 
 In ./Data/KG add a folder containing an .nt file with the same name as the folder.
 
-In src/Data/Constraints add a folder containing a .ttl file containing SHACL-constraints both with the same name as used before. - if there are SPARQL querys in the constraints please use "$this" when referencing the target node. Also reuires writing "SELECT ($this AS ?this)". This is needed for error free validation with TravSHACL.
+In src/Data/Constraints add a folder containing a .ttl file containing SHACL-constraints both with the same name as used before. If there are SPARQL querys in the constraints please use "$this" when referencing the target node. Also requires writing "SELECT ($this AS ?this)". This is needed for error free validation with TravSHACL.
 
 In ./Data/Constraints add a .ttl file containing the ontology. Here the name doesn't matter.
 
