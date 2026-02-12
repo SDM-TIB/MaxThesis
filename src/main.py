@@ -49,18 +49,23 @@ def initialize(input_config):
     predictions_folder = os.path.join('Data', 'Predictions', input_data['KG'] + "_predictions")
     constraints_folder = os.path.join('Data', 'Constraints',input_data['constraints_folder'])
 
-    max_depth = input_data['max_body_length']
-    if not max_depth:
+    if not input_data['max_body_length']:
         max_depth = 3
-    set_size = input_data['example_set_size']
-    if not set_size:
+    else:
+        max_depth = int(input_data['max_body_length'])
+    if not input_data['example_set_size']:
         set_size = 15
+    else:
+        set_size = int(input_data['example_set_size'])
+
     type_predicate = input_data['type_predicate']
     if not type_predicate:
         type_predicate = 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type'
-    alpha = input_data['alpha']
-    if not alpha:
+    if not input_data['alpha']:
         alpha = 0.5
+    else:
+        alpha = float(input_data['alpha'])
+
     negative_rules = True if input_data["mine_negative_rules"] else False
 
     logger.info(f"Configuration loaded:\n "

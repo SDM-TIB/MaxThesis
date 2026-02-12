@@ -374,6 +374,8 @@ def transform(kg: Graph, constraints_folder: str, prefix,  kg_name: str = None) 
         with open(f"{output_dir}/predicate_mappings.json", "w") as file:
             json.dump(predicate_mapping, file, indent=4)
         print(f"Saving predicate mappings (negated-transformed to transformed) to {output_dir}/no_predicate_mappings.json...")
+        #TODO delete line
+        #no_predicate_mapping["isGenre_NONONO_Pop"] = "isGenre_Pop"
         with open(f"{output_dir}/no_predicate_mappings.json", "w") as file:
             json.dump(no_predicate_mapping, file, indent=4)
 

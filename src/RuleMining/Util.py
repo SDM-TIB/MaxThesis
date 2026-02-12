@@ -719,8 +719,7 @@ def patterns_in_graph(rule:Rule, triple_patterns, name_dict, kg:IncidenceList, p
             break
     if not current_pattern:
         current_pattern = pattern
-        #print(f"current {current_pattern} dict {name_dict}")
-        exit()
+
 
     #print(f"pick pattern {current_pattern}")
     new_dict = {}
@@ -785,9 +784,7 @@ def patterns_in_graph(rule:Rule, triple_patterns, name_dict, kg:IncidenceList, p
 
         if not current_pattern:
             current_pattern = pattern
-            #print(f"current {current_pattern} dict {name_dict}")
-            exit()
-        #print(f"picked pattern {current_pattern}")
+
 
         # - for all solution objects, keep and extend the ones that fit 
         # --> all erroneous solutions are already removed, extend now
@@ -1279,12 +1276,9 @@ def getExamples(kg:IncidenceList, preds:set, count:int):
     # go through all predicates, get even share of examples per predicate if possible
     # repeat with all predicates that still have unused instances left until count is met
 
-    test = 0
     while len(g) < count and eligible_preds:
         max_i = int(diff/len(eligible_preds) + 1)  
-        test += 1
-        if test == 5:
-            exit()
+
         eligible_preds_copy = eligible_preds.copy()
         for p in eligible_preds_copy:
             if not kg.edges.get(p):
@@ -1320,12 +1314,10 @@ def getNegExamples(kg:IncidenceList, preds:set, count:int):
 
     # go through all predicates, get mean examples per predicate if possible
 
-    test = 0
     while len(v) < count and eligible_preds:
+        l = len(v)
         max_i = int(diff/len(eligible_preds) + 1)  
-        test += 1
-        if test == 5:
-            exit()
+
         eligible_preds_copy = eligible_preds.copy()
         for p in eligible_preds_copy:
             if not kg.edges.get(p):
@@ -1347,7 +1339,8 @@ def getNegExamples(kg:IncidenceList, preds:set, count:int):
                     break
                 
         diff = count - len(v)
-
+        if l == len(v):
+            break
     for _ in range(-diff):
         v.pop()
     return v
