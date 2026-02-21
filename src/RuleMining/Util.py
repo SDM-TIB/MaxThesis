@@ -883,10 +883,6 @@ def covers_example(rule:Rule, example:tuple[str, str], kg:IncidenceList, pmap:P_
     return patterns_in_graph(rule, head_s_connected_patterns, name_dict_s|name_dict_o, kg, pmap)
 
 
-
-
-
-
 def triple_exists(pair, original_p, kg:IncidenceList, pmap:P_map):
     s, o = pair
     for object_pred in kg.nodes[o]:
@@ -895,6 +891,7 @@ def triple_exists(pair, original_p, kg:IncidenceList, pmap:P_map):
                 return True
     return False
 
+
 def coverage(r, v, kg, pmap):
     out = set()
     for example_pair in v:
@@ -902,8 +899,10 @@ def coverage(r, v, kg, pmap):
             out.add(example_pair)
     return out
 
+
 def unbounded_coverage(r, v, kg, pmap):
     return coverage(unbind(r), v, kg, pmap)
+
 
 def rulelist_call_coverage(r, v, kg, pmap, out:set):
     for example_pair in v:
@@ -912,17 +911,20 @@ def rulelist_call_coverage(r, v, kg, pmap, out:set):
         if covers_example(r, example_pair, kg, pmap):
             out.add(example_pair)
 
+
 def rulelist_coverage(R, v, kg, pmap):
     out = set()
     for rule in R:    
         rulelist_call_coverage(rule, v, kg, pmap, out)
     return out
 
+
 def rulelist_unbounded_coverage(R, v, kg, pmap):
     out = set()
     for rule in R:    
         rulelist_call_coverage(unbind(rule), v, kg, pmap, out)
     return out
+
 
 """estimated marginal weight"""
 def est_m_weight_old(r:Rule, R_out_dict, rule_dict, kg:IncidenceList, g:set, v:set, alpha:float, beta:float, pmap:P_map, R_out_cov_v_cardinality:list, R_out_uncov_v:set):
@@ -979,9 +981,9 @@ def est_m_weight_old(r:Rule, R_out_dict, rule_dict, kg:IncidenceList, g:set, v:s
 
     return cov_time, -alpha * ((len(cov_g(r, rule_dict, R_out_dict) - cov_g(R_out, rule_dict, R_out_dict)))/len(g)) + beta * ((cardinality_cov_r_out_v / cardinality_uncov_r_out_r_v) - (cardinality_cov_r_out_v / cardinality_uncov_r_out_v))
 
+
 """estimated marginal weight"""
 def est_m_weight(r:Rule, R_out_dict, rule_dict, kg:IncidenceList, g:set, v:set, alpha:float, beta:float, pmap:P_map, R_out_cov_v_cardinality:list, R_out_uncov_v:set):
-    t1 = time.time()
 
     # contain only r_out
     R_out = list(R_out_dict.keys())
@@ -1026,7 +1028,6 @@ def est_m_weight(r:Rule, R_out_dict, rule_dict, kg:IncidenceList, g:set, v:set, 
 
     # no need to check for the examples already in uncov_r_out_v (--> (v - uncov_r_out_v)),  since uncov_r_v is only used in union 
     uncov_r_v = unbounded_coverage(r, (v - uncov_r_out_v), kg, pmap)
-    cov_time = time.time() - t1
     cardinality_uncov_r_out_r_v = len(set.union(uncov_r_out_v, uncov_r_v))
 
 
@@ -1034,20 +1035,19 @@ def est_m_weight(r:Rule, R_out_dict, rule_dict, kg:IncidenceList, g:set, v:set, 
 
     if not cardinality_cov_r_out_v:
     # if this is zero we know the beta part is zero, the divisors will also be zero resulting in error, thus removing beta part altogether
-        return cov_time, -alpha * ((len(cov_g(r, rule_dict, R_out_dict) - cov_g(R_out, rule_dict, R_out_dict)))/len(g))
+        return -alpha * ((len(cov_g(r, rule_dict, R_out_dict) - cov_g(R_out, rule_dict, R_out_dict)))/len(g))
     
     if not cardinality_uncov_r_out_r_v:
     # if this is zero there is division by zero in first fraction of beta part, setting it to zero
-        return cov_time, -alpha * ((len(cov_g(r, rule_dict, R_out_dict) - cov_g(R_out, rule_dict, R_out_dict)))/len(g)) - beta * (cardinality_cov_r_out_v / cardinality_uncov_r_out_v)
+        return  -alpha * ((len(cov_g(r, rule_dict, R_out_dict) - cov_g(R_out, rule_dict, R_out_dict)))/len(g)) - beta * (cardinality_cov_r_out_v / cardinality_uncov_r_out_v)
 
 
-    return cov_time, -alpha * ((len(cov_g(r, rule_dict, R_out_dict) - cov_g(R_out, rule_dict, R_out_dict)))/len(g)) + beta * ((cardinality_cov_r_out_v / cardinality_uncov_r_out_r_v) - (cardinality_cov_r_out_v / cardinality_uncov_r_out_v))
+    return -alpha * ((len(cov_g(r, rule_dict, R_out_dict) - cov_g(R_out, rule_dict, R_out_dict)))/len(g)) + beta * ((cardinality_cov_r_out_v / cardinality_uncov_r_out_r_v) - (cardinality_cov_r_out_v / cardinality_uncov_r_out_v))
 
 
 """
 check if a (sub)rule is a valid rule, 
 in its use context it is safe to assume all atoms are transitively connected
-
 """
 def is_valid(r:Rule):
     for c in r.connections:
@@ -1057,6 +1057,7 @@ def is_valid(r:Rule):
                 return len(c) >= 4
             return True
     return False
+
 
 def is_valid_comp(triple, kg, pmap:P_map):
     if not is_literal_comp(triple[1]) or (literal_type(triple[0]) != literal_type(triple[2])):
@@ -1070,8 +1071,6 @@ def is_valid_comp(triple, kg, pmap:P_map):
             return False
         
     return True
-
-
 
 
 def fits_domain_range(entity, triple, ontology:Ontology, kg:IncidenceList, pmap:P_map, type_predicate):
@@ -1199,8 +1198,6 @@ def fits_domain_range(entity, triple, ontology:Ontology, kg:IncidenceList, pmap:
 
             return False
 
-
-  
 
 """help function for fits_domain_range()"""
 def literal_type(l:str):

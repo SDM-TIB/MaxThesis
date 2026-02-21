@@ -13,3 +13,5 @@
 <http://example.org/Brothers_In_Arms> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://example.org/Album> .
 <http://example.org/Dire_Straits(Album)> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://example.org/Album> .
 <http://example.org/Nothing_Like_The_Sun> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://example.org/Album> .
+<http://example.org/Nothing_Like_The_Sun> <http://example.org/isGenre> <http://example.org/Green_Day> .
+<http://example.org/Green_Day> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://example.org/Band> .

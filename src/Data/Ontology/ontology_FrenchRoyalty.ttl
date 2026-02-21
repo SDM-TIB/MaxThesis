@@ -6,7 +6,7 @@
 @prefix foaf: <http://xmlns.com/foaf/0.1/>.
 
 fr:Person  a  rdfs:Class .
-fr:Spouse  a  rdfs:Class .
+fr:Binary  a  rdfs:Class .
 
 fr:Spouse rdfs:subClassOf fr:Person.
  
@@ -16,11 +16,11 @@ fr:father a rdfs:Property , owl:ObjectProperty;
 
 fr:hasSpouse a rdfs:Property , owl:ObjectProperty;
     rdfs:domain fr:Person ;
-    rdfs:range  fr:Person .
+    rdfs:range  fr:Binary .
 
 foaf:name a rdfs:Property , owl:DatatypeProperty;
     rdfs:domain fr:Person ;
-    rdfs:range  xsd:anyType .
+    rdfs:range  fr:Person .
 
 fr:mother a rdfs:Property , owl:ObjectProperty;
     rdfs:domain fr:Person ;

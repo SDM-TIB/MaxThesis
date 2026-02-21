@@ -4,7 +4,7 @@
   "rules_file": "musicKG.csv",
   "rdf_file": "musicKG.nt",
   "constraints_folder": "musicKG",
-  "ontology_file": "musicKGOntology.ttl",
+  "ontology_file": "YAGO3-10.ttl",
   "max_body_length": "",
   "example_set_size": "",
   "type_predicate":  "",

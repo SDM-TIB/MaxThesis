@@ -272,14 +272,52 @@ def nt_to_txt(input_file, output_file, prefix):
     except Exception as e:
         print(f"Ein Fehler ist aufgetreten: {e}")
 
+def remove_lines_with_string(input_filename, output_filename, s):
+    with open(input_filename, 'r', encoding='utf-8') as infile, open(output_filename, 'w', encoding='utf-8') as outfile:
+        for line in infile:
+            write = True
+            for string_to_remove in s:
+                if string_to_remove in line:
+                    write = False
+            if write:
+                l = line.replace("/entity", "")
+                outfile.write(l)
+
+def add_type_person(input_filename, output_filename):
+    with open(input_filename, 'r', encoding='utf-8') as infile, open(output_filename, 'a', encoding='utf-8') as outfile:
+
+        for line in infile:
+            l = f"<{line.split()[0]}> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://FrenchRoyalty.org/Person> .\n"
+            outfile.write(l)
 
 
+
+import random
+
+def copy_file_with_random_exclusion(source_file, target_file, search_string):
+    with open(source_file, 'r', encoding='utf-8') as src, open(target_file, 'w', encoding='utf-8') as tgt:
+        for line in src:
+            if search_string in line:
+                if random.random() < 0.10:
+                    continue  
+            tgt.write(line)
 
 
 if __name__== '__main__':
     csvpath = "./Data/KG/musicKG/musicKG.csv"
-    ntpath = "./Data/KG/musicKG-example/musicKG-example.nt"
-    txtpath = "./Data/KG/musicKG-example/musicKG-example.txt"
-    # Beispielaufruf
-    nt_to_txt(ntpath, txtpath, "http://example.org/")
+
+    ntpath = "./Data/KG/SynthLC_1000/SynthLC_1000.nt"
+    txtpath = "./Data/KG/SynthLC_1000/SynthLC_1000.txt"
+    outpath = "./Data/KG/FrenchRoyalty/FrenchRoyalty.nt"
+
+    #nt_to_txt(ntpath, txtpath, "http://synthetic-LC.org/")
     #csv_to_nt(csvpath, ntpath)
+    #remove_lines_with_string(ntpath, outpath, ["/type"])
+    #add_type_person("./Data/KG/FrenchRoyalty/missing.txt", outpath)
+    for i in range(5):
+        copy_file_with_random_exclusion(ntpath, f"./Data/KG/SynthLC_1000/SynthLC_1000_10p_{i+1}.nt", "<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>")
+        nt_to_txt(f"./Data/KG/SynthLC_1000/SynthLC_1000_10p_{i+1}.nt", f"./Data/KG/SynthLC_1000/SynthLC_1000_10p_{i+1}.txt", "http://synthetic-LC.org/")
+
+    for i in range(5):
+        copy_file_with_random_exclusion("./Data/KG/FrenchRoyalty/FrenchRoyalty.nt", f"./Data/KG/FrenchRoyalty/FrenchRoyalty_10p_{i+1}.nt", "<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>")
+        nt_to_txt(f"./Data/KG/FrenchRoyalty/FrenchRoyalty_10p_{i+1}.nt", f"./Data/KG/FrenchRoyalty/FrenchRoyalty_10p_{i+1}.txt", "http://FrenchRoyalty.org/")

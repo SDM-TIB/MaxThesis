@@ -67,16 +67,6 @@ def mine_rules(transformed_kg:IncidenceList, targets:set, transform_output_dir:s
 
     result = []
 
-    # TODO remove
-    exr_time = 0
-    exp_time = 0
-    find_r_time = 0
-    w_time = 0
-    exp_calls = 0
-    w_calls = 0
-    cov_time = 0
-    fdr_time = 0
-    rule_time = 0
 
     for p in targets:
 
@@ -160,24 +150,10 @@ def mine_rules(transformed_kg:IncidenceList, targets:set, transform_output_dir:s
 
         print(f"mining rules for target predicate <{p}>...\n")
 
-        #result.extend(mine_rules_for_target_predicate(g, v, pmap, transformed_kg, prefix, type_predicate, ontology, expand_fun, fits_max_depth, max_depth, alpha, beta))
+        result.extend(mine_rules_for_target_predicate(g, v, pmap, transformed_kg, type_predicate, ontology, expand_fun, fits_max_depth, negative_rules, max_depth, alpha, beta))
 
-        #TODO remove
-        res, exr, exp, find_r, wt, ec, wc, fdr, cov, rt = mine_rules_for_target_predicate(g, v, pmap, transformed_kg, prefix, type_predicate, ontology, expand_fun, fits_max_depth, negative_rules, max_depth, alpha, beta)
-        result.extend(res)
-        exr_time += exr
-        exp_time += exp
-        find_r_time += find_r
-        w_time += wt
-        exp_calls += ec
-        w_calls += wc
-        fdr_time += fdr
-        cov_time += cov
-        rule_time += rt
         
-
     print(result)
-    print(f"exp rule {exr_time}\nexp path {exp_time} for {exp_calls} calls\n find r {find_r_time}\n weight time {w_time} for {w_calls} calls\n fits_domain_range {fdr_time}\n cov/uncov {cov_time}\n path.rule() time {rule_time}")
     #TODO add result to csvs
     with open(rules_file, mode='w', newline='', encoding='utf-8') as datei:
         writer = csv.writer(datei)
@@ -186,7 +162,7 @@ def mine_rules(transformed_kg:IncidenceList, targets:set, transform_output_dir:s
 
     return
 
-def mine_rules_for_target_predicate(g:set, v:set, pmap:P_map, kg:IncidenceList, prefix:str, type_predicate:str, ontology:Ontology, 
+def mine_rules_for_target_predicate(g:set, v:set, pmap:P_map, kg:IncidenceList, type_predicate:str, ontology:Ontology, 
                                     expand_fun, fits_max_depth, negative_rules,  max_depth:int=3, alpha:float=0.5, beta:float=0.5):
     
     """
@@ -209,17 +185,7 @@ def mine_rules_for_target_predicate(g:set, v:set, pmap:P_map, kg:IncidenceList, 
     
 
     
-    isGenre_g = {('Dire_Straits(Album)', 'isGenre_Rock', 'Rock'), ('Let_It_Be', 'isGenre_Rock', 'Rock'), ('Rosanna', 'isGenre_Rock', 'Rock'), ('Regatta_De_Blanc', 'isGenre_Reggae', 'Reggae'), ('Outlandos_D%27Amour', 'isGenre_Punk', 'Punk'), ('The_Beatles(Album)', 'isGenre_Jazz', 'Jazz'), ('In_The_Gallery', 'isGenre_Rock', 'Rock'), ('Lions', 'isGenre_Rock', 'Rock'), ('Africa', 'isGenre_Rock', 'Rock'), ('Shape_of_my_Heart', 'isGenre_Pop', 'Pop'), ('Let_It_Be', 'isGenre_Pop', 'Pop'), ('Making_Movies', 'isGenre_Pop', 'Pop'), ('461_Ocean_Blvd.', 'isGenre_Blues', 'Blues'), ('Ten_Summoner%27s_Tales', 'isGenre_Pop', 'Pop'), ('Down_To_The_Waterline', 'isGenre_Rock', 'Rock')}    # isGenre_v = {('Africa', 'Funk'), ('Toto_IV', 'Metal'), ('Making_Movies', 'Metal'), ('Ten_Summoner%27s_Tales', 'Rock'), ('Make_Beleive', 'Jazz'), ('Make_Beleive', 'Rock'), ('Africa', 'Soul'), ('Toto', 'Metal'), ('Make_Beleive', 'Funk'), ('Outlandos_D%27Amour', 'Metal'), ('Dire_Straits(Album)', 'Metal'), ('Africa', 'Jazz'), ('Let_It_Be', 'Metal'), ('Ten_Summoner%27s_Tales', 'Metal'), ('461_Ocean_Blvd.', 'Rock')}
-    isGenre_v = {('Sultans_Of_Swing', 'NONONOFunk'), ('Make_Believe', 'NONONOMetal'), ('Water_Of_Love', 'NONONOCountry'), ('Outlandos_D%27Amour', 'Pop'), ('The_Seventh_One', 'Jazz'), ('The_Beatles(Album)', 'Rock'), ('It%27s_a_Feeling', 'NONONOSoul'), ('Outlandos_D%27Amour', 'Jazz'), ('Lovers_in_the_Night', 'NONONOCountry'), ('The_Seventh_One', 'Pop'), ('The_Seventh_One', 'Reggae'), ('Regatta_De_Blanc', 'Jazz'), ('Making_Movies', 'Reggae'), ('461_Ocean_Blvd.', 'Rock'), ('Ten_Summoner%27s_Tales', 'Rock')}
-    isGenre_v =  {('Make_Believe', 'Making_Movies'), ('Make_Believe', 'Abbey_Road'), ('I_Won%27t_Hold_You_Back', 'Dire_Straits(Album)'), ('Make_Believe', '461_Ocean_Blvd.'), ('I_Won%27t_Hold_You_Back', 'Making_Movies'), ('Water_Of_Love', 'Toto_IV'), ('Sultans_Of_Swing', 'Toto_IV'), ('Make_Believe', 'Communiqué(Album)'), ('Lions', 'Toto_IV'), ('Down_To_The_Waterline', 'Toto_IV'), ('In_The_Gallery', 'Toto_IV'), ('I_Won%27t_Hold_You_Back', '461_Ocean_Blvd.'), ('Six_Blade_Knife', 'Toto_IV'), ('Setting_Me_Up', 'Toto_IV'), ('Wild_West_End', 'Toto_IV')}
-    parent_g = {('Duchess_Helene_of_Mecklenburg_Schwerin', 'parent_Princess_Caroline_Louise_of_Saxe_Weimar_Eisenach', 'Princess_Caroline_Louise_of_Saxe_Weimar_Eisenach'), ('Maria_Carolina_of_Austria', 'parent_Maria_Theresa', 'Maria_Theresa'), ('Welf_I_Duke_of_Bavaria', 'parent_Kunigunde_of_Altdorf', 'Kunigunde_of_Altdorf'), ('Humbert_II_Count_of_Savoy', 'parent_Joan_of_Geneva', 'Joan_of_Geneva'), ('Francesco_I_Sforza', 'parent_Muzio_Attendolo_Sforza', 'Muzio_Attendolo_Sforza'), ('John_Count_of_Chalon', 'parent_Stephen_III_of_Auxonne', 'Stephen_III_of_Auxonne'), ('Joan_Beaufort_Queen_of_Scots', 'parent_John_Beaufort_1st_Earl_of_Somerset', 'John_Beaufort_1st_Earl_of_Somerset'), ('Marie_of_Brabant_Queen_of_France', 'parent_Henry_III_Duke_of_Brabant', 'Henry_III_Duke_of_Brabant'), ('Mary_de_Bohun', 'parent_Humphrey_de_Bohun_7th_Earl_of_Hereford', 'Humphrey_de_Bohun_7th_Earl_of_Hereford'), ('Eckhard_I_Count_of_Scheyern', 'parent_Otto_I_Count_of_Scheyern', 'Otto_I_Count_of_Scheyern'), ('Maria_Anna_of_Bavaria_born_1551', 'parent_Albert_V_Duke_of_Bavaria', 'Albert_V_Duke_of_Bavaria'), ('Matilda_of_Carinthia', 'parent_Engelbert_Duke_of_Carinthia', 'Engelbert_Duke_of_Carinthia'), ('Maria_Theresa_of_Savoy', 'parent_Victor_Amadeus_III_of_Sardinia', 'Victor_Amadeus_III_of_Sardinia'), ('Philip_II_of_Spain', 'parent_Charles_V_Holy_Roman_Emperor', 'Charles_V_Holy_Roman_Emperor'), ('Charles_V_Duke_of_Lorraine', 'parent_Claude_Fran_oise_de_Lorraine', 'Claude_Fran_oise_de_Lorraine')}
-    parent_v = {('John_of_Gaunt', 'Theodoric_II_Duke_of_Lorraine'), ('Humbert_II_Count_of_Savoy', 'Theodoric_II_Duke_of_Lorraine'), ('Simon_I_Duke_of_Lorraine', 'Douce_I_Countess_of_Provence'), ('Simon_I_Duke_of_Lorraine', 'Charles_I_Duke_of_Bourbon'), ('Stephen_II_Duke_of_Bavaria', 'Theodoric_II_Duke_of_Lorraine'), ('Simon_I_Duke_of_Lorraine', 'Philippa_of_Hainault'), ('Simon_I_Duke_of_Lorraine', 'Louis_X_of_France'), ('Afonso_IV_of_Portugal', 'Theodoric_II_Duke_of_Lorraine'), ('Simon_I_Duke_of_Lorraine', 'Ranulf_II_of_Aquitaine'), ('Berengaria_of_Barcelona', 'Theodoric_II_Duke_of_Lorraine'), ('Simon_I_Duke_of_Lorraine', 'Elizabeth_of_Portugal'), ('Simon_I_Duke_of_Lorraine', 'Amadeus_II_Count_of_Savoy'), ('Joan_II_of_Navarre', 'Theodoric_II_Duke_of_Lorraine'), ('Ebalus_Duke_of_Aquitaine', 'Theodoric_II_Duke_of_Lorraine'), ('Margaret_of_Bourbon_1438_1483', 'Theodoric_II_Duke_of_Lorraine')}
-    #valid rule
-    # r = Rule(head=("?VAR1","isGenre", "?VAR2"), 
-    #          body={("?VAR3", "collaboratedWith", "?VAR4"), ("?VAR5", "hasAlbum", "?VAR6"), ("?VAR7", "isGenre", "?VAR8"), 
-    #                ("?VAR9", "hasAlbum", "?VAR10"), ("?VAR11", "releaseYear", "?VAR12"), ("?VAR13", "releaseYear", "?VAR14"), ("?VAR15", "<", "?VAR16")}, 
-    #                connections={("?VAR1", "?VAR6", "?VAR11"), ("?VAR2", "?VAR8"), ("?VAR5", "?VAR3"), ("?VAR4", "?VAR9"),("?VAR10", "?VAR7", "?VAR13"), ("?VAR12", "?VAR16"),("?VAR14", "?VAR15")}) 
-    
+   
 # {
 #   "KG": "musicKG",
 #   "prefix": "http://example.org/",
@@ -257,277 +223,277 @@ def mine_rules_for_target_predicate(g:set, v:set, pmap:P_map, kg:IncidenceList, 
 
 
 
-    rulelist = [Rule(
-        head= ('?VAR1', 'parent', '?VAR2'),
-        body= {('?VAR3', 'child', '?VAR4')},
-        connections= {('?VAR3', '?VAR1')})
-        , Rule(
-        head= ('?VAR1', 'parent', '?VAR2'),
-        body= {('?VAR3', 'mother', '?VAR4')},
-        connections= {('?VAR3', '?VAR1'), ('?VAR4', '?VAR2')})
-        , Rule(
-        head= ('?VAR1', 'parent', '?VAR2'),
-        body= {('?VAR3', 'father', '?VAR4')},
-        connections= {('?VAR4', '?VAR1')})
-        , Rule(
-        head= ('?VAR1', 'parent', '?VAR2'),
-        body= {('?VAR3', 'parent', '?VAR4')},
-        connections= {('?VAR3', '?VAR1')})
-        , Rule(
-        head= ('?VAR1', 'parent', '?VAR2'),
-        body= {('?VAR3', 'successor', '?VAR4')},
-        connections= {('?VAR3', '?VAR1')})
-        , Rule(
-        head= ('?VAR1', 'parent', '?VAR2'),
-        body= {('?VAR3', 'successor', '?VAR4')},
-        connections= {('?VAR4', '?VAR1')})
-        , Rule(
-        head= ('?VAR1', 'parent', '?VAR2'),
-        body= {('?VAR3', 'spouse', '?VAR4')},
-        connections= {('?VAR4', '?VAR1')})
-        , Rule(
-        head= ('?VAR1', 'parent', '?VAR2'),
-        body= {('?VAR3', 'father', '?VAR4')},
-        connections= {('?VAR3', '?VAR1')})
-        , Rule(
-        head= ('?VAR1', 'parent', '?VAR2'),
-        body= {('?VAR3', 'predecessor', '?VAR4')},
-        connections= {('?VAR3', '?VAR1')})
-        , Rule(
-        head= ('?VAR1', 'parent', '?VAR2'),
-        body= {('?VAR3', 'father', '?VAR4')},
-        connections= {('?VAR3', '?VAR1'), ('?VAR4', '?VAR2')})
-        , Rule(
-        head= ('?VAR1', 'parent', '?VAR2'),
-        body= {('?VAR3', 'mother', '?VAR4')},
-        connections= {('?VAR3', '?VAR1')})
-        , Rule(
-        head= ('?VAR1', 'parent', '?VAR2'),
-        body= {('?VAR3', 'mother', '?VAR4')},
-        connections= {('?VAR4', '?VAR1')})
-        , Rule(
-        head= ('?VAR1', 'parent', '?VAR2'),
-        body= {('?VAR3', 'child', '?VAR4')},
-        connections= {('?VAR4', '?VAR1')})
-        , Rule(
-        head= ('?VAR1', 'parent', '?VAR2'),
-        body= {('?VAR3', 'successor', '?VAR4')},
-        connections= {('?VAR3', '?VAR2'), ('?VAR4', '?VAR1')})
-        , Rule(
-        head= ('?VAR1', 'parent', '?VAR2'),
-        body= {('?VAR3', 'child', '?VAR4')},
-        connections= {('?VAR3', '?VAR2'), ('?VAR4', '?VAR1')})
-        , Rule(
-        head= ('?VAR1', 'parent', '?VAR2'),
-        body= {('?VAR3', 'predecessor', '?VAR4')},
-        connections= {('?VAR3', '?VAR1'), ('?VAR4', '?VAR2')})
-        , Rule(
-        head= ('?VAR1', 'parent', '?VAR2'),
-        body= {('?VAR3', 'predecessor', '?VAR4')},
-        connections= {('?VAR4', '?VAR1')})
-        , Rule(
-        head= ('?VAR1', 'parent', '?VAR2'),
-        body= {('?VAR5', 'gender', '?VAR6'), ('?VAR3', 'gender', '?VAR4')},
-        connections= {('?VAR5', '?VAR2'), ('?VAR3', '?VAR1'), ('?VAR4', '?VAR6')})
-        , Rule(
-        head= ('?VAR1', 'parent', '?VAR2'),
-        body= {('?VAR7', 'parent', '?VAR8'), ('?VAR5', 'gender', '?VAR6'), ('?VAR3', 'gender', '?VAR4')},
-        connections= {('?VAR2', '?VAR7'), ('?VAR4', '?VAR6'), ('?VAR3', '?VAR1'), ('?VAR5', '?VAR8')})
-        , Rule(
-        head= ('?VAR1', 'parent', '?VAR2'),
-        body= {('?VAR7', 'spouse', '?VAR8'), ('?VAR5', 'gender', '?VAR6'), ('?VAR3', 'gender', '?VAR4')},
-        connections= {('?VAR2', '?VAR7'), ('?VAR4', '?VAR6'), ('?VAR3', '?VAR1'), ('?VAR5', '?VAR8')})
-        , Rule(
-        head= ('?VAR1', 'parent', '?VAR2'),
-        body= {('?VAR7', 'mother', '?VAR8'), ('?VAR5', 'gender', '?VAR6'), ('?VAR3', 'gender', '?VAR4')},
-        connections= {('?VAR2', '?VAR7'), ('?VAR4', '?VAR6'), ('?VAR3', '?VAR1'), ('?VAR5', '?VAR8')})
-        , Rule(
-        head= ('?VAR1', 'parent', '?VAR2'),
-        body= {('?VAR5', 'gender', '?VAR6'), ('?VAR3', 'gender', '?VAR4'), ('?VAR7', 'father', '?VAR8')},
-        connections= {('?VAR2', '?VAR7'), ('?VAR4', '?VAR6'), ('?VAR3', '?VAR1'), ('?VAR5', '?VAR8')})
-        , Rule(
-        head= ('?VAR1', 'parent', '?VAR2'),
-        body= {('?VAR7', 'spouse', '?VAR8'), ('?VAR5', 'gender', '?VAR6'), ('?VAR3', 'gender', '?VAR4')},
-        connections= {('?VAR8', '?VAR2'), ('?VAR4', '?VAR6'), ('?VAR3', '?VAR1'), ('?VAR5', '?VAR7')})
-        , Rule(
-        head= ('?VAR1', 'parent', '?VAR2'),
-        body= {('?VAR5', 'gender', '?VAR6'), ('?VAR7', 'successor', '?VAR8'), ('?VAR3', 'gender', '?VAR4')},
-        connections= {('?VAR2', '?VAR7'), ('?VAR4', '?VAR6'), ('?VAR3', '?VAR1'), ('?VAR5', '?VAR8')})
-        , Rule(
-        head= ('?VAR1', 'parent', '?VAR2'),
-        body= {('?VAR5', 'gender', '?VAR6'), ('?VAR7', 'predecessor', '?VAR8'), ('?VAR3', 'gender', '?VAR4')},
-        connections= {('?VAR8', '?VAR2'), ('?VAR4', '?VAR6'), ('?VAR3', '?VAR1'), ('?VAR5', '?VAR7')})
-        , Rule(
-        head= ('?VAR1', 'parent', '?VAR2'),
-        body= {('?VAR5', 'gender', '?VAR6'), ('?VAR7', 'child', '?VAR8'), ('?VAR3', 'gender', '?VAR4')},
-        connections= {('?VAR2', '?VAR7'), ('?VAR4', '?VAR6'), ('?VAR3', '?VAR1'), ('?VAR5', '?VAR8')})
-        , Rule(
-        head= ('?VAR1', 'parent', '?VAR2'),
-        body= {('?VAR7', 'parent', '?VAR8'), ('?VAR5', 'gender', '?VAR6'), ('?VAR3', 'gender', '?VAR4')},
-        connections= {('?VAR8', '?VAR2'), ('?VAR4', '?VAR6'), ('?VAR3', '?VAR1'), ('?VAR5', '?VAR7')})
-        , Rule(
-        head= ('?VAR1', 'parent', '?VAR2'),
-        body= {('?VAR5', 'gender', '?VAR6'), ('?VAR3', 'gender', '?VAR4'), ('?VAR7', 'father', '?VAR8')},
-        connections= {('?VAR8', '?VAR2'), ('?VAR4', '?VAR6'), ('?VAR3', '?VAR1'), ('?VAR5', '?VAR7')})
-        , Rule(
-        head= ('?VAR1', 'parent', '?VAR2'),
-        body= {('?VAR5', 'gender', '?VAR6'), ('?VAR3', 'parent', '?VAR4')},
-        connections= {('?VAR4', '?VAR1'), ('?VAR5', '?VAR3')})
-        , Rule(
-        head= ('?VAR1', 'parent', '?VAR2'),
-        body= {('?VAR3', 'parent', '?VAR4'), ('?VAR5', 'parent', '?VAR6')},
-        connections= {('?VAR4', '?VAR1'), ('?VAR5', '?VAR3')})
-        , Rule(
-        head= ('?VAR1', 'parent', '?VAR2'),
-        body= {('?VAR3', 'parent', '?VAR4'), ('?VAR5', 'spouse', '?VAR6')},
-        connections= {('?VAR4', '?VAR1'), ('?VAR5', '?VAR3')})
-        , Rule(
-        head= ('?VAR1', 'parent', '?VAR2'),
-        body= {('?VAR5', 'predecessor', '?VAR6'), ('?VAR3', 'parent', '?VAR4')},
-        connections= {('?VAR4', '?VAR1'), ('?VAR3', '?VAR6')})
-        , Rule(
-        head= ('?VAR1', 'parent', '?VAR2'),
-        body= {('?VAR5', 'child', '?VAR6'), ('?VAR3', 'parent', '?VAR4')},
-        connections= {('?VAR4', '?VAR1'), ('?VAR5', '?VAR3')})
-        , Rule(
-        head= ('?VAR1', 'parent', '?VAR2'),
-        body= {('?VAR3', 'parent', '?VAR4'), ('?VAR5', 'father', '?VAR6')},
-        connections= {('?VAR4', '?VAR1'), ('?VAR3', '?VAR6')})
-        , Rule(
-        head= ('?VAR1', 'parent', '?VAR2'),
-        body= {('?VAR3', 'parent', '?VAR4'), ('?VAR5', 'mother', '?VAR6')},
-        connections= {('?VAR4', '?VAR1'), ('?VAR5', '?VAR3')})
-        , Rule(
-        head= ('?VAR1', 'parent', '?VAR2'),
-        body= {('?VAR5', 'successor', '?VAR6'), ('?VAR3', 'parent', '?VAR4')},
-        connections= {('?VAR4', '?VAR1'), ('?VAR5', '?VAR3')})
-        , Rule(
-        head= ('?VAR1', 'parent', '?VAR2'),
-        body= {('?VAR3', 'parent', '?VAR4'), ('?VAR5', 'spouse', '?VAR6')},
-        connections= {('?VAR4', '?VAR1'), ('?VAR3', '?VAR6')})
-        , Rule(
-        head= ('?VAR1', 'parent', '?VAR2'),
-        body= {('?VAR3', 'parent', '?VAR4'), ('?VAR5', 'parent', '?VAR6')},
-        connections= {('?VAR4', '?VAR1'), ('?VAR3', '?VAR6')})
-        , Rule(
-        head= ('?VAR1', 'parent', '?VAR2'),
-        body= {('?VAR3', 'parent', '?VAR4'), ('?VAR5', 'mother', '?VAR6')},
-        connections= {('?VAR4', '?VAR1'), ('?VAR3', '?VAR6')})
-        , Rule(
-        head= ('?VAR1', 'parent', '?VAR2'),
-        body= {('?VAR3', 'parent', '?VAR4'), ('?VAR5', 'father', '?VAR6')},
-        connections= {('?VAR4', '?VAR1'), ('?VAR5', '?VAR3')})
-        , Rule(
-        head= ('?VAR1', 'parent', '?VAR2'),
-        body= {('?VAR5', 'successor', '?VAR6'), ('?VAR3', 'parent', '?VAR4')},
-        connections= {('?VAR4', '?VAR1'), ('?VAR3', '?VAR6')})
-        , Rule(
-        head= ('?VAR1', 'parent', '?VAR2'),
-        body= {('?VAR5', 'predecessor', '?VAR6'), ('?VAR3', 'parent', '?VAR4')},
-        connections= {('?VAR4', '?VAR1'), ('?VAR5', '?VAR3')})
-        , Rule(
-        head= ('?VAR1', 'parent', '?VAR2'),
-        body= {('?VAR5', 'child', '?VAR6'), ('?VAR3', 'parent', '?VAR4')},
-        connections= {('?VAR4', '?VAR1'), ('?VAR3', '?VAR6')})
-        , Rule(
-        head= ('?VAR1', 'parent', '?VAR2'),
-        body= {('?VAR3', 'spouse', '?VAR4'), ('?VAR5', 'spouse', '?VAR6')},
-        connections= {('?VAR4', '?VAR6'), ('?VAR3', '?VAR1')})
-        , Rule(
-        head= ('?VAR1', 'parent', '?VAR2'),
-        body= {('?VAR3', 'spouse', '?VAR4'), ('?VAR5', 'father', '?VAR6')},
-        connections= {('?VAR4', '?VAR5'), ('?VAR3', '?VAR1')})
-        , Rule(
-        head= ('?VAR1', 'parent', '?VAR2'),
-        body= {('?VAR5', 'gender', '?VAR6'), ('?VAR3', 'spouse', '?VAR4')},
-        connections= {('?VAR4', '?VAR5'), ('?VAR3', '?VAR1')})
-        , Rule(
-        head= ('?VAR1', 'parent', '?VAR2'),
-        body= {('?VAR5', 'predecessor', '?VAR6'), ('?VAR3', 'spouse', '?VAR4')},
-        connections= {('?VAR4', '?VAR5'), ('?VAR3', '?VAR1')})
-        , Rule(
-        head= ('?VAR1', 'parent', '?VAR2'),
-        body= {('?VAR5', 'child', '?VAR6'), ('?VAR3', 'spouse', '?VAR4')},
-        connections= {('?VAR4', '?VAR5'), ('?VAR3', '?VAR1')})
-        , Rule(
-        head= ('?VAR1', 'parent', '?VAR2'),
-        body= {('?VAR5', 'successor', '?VAR6'), ('?VAR3', 'spouse', '?VAR4')},
-        connections= {('?VAR4', '?VAR6'), ('?VAR3', '?VAR1')})
-        , Rule(
-        head= ('?VAR1', 'parent', '?VAR2'),
-        body= {('?VAR3', 'spouse', '?VAR4'), ('?VAR5', 'parent', '?VAR6')},
-        connections= {('?VAR4', '?VAR5'), ('?VAR3', '?VAR1')})
-        , Rule(
-        head= ('?VAR1', 'parent', '?VAR2'),
-        body= {('?VAR3', 'spouse', '?VAR4'), ('?VAR5', 'parent', '?VAR6')},
-        connections= {('?VAR4', '?VAR6'), ('?VAR3', '?VAR1')})
-        , Rule(
-        head= ('?VAR1', 'parent', '?VAR2'),
-        body= {('?VAR5', 'successor', '?VAR6'), ('?VAR3', 'spouse', '?VAR4')},
-        connections= {('?VAR4', '?VAR5'), ('?VAR3', '?VAR1')})
-        , Rule(
-        head= ('?VAR1', 'parent', '?VAR2'),
-        body= {('?VAR3', 'spouse', '?VAR4'), ('?VAR5', 'spouse', '?VAR6')},
-        connections= {('?VAR4', '?VAR5'), ('?VAR3', '?VAR1')})
-        , Rule(
-        head= ('?VAR1', 'parent', '?VAR2'),
-        body= {('?VAR3', 'spouse', '?VAR4'), ('?VAR5', 'father', '?VAR6')},
-        connections= {('?VAR4', '?VAR6'), ('?VAR3', '?VAR1')})
-        , Rule(
-        head= ('?VAR1', 'parent', '?VAR2'),
-        body= {('?VAR5', 'predecessor', '?VAR6'), ('?VAR3', 'spouse', '?VAR4')},
-        connections= {('?VAR4', '?VAR6'), ('?VAR3', '?VAR1')})
-        , Rule(
-        head= ('?VAR1', 'parent', '?VAR2'),
-        body= {('?VAR3', 'spouse', '?VAR4'), ('?VAR5', 'mother', '?VAR6')},
-        connections= {('?VAR4', '?VAR5'), ('?VAR3', '?VAR1')})
-        , Rule(
-        head= ('?VAR1', 'parent', '?VAR2'),
-        body= {('?VAR5', 'child', '?VAR6'), ('?VAR3', 'spouse', '?VAR4')},
-        connections= {('?VAR4', '?VAR6'), ('?VAR3', '?VAR1')})
-        , Rule(
-        head= ('?VAR1', 'parent', '?VAR2'),
-        body= {('?VAR3', 'spouse', '?VAR4'), ('?VAR5', 'mother', '?VAR6')},
-        connections= {('?VAR4', '?VAR6'), ('?VAR3', '?VAR1')})
-        ]
+    # rulelist = [Rule(
+    #     head= ('?VAR1', 'parent', '?VAR2'),
+    #     body= {('?VAR3', 'child', '?VAR4')},
+    #     connections= {('?VAR3', '?VAR1')})
+    #     , Rule(
+    #     head= ('?VAR1', 'parent', '?VAR2'),
+    #     body= {('?VAR3', 'mother', '?VAR4')},
+    #     connections= {('?VAR3', '?VAR1'), ('?VAR4', '?VAR2')})
+    #     , Rule(
+    #     head= ('?VAR1', 'parent', '?VAR2'),
+    #     body= {('?VAR3', 'father', '?VAR4')},
+    #     connections= {('?VAR4', '?VAR1')})
+    #     , Rule(
+    #     head= ('?VAR1', 'parent', '?VAR2'),
+    #     body= {('?VAR3', 'parent', '?VAR4')},
+    #     connections= {('?VAR3', '?VAR1')})
+    #     , Rule(
+    #     head= ('?VAR1', 'parent', '?VAR2'),
+    #     body= {('?VAR3', 'successor', '?VAR4')},
+    #     connections= {('?VAR3', '?VAR1')})
+    #     , Rule(
+    #     head= ('?VAR1', 'parent', '?VAR2'),
+    #     body= {('?VAR3', 'successor', '?VAR4')},
+    #     connections= {('?VAR4', '?VAR1')})
+    #     , Rule(
+    #     head= ('?VAR1', 'parent', '?VAR2'),
+    #     body= {('?VAR3', 'spouse', '?VAR4')},
+    #     connections= {('?VAR4', '?VAR1')})
+    #     , Rule(
+    #     head= ('?VAR1', 'parent', '?VAR2'),
+    #     body= {('?VAR3', 'father', '?VAR4')},
+    #     connections= {('?VAR3', '?VAR1')})
+    #     , Rule(
+    #     head= ('?VAR1', 'parent', '?VAR2'),
+    #     body= {('?VAR3', 'predecessor', '?VAR4')},
+    #     connections= {('?VAR3', '?VAR1')})
+    #     , Rule(
+    #     head= ('?VAR1', 'parent', '?VAR2'),
+    #     body= {('?VAR3', 'father', '?VAR4')},
+    #     connections= {('?VAR3', '?VAR1'), ('?VAR4', '?VAR2')})
+    #     , Rule(
+    #     head= ('?VAR1', 'parent', '?VAR2'),
+    #     body= {('?VAR3', 'mother', '?VAR4')},
+    #     connections= {('?VAR3', '?VAR1')})
+    #     , Rule(
+    #     head= ('?VAR1', 'parent', '?VAR2'),
+    #     body= {('?VAR3', 'mother', '?VAR4')},
+    #     connections= {('?VAR4', '?VAR1')})
+    #     , Rule(
+    #     head= ('?VAR1', 'parent', '?VAR2'),
+    #     body= {('?VAR3', 'child', '?VAR4')},
+    #     connections= {('?VAR4', '?VAR1')})
+    #     , Rule(
+    #     head= ('?VAR1', 'parent', '?VAR2'),
+    #     body= {('?VAR3', 'successor', '?VAR4')},
+    #     connections= {('?VAR3', '?VAR2'), ('?VAR4', '?VAR1')})
+    #     , Rule(
+    #     head= ('?VAR1', 'parent', '?VAR2'),
+    #     body= {('?VAR3', 'child', '?VAR4')},
+    #     connections= {('?VAR3', '?VAR2'), ('?VAR4', '?VAR1')})
+    #     , Rule(
+    #     head= ('?VAR1', 'parent', '?VAR2'),
+    #     body= {('?VAR3', 'predecessor', '?VAR4')},
+    #     connections= {('?VAR3', '?VAR1'), ('?VAR4', '?VAR2')})
+    #     , Rule(
+    #     head= ('?VAR1', 'parent', '?VAR2'),
+    #     body= {('?VAR3', 'predecessor', '?VAR4')},
+    #     connections= {('?VAR4', '?VAR1')})
+    #     , Rule(
+    #     head= ('?VAR1', 'parent', '?VAR2'),
+    #     body= {('?VAR5', 'gender', '?VAR6'), ('?VAR3', 'gender', '?VAR4')},
+    #     connections= {('?VAR5', '?VAR2'), ('?VAR3', '?VAR1'), ('?VAR4', '?VAR6')})
+    #     , Rule(
+    #     head= ('?VAR1', 'parent', '?VAR2'),
+    #     body= {('?VAR7', 'parent', '?VAR8'), ('?VAR5', 'gender', '?VAR6'), ('?VAR3', 'gender', '?VAR4')},
+    #     connections= {('?VAR2', '?VAR7'), ('?VAR4', '?VAR6'), ('?VAR3', '?VAR1'), ('?VAR5', '?VAR8')})
+    #     , Rule(
+    #     head= ('?VAR1', 'parent', '?VAR2'),
+    #     body= {('?VAR7', 'spouse', '?VAR8'), ('?VAR5', 'gender', '?VAR6'), ('?VAR3', 'gender', '?VAR4')},
+    #     connections= {('?VAR2', '?VAR7'), ('?VAR4', '?VAR6'), ('?VAR3', '?VAR1'), ('?VAR5', '?VAR8')})
+    #     , Rule(
+    #     head= ('?VAR1', 'parent', '?VAR2'),
+    #     body= {('?VAR7', 'mother', '?VAR8'), ('?VAR5', 'gender', '?VAR6'), ('?VAR3', 'gender', '?VAR4')},
+    #     connections= {('?VAR2', '?VAR7'), ('?VAR4', '?VAR6'), ('?VAR3', '?VAR1'), ('?VAR5', '?VAR8')})
+    #     , Rule(
+    #     head= ('?VAR1', 'parent', '?VAR2'),
+    #     body= {('?VAR5', 'gender', '?VAR6'), ('?VAR3', 'gender', '?VAR4'), ('?VAR7', 'father', '?VAR8')},
+    #     connections= {('?VAR2', '?VAR7'), ('?VAR4', '?VAR6'), ('?VAR3', '?VAR1'), ('?VAR5', '?VAR8')})
+    #     , Rule(
+    #     head= ('?VAR1', 'parent', '?VAR2'),
+    #     body= {('?VAR7', 'spouse', '?VAR8'), ('?VAR5', 'gender', '?VAR6'), ('?VAR3', 'gender', '?VAR4')},
+    #     connections= {('?VAR8', '?VAR2'), ('?VAR4', '?VAR6'), ('?VAR3', '?VAR1'), ('?VAR5', '?VAR7')})
+    #     , Rule(
+    #     head= ('?VAR1', 'parent', '?VAR2'),
+    #     body= {('?VAR5', 'gender', '?VAR6'), ('?VAR7', 'successor', '?VAR8'), ('?VAR3', 'gender', '?VAR4')},
+    #     connections= {('?VAR2', '?VAR7'), ('?VAR4', '?VAR6'), ('?VAR3', '?VAR1'), ('?VAR5', '?VAR8')})
+    #     , Rule(
+    #     head= ('?VAR1', 'parent', '?VAR2'),
+    #     body= {('?VAR5', 'gender', '?VAR6'), ('?VAR7', 'predecessor', '?VAR8'), ('?VAR3', 'gender', '?VAR4')},
+    #     connections= {('?VAR8', '?VAR2'), ('?VAR4', '?VAR6'), ('?VAR3', '?VAR1'), ('?VAR5', '?VAR7')})
+    #     , Rule(
+    #     head= ('?VAR1', 'parent', '?VAR2'),
+    #     body= {('?VAR5', 'gender', '?VAR6'), ('?VAR7', 'child', '?VAR8'), ('?VAR3', 'gender', '?VAR4')},
+    #     connections= {('?VAR2', '?VAR7'), ('?VAR4', '?VAR6'), ('?VAR3', '?VAR1'), ('?VAR5', '?VAR8')})
+    #     , Rule(
+    #     head= ('?VAR1', 'parent', '?VAR2'),
+    #     body= {('?VAR7', 'parent', '?VAR8'), ('?VAR5', 'gender', '?VAR6'), ('?VAR3', 'gender', '?VAR4')},
+    #     connections= {('?VAR8', '?VAR2'), ('?VAR4', '?VAR6'), ('?VAR3', '?VAR1'), ('?VAR5', '?VAR7')})
+    #     , Rule(
+    #     head= ('?VAR1', 'parent', '?VAR2'),
+    #     body= {('?VAR5', 'gender', '?VAR6'), ('?VAR3', 'gender', '?VAR4'), ('?VAR7', 'father', '?VAR8')},
+    #     connections= {('?VAR8', '?VAR2'), ('?VAR4', '?VAR6'), ('?VAR3', '?VAR1'), ('?VAR5', '?VAR7')})
+    #     , Rule(
+    #     head= ('?VAR1', 'parent', '?VAR2'),
+    #     body= {('?VAR5', 'gender', '?VAR6'), ('?VAR3', 'parent', '?VAR4')},
+    #     connections= {('?VAR4', '?VAR1'), ('?VAR5', '?VAR3')})
+    #     , Rule(
+    #     head= ('?VAR1', 'parent', '?VAR2'),
+    #     body= {('?VAR3', 'parent', '?VAR4'), ('?VAR5', 'parent', '?VAR6')},
+    #     connections= {('?VAR4', '?VAR1'), ('?VAR5', '?VAR3')})
+    #     , Rule(
+    #     head= ('?VAR1', 'parent', '?VAR2'),
+    #     body= {('?VAR3', 'parent', '?VAR4'), ('?VAR5', 'spouse', '?VAR6')},
+    #     connections= {('?VAR4', '?VAR1'), ('?VAR5', '?VAR3')})
+    #     , Rule(
+    #     head= ('?VAR1', 'parent', '?VAR2'),
+    #     body= {('?VAR5', 'predecessor', '?VAR6'), ('?VAR3', 'parent', '?VAR4')},
+    #     connections= {('?VAR4', '?VAR1'), ('?VAR3', '?VAR6')})
+    #     , Rule(
+    #     head= ('?VAR1', 'parent', '?VAR2'),
+    #     body= {('?VAR5', 'child', '?VAR6'), ('?VAR3', 'parent', '?VAR4')},
+    #     connections= {('?VAR4', '?VAR1'), ('?VAR5', '?VAR3')})
+    #     , Rule(
+    #     head= ('?VAR1', 'parent', '?VAR2'),
+    #     body= {('?VAR3', 'parent', '?VAR4'), ('?VAR5', 'father', '?VAR6')},
+    #     connections= {('?VAR4', '?VAR1'), ('?VAR3', '?VAR6')})
+    #     , Rule(
+    #     head= ('?VAR1', 'parent', '?VAR2'),
+    #     body= {('?VAR3', 'parent', '?VAR4'), ('?VAR5', 'mother', '?VAR6')},
+    #     connections= {('?VAR4', '?VAR1'), ('?VAR5', '?VAR3')})
+    #     , Rule(
+    #     head= ('?VAR1', 'parent', '?VAR2'),
+    #     body= {('?VAR5', 'successor', '?VAR6'), ('?VAR3', 'parent', '?VAR4')},
+    #     connections= {('?VAR4', '?VAR1'), ('?VAR5', '?VAR3')})
+    #     , Rule(
+    #     head= ('?VAR1', 'parent', '?VAR2'),
+    #     body= {('?VAR3', 'parent', '?VAR4'), ('?VAR5', 'spouse', '?VAR6')},
+    #     connections= {('?VAR4', '?VAR1'), ('?VAR3', '?VAR6')})
+    #     , Rule(
+    #     head= ('?VAR1', 'parent', '?VAR2'),
+    #     body= {('?VAR3', 'parent', '?VAR4'), ('?VAR5', 'parent', '?VAR6')},
+    #     connections= {('?VAR4', '?VAR1'), ('?VAR3', '?VAR6')})
+    #     , Rule(
+    #     head= ('?VAR1', 'parent', '?VAR2'),
+    #     body= {('?VAR3', 'parent', '?VAR4'), ('?VAR5', 'mother', '?VAR6')},
+    #     connections= {('?VAR4', '?VAR1'), ('?VAR3', '?VAR6')})
+    #     , Rule(
+    #     head= ('?VAR1', 'parent', '?VAR2'),
+    #     body= {('?VAR3', 'parent', '?VAR4'), ('?VAR5', 'father', '?VAR6')},
+    #     connections= {('?VAR4', '?VAR1'), ('?VAR5', '?VAR3')})
+    #     , Rule(
+    #     head= ('?VAR1', 'parent', '?VAR2'),
+    #     body= {('?VAR5', 'successor', '?VAR6'), ('?VAR3', 'parent', '?VAR4')},
+    #     connections= {('?VAR4', '?VAR1'), ('?VAR3', '?VAR6')})
+    #     , Rule(
+    #     head= ('?VAR1', 'parent', '?VAR2'),
+    #     body= {('?VAR5', 'predecessor', '?VAR6'), ('?VAR3', 'parent', '?VAR4')},
+    #     connections= {('?VAR4', '?VAR1'), ('?VAR5', '?VAR3')})
+    #     , Rule(
+    #     head= ('?VAR1', 'parent', '?VAR2'),
+    #     body= {('?VAR5', 'child', '?VAR6'), ('?VAR3', 'parent', '?VAR4')},
+    #     connections= {('?VAR4', '?VAR1'), ('?VAR3', '?VAR6')})
+    #     , Rule(
+    #     head= ('?VAR1', 'parent', '?VAR2'),
+    #     body= {('?VAR3', 'spouse', '?VAR4'), ('?VAR5', 'spouse', '?VAR6')},
+    #     connections= {('?VAR4', '?VAR6'), ('?VAR3', '?VAR1')})
+    #     , Rule(
+    #     head= ('?VAR1', 'parent', '?VAR2'),
+    #     body= {('?VAR3', 'spouse', '?VAR4'), ('?VAR5', 'father', '?VAR6')},
+    #     connections= {('?VAR4', '?VAR5'), ('?VAR3', '?VAR1')})
+    #     , Rule(
+    #     head= ('?VAR1', 'parent', '?VAR2'),
+    #     body= {('?VAR5', 'gender', '?VAR6'), ('?VAR3', 'spouse', '?VAR4')},
+    #     connections= {('?VAR4', '?VAR5'), ('?VAR3', '?VAR1')})
+    #     , Rule(
+    #     head= ('?VAR1', 'parent', '?VAR2'),
+    #     body= {('?VAR5', 'predecessor', '?VAR6'), ('?VAR3', 'spouse', '?VAR4')},
+    #     connections= {('?VAR4', '?VAR5'), ('?VAR3', '?VAR1')})
+    #     , Rule(
+    #     head= ('?VAR1', 'parent', '?VAR2'),
+    #     body= {('?VAR5', 'child', '?VAR6'), ('?VAR3', 'spouse', '?VAR4')},
+    #     connections= {('?VAR4', '?VAR5'), ('?VAR3', '?VAR1')})
+    #     , Rule(
+    #     head= ('?VAR1', 'parent', '?VAR2'),
+    #     body= {('?VAR5', 'successor', '?VAR6'), ('?VAR3', 'spouse', '?VAR4')},
+    #     connections= {('?VAR4', '?VAR6'), ('?VAR3', '?VAR1')})
+    #     , Rule(
+    #     head= ('?VAR1', 'parent', '?VAR2'),
+    #     body= {('?VAR3', 'spouse', '?VAR4'), ('?VAR5', 'parent', '?VAR6')},
+    #     connections= {('?VAR4', '?VAR5'), ('?VAR3', '?VAR1')})
+    #     , Rule(
+    #     head= ('?VAR1', 'parent', '?VAR2'),
+    #     body= {('?VAR3', 'spouse', '?VAR4'), ('?VAR5', 'parent', '?VAR6')},
+    #     connections= {('?VAR4', '?VAR6'), ('?VAR3', '?VAR1')})
+    #     , Rule(
+    #     head= ('?VAR1', 'parent', '?VAR2'),
+    #     body= {('?VAR5', 'successor', '?VAR6'), ('?VAR3', 'spouse', '?VAR4')},
+    #     connections= {('?VAR4', '?VAR5'), ('?VAR3', '?VAR1')})
+    #     , Rule(
+    #     head= ('?VAR1', 'parent', '?VAR2'),
+    #     body= {('?VAR3', 'spouse', '?VAR4'), ('?VAR5', 'spouse', '?VAR6')},
+    #     connections= {('?VAR4', '?VAR5'), ('?VAR3', '?VAR1')})
+    #     , Rule(
+    #     head= ('?VAR1', 'parent', '?VAR2'),
+    #     body= {('?VAR3', 'spouse', '?VAR4'), ('?VAR5', 'father', '?VAR6')},
+    #     connections= {('?VAR4', '?VAR6'), ('?VAR3', '?VAR1')})
+    #     , Rule(
+    #     head= ('?VAR1', 'parent', '?VAR2'),
+    #     body= {('?VAR5', 'predecessor', '?VAR6'), ('?VAR3', 'spouse', '?VAR4')},
+    #     connections= {('?VAR4', '?VAR6'), ('?VAR3', '?VAR1')})
+    #     , Rule(
+    #     head= ('?VAR1', 'parent', '?VAR2'),
+    #     body= {('?VAR3', 'spouse', '?VAR4'), ('?VAR5', 'mother', '?VAR6')},
+    #     connections= {('?VAR4', '?VAR5'), ('?VAR3', '?VAR1')})
+    #     , Rule(
+    #     head= ('?VAR1', 'parent', '?VAR2'),
+    #     body= {('?VAR5', 'child', '?VAR6'), ('?VAR3', 'spouse', '?VAR4')},
+    #     connections= {('?VAR4', '?VAR6'), ('?VAR3', '?VAR1')})
+    #     , Rule(
+    #     head= ('?VAR1', 'parent', '?VAR2'),
+    #     body= {('?VAR3', 'spouse', '?VAR4'), ('?VAR5', 'mother', '?VAR6')},
+    #     connections= {('?VAR4', '?VAR6'), ('?VAR3', '?VAR1')})
+    #     ]
     
 
-    pathlist = [ Path( ('Blanche_of_Burgundy', 'parent_Mahaut_Countess_of_Artois', 'Mahaut_Countess_of_Artois'), IncidenceList(
-        {'spouse_Charles_IV_of_France': {('Blanche_of_Burgundy', 'Charles_IV_of_France')}, 
-         'spouse_Joan_of__vreux': {('Charles_IV_of_France', 'Joan_of__vreux')}},        
-        {'Blanche_of_Burgundy': {'spouse_Charles_IV_of_France'}, 
-         'Charles_IV_of_France': {'spouse_Charles_IV_of_France', 'spouse_Joan_of__vreux'},
-           'Joan_of__vreux': {'spouse_Joan_of__vreux'}}
-        )),
+    # pathlist = [ Path( ('Blanche_of_Burgundy', 'parent_Mahaut_Countess_of_Artois', 'Mahaut_Countess_of_Artois'), IncidenceList(
+    #     {'spouse_Charles_IV_of_France': {('Blanche_of_Burgundy', 'Charles_IV_of_France')}, 
+    #      'spouse_Joan_of__vreux': {('Charles_IV_of_France', 'Joan_of__vreux')}},        
+    #     {'Blanche_of_Burgundy': {'spouse_Charles_IV_of_France'}, 
+    #      'Charles_IV_of_France': {'spouse_Charles_IV_of_France', 'spouse_Joan_of__vreux'},
+    #        'Joan_of__vreux': {'spouse_Joan_of__vreux'}}
+    #     )),
 
-        Path( ('Philip_V_of_Spain', 'parent_Louis_Dauphin_of_France_son_of_Louis_XIV', 'Louis_Dauphin_of_France_son_of_Louis_XIV'), IncidenceList(
-         {'spouse_Maria_Amalia_of_Saxony': {('Philip_V_of_Spain', 'Maria_Amalia_of_Saxony'),
-                                             ('Charles_III_of_Spain', 'Maria_Amalia_of_Saxony')}},
-         {'Philip_V_of_Spain': {'spouse_Maria_Amalia_of_Saxony'}, 
-          'Maria_Amalia_of_Saxony': {'spouse_Maria_Amalia_of_Saxony'}, 
-          'Charles_III_of_Spain': {'spouse_Maria_Amalia_of_Saxony'}}
-        )),
-        Path( ('Philip_V_of_Spain', 'parent_Louis_Dauphin_of_France_son_of_Louis_XIV', 'Louis_Dauphin_of_France_son_of_Louis_XIV'), IncidenceList(
-         {'spouse_Maria_Amalia_of_Saxony': {('Philip_V_of_Spain', 'Maria_Amalia_of_Saxony')},
-           'marriedTo_Elisabeth_Farnese': {('Maria_Amalia_of_Saxony', 'Elisabeth_Farnese')}},
-         {'Philip_V_of_Spain': {'spouse_Maria_Amalia_of_Saxony'},
-           'Maria_Amalia_of_Saxony': {'marriedTo_Elisabeth_Farnese', 'spouse_Maria_Amalia_of_Saxony'},
-             'Elisabeth_Farnese': {'marriedTo_Elisabeth_Farnese'}}
-        )), 
+    #     Path( ('Philip_V_of_Spain', 'parent_Louis_Dauphin_of_France_son_of_Louis_XIV', 'Louis_Dauphin_of_France_son_of_Louis_XIV'), IncidenceList(
+    #      {'spouse_Maria_Amalia_of_Saxony': {('Philip_V_of_Spain', 'Maria_Amalia_of_Saxony'),
+    #                                          ('Charles_III_of_Spain', 'Maria_Amalia_of_Saxony')}},
+    #      {'Philip_V_of_Spain': {'spouse_Maria_Amalia_of_Saxony'}, 
+    #       'Maria_Amalia_of_Saxony': {'spouse_Maria_Amalia_of_Saxony'}, 
+    #       'Charles_III_of_Spain': {'spouse_Maria_Amalia_of_Saxony'}}
+    #     )),
+    #     Path( ('Philip_V_of_Spain', 'parent_Louis_Dauphin_of_France_son_of_Louis_XIV', 'Louis_Dauphin_of_France_son_of_Louis_XIV'), IncidenceList(
+    #      {'spouse_Maria_Amalia_of_Saxony': {('Philip_V_of_Spain', 'Maria_Amalia_of_Saxony')},
+    #        'marriedTo_Elisabeth_Farnese': {('Maria_Amalia_of_Saxony', 'Elisabeth_Farnese')}},
+    #      {'Philip_V_of_Spain': {'spouse_Maria_Amalia_of_Saxony'},
+    #        'Maria_Amalia_of_Saxony': {'marriedTo_Elisabeth_Farnese', 'spouse_Maria_Amalia_of_Saxony'},
+    #          'Elisabeth_Farnese': {'marriedTo_Elisabeth_Farnese'}}
+    #     )), 
 
 
-        Path( ('Philip_V_of_Spain', 'parent_Louis_Dauphin_of_France_son_of_Louis_XIV', 'Louis_Dauphin_of_France_son_of_Louis_XIV'), IncidenceList(
-         {'spouse_Maria_Amalia_of_Saxony': {('Philip_V_of_Spain', 'Maria_Amalia_of_Saxony'), ('Charles_III_of_Spain', 'Maria_Amalia_of_Saxony')}},
-         {'Philip_V_of_Spain': {'spouse_Maria_Amalia_of_Saxony'},
-           'Maria_Amalia_of_Saxony': {'spouse_Maria_Amalia_of_Saxony'},
-             'Charles_III_of_Spain': {'spouse_Maria_Amalia_of_Saxony'}}
-        )),
-        Path( ('Philip_V_of_Spain', 'parent_Louis_Dauphin_of_France_son_of_Louis_XIV', 'Louis_Dauphin_of_France_son_of_Louis_XIV'), IncidenceList(
-         {'spouse_Maria_Amalia_of_Saxony': {('Philip_V_of_Spain', 'Maria_Amalia_of_Saxony')}},
-         {'Philip_V_of_Spain': {'spouse_Maria_Amalia_of_Saxony'},
-           'Maria_Amalia_of_Saxony': { 'spouse_Maria_Amalia_of_Saxony'}}
-        )),
-        ]
+    #     Path( ('Philip_V_of_Spain', 'parent_Louis_Dauphin_of_France_son_of_Louis_XIV', 'Louis_Dauphin_of_France_son_of_Louis_XIV'), IncidenceList(
+    #      {'spouse_Maria_Amalia_of_Saxony': {('Philip_V_of_Spain', 'Maria_Amalia_of_Saxony'), ('Charles_III_of_Spain', 'Maria_Amalia_of_Saxony')}},
+    #      {'Philip_V_of_Spain': {'spouse_Maria_Amalia_of_Saxony'},
+    #        'Maria_Amalia_of_Saxony': {'spouse_Maria_Amalia_of_Saxony'},
+    #          'Charles_III_of_Spain': {'spouse_Maria_Amalia_of_Saxony'}}
+    #     )),
+    #     Path( ('Philip_V_of_Spain', 'parent_Louis_Dauphin_of_France_son_of_Louis_XIV', 'Louis_Dauphin_of_France_son_of_Louis_XIV'), IncidenceList(
+    #      {'spouse_Maria_Amalia_of_Saxony': {('Philip_V_of_Spain', 'Maria_Amalia_of_Saxony')}},
+    #      {'Philip_V_of_Spain': {'spouse_Maria_Amalia_of_Saxony'},
+    #        'Maria_Amalia_of_Saxony': { 'spouse_Maria_Amalia_of_Saxony'}}
+    #     )),
+    #     ]
      
 
 
@@ -600,41 +566,16 @@ def mine_rules_for_target_predicate(g:set, v:set, pmap:P_map, kg:IncidenceList, 
     R_out_cov_v_cardinality = [None]
     R_out_uncov_v = None
     
-   # TODO remove
-    exr_time = 0
-    exp_time = 0
-    find_r_time = 0
-    w_time = 0
-    fdr_time = 0
-    rule_time = 0
-    cov_time = 0
-
-    exp_calls = 0
-    w_calls = 0
-
+  
     paths = {Path((s, p , o), IncidenceList()) for s,p,o in g}
 
     # TODO call expand rule here, duplicate code
 
-    t1 = time.time()
     for path in paths:
-        exp_calls += 1
-        t2 = time.time()
-        frontier, time_add_Copy = expand_fun(rule_dict, path, kg, ontology, pmap, type_predicate)
-        fdr_time+= frontier
-        rule_time += time_add_Copy
-        t3=time.time()
-        exp_time += t3 - t2
+        expand_fun(rule_dict, path, kg, ontology, pmap, type_predicate)
 
-    t4 = time.time()
-    exr_time = t4 - t1
 
-    r, min_weight,wt, wc, ct = find_r(R_out_dict, R_out_cov_v_cardinality, R_out_uncov_v, rule_dict, rule_weight_dict, kg, g, v, alpha, beta, pmap, fits_max_depth, max_depth)
-    t5= time.time()
-    find_r_time = t5-t4
-    w_time += wt
-    w_calls += wc
-    cov_time += ct
+    r, min_weight = find_r(R_out_dict, R_out_cov_v_cardinality, R_out_uncov_v, rule_dict, rule_weight_dict, kg, g, v, alpha, beta, pmap, fits_max_depth, max_depth)
  
 
     # main loop 
@@ -642,10 +583,8 @@ def mine_rules_for_target_predicate(g:set, v:set, pmap:P_map, kg:IncidenceList, 
     while True:
 
 
-        #print(f"ruledict {len(rule_dict)}\n\n cov == g {cov_g(list(R_out_dict.keys()), rule_dict, R_out_dict) == g}\n\nmw {min_weight}\n\n")
 
         if not rule_dict or cov_g(list(R_out_dict.keys()), rule_dict, R_out_dict) == g or min_weight >= 0:
-            #print(f"END ruledict {len(rule_dict)}\n\n cov == g {cov_g(list(R_out_dict.keys()), rule_dict, R_out_dict) == g}\n\nmw {min_weight}\n\n")
             break
         
         if is_valid(r):
@@ -661,39 +600,23 @@ def mine_rules_for_target_predicate(g:set, v:set, pmap:P_map, kg:IncidenceList, 
         else:
             # expand
             if fits_max_depth(r, max_depth):
-                #print("expand")
-                t1 = time.time()
-                et, ec, fdr, rt = expand_rule(r, rule_dict, kg, ontology, pmap, type_predicate, expand_fun)
-                exr_time += time.time() - t1
-                exp_time += et
-                exp_calls += ec
-                fdr_time += fdr
-                rule_time += rt
+                expand_rule(r, rule_dict, kg, ontology, pmap, type_predicate, expand_fun)
             # remove handled rule
             rule_dict.pop(r)
 
         # find next r
-        #print("find_r")
-        t1 = time.time()
-        r, min_weight, wt, wc, ct = find_r(R_out_dict, R_out_cov_v_cardinality, R_out_uncov_v, rule_dict, rule_weight_dict, kg, g, v, alpha, beta, pmap, fits_max_depth, max_depth)
-        find_r_time += time.time() -t1
-        w_time += wt
-        w_calls += wc
-        cov_time += ct
+        r, min_weight = find_r(R_out_dict, R_out_cov_v_cardinality, R_out_uncov_v, rule_dict, rule_weight_dict, kg, g, v, alpha, beta, pmap, fits_max_depth, max_depth)
 
     # TODO possibly return the whole R_out_dict or calc some metrics here 
 
     
 
-    return list(rule.as_csv_row(negative_rules) for rule in R_out_dict.keys()), exr_time, exp_time, find_r_time, w_time, exp_calls, w_calls, fdr_time, cov_time, rule_time
+    return list(rule.as_csv_row(negative_rules) for rule in R_out_dict.keys())
 
 
 
 def find_r(R_out_dict:dict, R_out_cov_v_cardinality:list, R_out_uncov_v:set, rule_dict:dict, rule_weight_dict:dict, kg:IncidenceList, g:set, v:set, alpha:float, beta:float, pmap:P_map, fits_max_depth,  max_depth:int):
 
-    w_time = 0
-    wc = 0
-    cov_time = 0
     min_weight = np.inf
     r = None
 
@@ -703,12 +626,8 @@ def find_r(R_out_dict:dict, R_out_cov_v_cardinality:list, R_out_uncov_v:set, rul
         if rule in rule_weight_dict:
             weight = rule_weight_dict[rule]
         else:
-            wc += 1
-            tw = time.time()
-            ct, weight = est_m_weight(rule, R_out_dict, rule_dict, kg, g, v, alpha, beta, pmap, R_out_cov_v_cardinality, R_out_uncov_v)
-            w_time += time.time() - tw
+            weight = est_m_weight(rule, R_out_dict, rule_dict, kg, g, v, alpha, beta, pmap, R_out_cov_v_cardinality, R_out_uncov_v)
             rule_weight_dict[rule] = weight
-            cov_time += ct
 
         if not fits_max_depth(rule, max_depth) and (weight >= 0 or not is_valid(rule)):
             # collect hopeless rules
@@ -719,31 +638,18 @@ def find_r(R_out_dict:dict, R_out_cov_v_cardinality:list, R_out_uncov_v:set, rul
             r = rule
             min_weight = weight
 
-
-    
     # remove hopeless rules, declutter rule_dict
-    #print(f"removing {len(rules_to_remove)} hopeless rules")
     for rule in rules_to_remove:
         rule_dict.pop(rule)
 
-    return r, min_weight, w_time, wc, cov_time
+    return r, min_weight
 
 
 
 def expand_rule(rule, rule_dict, kg:IncidenceList, ontology:Ontology, pmap:P_map, type_predicate, expand_fun):
-    exp_time = 0
-    ec = 0
-    fdr_time = 0
-    rule_time = 0
     for path in rule_dict[rule]:
-        ec += 1
-        t = time.time()
-        fdr, rt= expand_fun(rule_dict, path, kg, ontology, pmap, type_predicate)
-        fdr_time += fdr
-        rule_time += rt
-        exp_time += time.time() - t
+        expand_fun(rule_dict, path, kg, ontology, pmap, type_predicate)
           
-    return exp_time, ec, fdr_time, rule_time
 
 def fits_max_depth_rudik(r:Rule, max_depth):
     return len(r.body) < max_depth
@@ -760,8 +666,6 @@ def expand_path_rudik(rule_dict:dict, path:Path, kg:IncidenceList, ontology:Onto
         print(path.frontiers_rudik())
         exit()
 
-    time_copy_add = 0
-    t_if = 0
     # TODO literal comparisons
     if is_literal(f):
         pass
@@ -792,14 +696,10 @@ def expand_path_rudik(rule_dict:dict, path:Path, kg:IncidenceList, ontology:Onto
                 # don't want circles, except when s = o
                     continue
 
-                subtime = 0
-                t = time.time()
                 if fits_domain_range(e, triple, ontology, kg, pmap, type_predicate):
-                    t3 = time.time()
 
                     # check path.copy() -> is slow
                     new = path.copy()
-                    t5 = time.time()
 
                     new.graph.add(pair[0], p, pair[1])
 
@@ -811,11 +711,8 @@ def expand_path_rudik(rule_dict:dict, path:Path, kg:IncidenceList, ontology:Onto
                     else:
                         rule_dict[r] = {new}
 
-                    time_copy_add += (t5-t3)
-                t2 = time.time()
-                t_if += (t2-t)
 
-    return t_if, time_copy_add
+    return 
 
 
 

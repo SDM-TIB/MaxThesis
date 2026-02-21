@@ -2,16 +2,32 @@
 @prefix exS: <http://example.org/shapes/> .
 @prefix sh: <http://www.w3.org/ns/shacl#> .
 
-exS:DireStraitsAlbumGenreConstraint a sh:NodeShape ;
-    sh:sparql [ sh:select """
-     SELECT ($this AS ?this)
-            WHERE {
-                $this <http://example.org/isGenre> ?genre .
-                <http://example.org/Dire_Straits> <http://example.org/hasAlbum> $this .
-                FILTER(?genre NOT IN (<http://example.org/Rock>))
-            }
-""" ] ;
-    sh:targetClass ex:Album.
+
+exS:DireStraitsAlbumGenreShape
+  a sh:NodeShape ;
+  sh:targetClass ex:Album ;
+  sh:sparql [
+    sh:select """
+      SELECT ($this AS ?this)
+      WHERE {
+        <http://example.org/Dire_Straits> <http://example.org/hasAlbum> $this .
+        FILTER NOT EXISTS { $this <http://example.org/isGenre> <http://example.org/Rock> .}
+      }
+    """ ;
+  ] ;
+
+  sh:sparql [
+    sh:select """
+      SELECT ($this AS ?this)
+      WHERE {
+        <http://example.org/Dire_Straits> <http://example.org/hasAlbum> $this .
+        FILTER EXISTS {
+          $this <http://example.org/isGenre> ?g .
+          FILTER(?g != <http://example.org/Rock>)
+        }
+      }
+    """ ;
+  ] .
 
 
 

@@ -1,0 +1,17 @@
+Sting	collaboratedWith	Dire_Straits
+Sting	hasAlbum	Nothing_Like_The_Sun
+Dire_Straits	hasAlbum	Dire_Straits(Album)
+Dire_Straits	hasAlbum	Brothers_In_Arms
+Brothers_In_Arms	isGenre	Rock
+Brothers_In_Arms	isGenre	Pop
+Dire_Straits(Album)	isGenre	Rock
+Nothing_Like_The_Sun	isGenre	Pop
+Rock	http://www.w3.org/1999/02/22-rdf-syntax-ns#type	Genre
+Pop	http://www.w3.org/1999/02/22-rdf-syntax-ns#type	Genre
+Dire_Straits	http://www.w3.org/1999/02/22-rdf-syntax-ns#type	Band
+Sting	http://www.w3.org/1999/02/22-rdf-syntax-ns#type	Solo_Artist
+Brothers_In_Arms	http://www.w3.org/1999/02/22-rdf-syntax-ns#type	Album
+Dire_Straits(Album)	http://www.w3.org/1999/02/22-rdf-syntax-ns#type	Album
+Nothing_Like_The_Sun	http://www.w3.org/1999/02/22-rdf-syntax-ns#type	Album
+Nothing_Like_The_Sun	isGenre	Green_Day
+Green_Day	http://www.w3.org/1999/02/22-rdf-syntax-ns#type	Band
