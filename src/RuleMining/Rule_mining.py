@@ -5,7 +5,6 @@ import warnings
 from RuleMining.Util import *
 from RuleMining.Classes import Path, Rule, P_map, IncidenceList, Ontology
 
-import time
 
 
 
@@ -156,8 +155,8 @@ def mine_rules(transformed_kg:IncidenceList, targets:set, transform_output_dir:s
     print(result)
     #TODO add result to csvs
     with open(rules_file, mode='w', newline='', encoding='utf-8') as datei:
-        writer = csv.writer(datei)
-        writer.writerow(["head", "body"])
+        writer = csv.DictWriter(datei, fieldnames=['Head', 'Body'], delimiter="\t")
+        writer.writeheader()
         writer.writerows(result)
 
     return
@@ -611,7 +610,7 @@ def mine_rules_for_target_predicate(g:set, v:set, pmap:P_map, kg:IncidenceList, 
 
     
 
-    return list(rule.as_csv_row(negative_rules) for rule in R_out_dict.keys())
+    return list(rule.as_tsv_dict(negative_rules) for rule in R_out_dict.keys())
 
 
 

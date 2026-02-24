@@ -77,7 +77,7 @@ def parseOntology(ontology_file:str, ontology:Ontology, prefix:str=""):
         types = set()
         isClass = False
         isProperty = False
-
+        print(block)
         while current_i < max_i:
             p = block[current_i]
             current_i += 1

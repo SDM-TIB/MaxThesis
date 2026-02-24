@@ -163,7 +163,6 @@ if __name__ == '__main__':
         o = Ontology()
         parseOntology(ontology_path, o, prefix)
         print(o)
-        exit()
         time_start_mining = time.time()
         mine_rules(kg_transformed_i_list,  original_predicates, transform_output_dir, o, rules_path, prefix, max_depth, set_size, alpha, type_predicate, negative_rules=negative_rules)
 
