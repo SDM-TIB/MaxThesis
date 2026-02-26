@@ -56,12 +56,19 @@ def parseOntology(ontology_file:str, ontology:Ontology, prefix:str=""):
     """help function for parseOntology"""
     def extractName(e):
         # e is whole uri
+        out = e
         if e[0] == "<":
             split = e.split("/")
+            out = split[len(split)-1]
+
         # e uses prefix abbreviation
         else:
             split = e.split(":")
-        out = split[len(split)-1]
+            if split[len(split)-2] in ("rdf", "rdfs", "owl"):
+                out = f"{split[len(split)-2]}:{split[len(split)-1]}"
+
+            else:
+                out = split[len(split)-1]
         while out[len(out)-1] in (">",",",";"):
             out = out[:-1]
         return out
@@ -77,7 +84,6 @@ def parseOntology(ontology_file:str, ontology:Ontology, prefix:str=""):
         types = set()
         isClass = False
         isProperty = False
-        print(block)
         while current_i < max_i:
             p = block[current_i]
             current_i += 1
@@ -100,7 +106,7 @@ def parseOntology(ontology_file:str, ontology:Ontology, prefix:str=""):
                     types.add(o)
                     current_i += 1
 
-                if checkForClass(types):
+                if checkForClass(types) or checkForSubClass(p):
                     isClass = True
 
                 if checkForProperty(types):
@@ -166,9 +172,15 @@ def parseOntology(ontology_file:str, ontology:Ontology, prefix:str=""):
         # add collected info to ontology
         if isClass:
             if super:
+                if extractName(s) == "wordnet_player_110440580":
+                    print(f"heyo {super}")
                 for sup in super:
                     ontology.addClass(prefix, extractName(s), extractName(sup))
+                if extractName(s) == "wordnet_player_110440580":
+                    print(ontology.classes[s])
             else:
+                if extractName(s) == "wordnet_player_110440580":
+                    print(f"heyo")
                 ontology.addClass(prefix, extractName(s))
             
         if isProperty:
@@ -1150,7 +1162,8 @@ def fits_domain_range(entity, triple, ontology:Ontology, kg:IncidenceList, pmap:
                     fits_r = True
                 if fits_d and fits_r:
                     return True
-                entity_types.add(t)
+                if t in ontology.classes:
+                    entity_types.add(t)
 
 
 
@@ -1182,7 +1195,8 @@ def fits_domain_range(entity, triple, ontology:Ontology, kg:IncidenceList, pmap:
                 t = next(p for p in kg.edges[etp])[1]
                 if t in types:
                     return True
-                entity_types.add(t)
+                if t in ontology.classes:
+                    entity_types.add(t)
 
 
 
@@ -1266,6 +1280,7 @@ def neg_preds(new_preds:set, map):
 """get distributed examples for given predicates, limited by count"""
 def getExamples(kg:IncidenceList, preds:set, count:int):
     g = set()
+    g_sub = set()
     eligible_preds = preds.copy()
     diff = count
 
@@ -1273,77 +1288,95 @@ def getExamples(kg:IncidenceList, preds:set, count:int):
     # go through all predicates, get even share of examples per predicate if possible
     # repeat with all predicates that still have unused instances left until count is met
 
-    while len(g) < count and eligible_preds:
-        max_i = int(diff/len(eligible_preds) + 1)  
+    max_i = int(diff/len(eligible_preds) + 1)  
 
-        eligible_preds_copy = eligible_preds.copy()
-        for p in eligible_preds_copy:
-            if not kg.edges.get(p):
-                continue
+    eligible_preds_copy = eligible_preds.copy()
+    for p in eligible_preds_copy:
+        edges_p = kg.edges.get(p)
+        if not edges_p:
+            continue
 
-            l = len(kg.edges.get(p)) 
-            if l <= (max_i + 1):
-                # if all instances of predicate will be used, remove
-                eligible_preds.remove(p)
-            
-            # add even share of elements per predicate, if possible
-            i = 0
-            for n in kg.edges.get(p):
-                triple = (n[0], p, n[1])
-                if triple not in g:
-                    g.add(triple)
-                    i += 1
-                if i > max_i:
+        l = len(edges_p) 
+        if l <= (max_i + 1):
+            # if all instances of predicate will be used, remove
+            eligible_preds.remove(p)
+        
+        # add even share of elements per predicate, if possible
+        i = 0
+        for n in edges_p:
+            triple = (n[0], p, n[1])
+            if triple not in g:
+                g.add(triple)
+                i += 1
+            if i > max_i:
+                g_sub.add(triple)
+                if i > 2*max_i and len(g_sub) >= count:
                     break
-                
+            
         diff = count - len(g)
 
     for _ in range(-diff):
         g.pop()
+
+    for _ in range(diff):
+        if g_sub:
+            g.add(g_sub.pop())
+        else:
+            break
     return g
 
 """get distributed negative examples for given predicates, by finding instances of negative predicates, limited by count"""
 def getNegExamples(kg:IncidenceList, preds:set, count:int):
+    if not preds:
+        return set()
     v = set()
+    v_sub = set()
     eligible_preds = preds.copy()
     diff = count
 
 
     # go through all predicates, get mean examples per predicate if possible
 
-    while len(v) < count and eligible_preds:
-        l = len(v)
-        max_i = int(diff/len(eligible_preds) + 1)  
+    l = len(v)
+    max_i = int(diff/len(eligible_preds) + 1)  
 
-        eligible_preds_copy = eligible_preds.copy()
-        for p in eligible_preds_copy:
-            if not kg.edges.get(p):
-                continue
+    eligible_preds_copy = eligible_preds.copy()
 
-            l = len(kg.edges.get(p)) 
-            if l <= (max_i + 1):
-                # if all instances of predicate will be used, remove
-                eligible_preds.remove(p)
-            
-            # add even share of elements per predicate, if possible
-            i = 0
-            for n in kg.edges.get(p):
-                pair = (n[0], n[1])
-                if pair not in v:
-                    v.add(pair)
-                    i += 1
-                if i > max_i:
+    for p in eligible_preds_copy:
+        edges_p = kg.edges.get(p)
+        if not edges_p:
+            continue
+
+        l = len(edges_p) 
+        if l <= (max_i + 1):
+            # if all instances of predicate will be used, remove
+            eligible_preds.remove(p)
+        
+        # add even share of elements per predicate, if possible
+        i = 0
+        for n in edges_p:
+            pair = (n[0], n[1])
+            if pair not in v:
+                v.add(pair)
+                i += 1
+            if i > max_i:
+                v_sub.add(pair)
+                if i > 2*max_i and len(v_sub) >= count:
                     break
-                
-        diff = count - len(v)
-        if l == len(v):
-            break
+            
+    diff = count - len(v)
+
     for _ in range(-diff):
         v.pop()
+    for _ in range(diff):
+        if v_sub:
+            v.add(v_sub.pop())
+        else:
+            break
     return v
 
 """get negative examples for given predicates that satisfy the local closed world assumption, limited by count"""
-def getExamplesLCWA(kg:IncidenceList, ontology:Ontology, pmap:P_map, count:int, type_predicate:str):
+def getExamplesLCWAOLD(kg:IncidenceList, ontology:Ontology, pmap:P_map, count:int, type_predicate:str):
 
     preds = pmap.predicates
     out = set()
@@ -1407,6 +1440,43 @@ def getExamplesLCWA(kg:IncidenceList, ontology:Ontology, pmap:P_map, count:int, 
         out.pop()
     return out
 
+"""get negative examples for given predicates that satisfy the local closed world assumption, limited by count"""
+def getExamplesLCWA(kg:IncidenceList, ontology:Ontology, pmap:P_map, count:int, type_predicate:str):
+
+    preds = pmap.predicates
+    out = set()
+
+    # will hold all instances of target predicate
+    forbidden_edges = set()
+    subjects = set()
+    objects = set()
+    for p in preds:
+        edges = kg.edges.get(p)
+        if edges:
+            forbidden_edges.update(edges)
+            subjects.update({pair[0] for pair in edges})
+            objects.update({pair[1] for pair in edges})
+    
+    subjects = list(subjects)
+    objects = list(objects)
+    for _ in range(3 * count):
+        pair = (random.choice(subjects), random.choice(objects))
+        if pair not in forbidden_edges:
+            if fits_domain_range(pair[0], (pair[0], pmap.target, pair[1]), ontology, kg, pmap, type_predicate):
+                if fits_domain_range(pair[1], (pair[0], pmap.target, pair[1]), ontology, kg, pmap, type_predicate):
+                    out.add(pair)
+                else:
+                    objects.remove(pair[1])
+
+            else:
+                subjects.remove(pair[0])
+
+        if len(out) >= count or not subjects or not objects:
+            return out
+    return out
+
+    
+
 """get random pairs of entities that don't have target predicate"""
 def getRandomNegExamples(kg:IncidenceList, preds:set, count:int, v=set()):
     ct = 1
@@ -1435,10 +1505,12 @@ def getRandomNegExamples(kg:IncidenceList, preds:set, count:int, v=set()):
             break
 
     out = set()
-    for _ in range(count):
+    for _ in range(3 * count):
         pair = (random.choice(entities), random.choice(entities))
         if pair not in v and pair not in forbidden_pairs:
             out.add(pair)
+        if len(out) == count:
+            return out
     return out
 
 

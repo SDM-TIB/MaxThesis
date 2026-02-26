@@ -162,7 +162,6 @@ if __name__ == '__main__':
         parseGraph(f"{transform_output_dir}/TransformedKG_{kg_name}.nt", kg_transformed_i_list, prefix)
         o = Ontology()
         parseOntology(ontology_path, o, prefix)
-        print(o)
         time_start_mining = time.time()
         mine_rules(kg_transformed_i_list,  original_predicates, transform_output_dir, o, rules_path, prefix, max_depth, set_size, alpha, type_predicate, negative_rules=negative_rules)
 
