@@ -106,7 +106,7 @@ def parseOntology(ontology_file:str, ontology:Ontology, prefix:str=""):
                     types.add(o)
                     current_i += 1
 
-                if checkForClass(types) or checkForSubClass(p):
+                if checkForClass(types):
                     isClass = True
 
                 if checkForProperty(types):
@@ -114,6 +114,7 @@ def parseOntology(ontology_file:str, ontology:Ontology, prefix:str=""):
 
 
             elif checkForSubClass(p):
+                isClass = True
                 super.add(o)
                 while current_i < max_i:
 
@@ -172,15 +173,9 @@ def parseOntology(ontology_file:str, ontology:Ontology, prefix:str=""):
         # add collected info to ontology
         if isClass:
             if super:
-                if extractName(s) == "wordnet_player_110440580":
-                    print(f"heyo {super}")
                 for sup in super:
                     ontology.addClass(prefix, extractName(s), extractName(sup))
-                if extractName(s) == "wordnet_player_110440580":
-                    print(ontology.classes[s])
             else:
-                if extractName(s) == "wordnet_player_110440580":
-                    print(f"heyo")
                 ontology.addClass(prefix, extractName(s))
             
         if isProperty:
@@ -569,7 +564,6 @@ def cov_g(r, rule_dict, R_out_dict):
 def covers_example_old(r:Rule, example_pair, kg:IncidenceList, pmap:P_map, current_var=None, name_dict=None, handled_atoms=None, initialize=True):
     c = None
     if initialize:
-        print("initialize")
     # instantiate the head s and o with example values
         handled_atoms = set()
         current_var = r.head[0]
@@ -595,7 +589,6 @@ def covers_example_old(r:Rule, example_pair, kg:IncidenceList, pmap:P_map, curre
             if s_equals_o:
                 return False
 
-    print(f"CALL current var {current_var}\nnamedict {name_dict}\nhandled {handled_atoms}\n")
 
     if c == None:
         c = r.get_connections(current_var)
@@ -641,8 +634,6 @@ def covers_example_old(r:Rule, example_pair, kg:IncidenceList, pmap:P_map, curre
 
     
     if not next_atom and not atoms_left:
-        if initialize:
-            print(f"{example_pair}621")
         return True
     
     # TODO for non rudik rules loop here for all connecting triples
@@ -660,7 +651,6 @@ def covers_example_old(r:Rule, example_pair, kg:IncidenceList, pmap:P_map, curre
                 if pair[current_i] == name_dict[current_var]:
                     possible_next_nodes.add(pair[(current_i + 1) % 2])
 
-    print(f"possible {next_atom} {possible_next_nodes}")
     if not possible_next_nodes:
         # cannot complete path
         return False
@@ -669,14 +659,10 @@ def covers_example_old(r:Rule, example_pair, kg:IncidenceList, pmap:P_map, curre
         c = r.get_connections(next_var)
         for v in c:
             name_dict[v] = node
-        print("RECURSE")
         if covers_example_old(r, example_pair, kg, pmap, next_var, name_dict, handled_atoms, False):
-            if initialize:
-                print(f"{example_pair}639")
             return True
         
     if initialize and handled_atoms != r.body:
-        print(f"unbound {handled_atoms}  body {r.body}")
         # we have an unbound rule that is not transitively connected, need to traverse from head-o aswell
         return covers_example_old(r, example_pair, kg, pmap, r.head[2], name_dict, handled_atoms, False)
     return False
@@ -938,60 +924,6 @@ def rulelist_unbounded_coverage(R, v, kg, pmap):
     return out
 
 
-"""estimated marginal weight"""
-def est_m_weight_old(r:Rule, R_out_dict, rule_dict, kg:IncidenceList, g:set, v:set, alpha:float, beta:float, pmap:P_map, R_out_cov_v_cardinality:list, R_out_uncov_v:set):
-    t1 = time.time()
-
-    # contain only r_out
-    R_out = list(R_out_dict.keys())
-
-    # if there is no value pre saved, calculate it else use it
-    if R_out_cov_v_cardinality[0] == None:
-        cardinality_cov_r_out_v = len(cov(R_out, kg, v, pmap))
-        R_out_cov_v_cardinality[0] = cardinality_cov_r_out_v
-    else:
-        cardinality_cov_r_out_v = R_out_cov_v_cardinality[0]
-
-    # if there is no value pre saved, calculate it else use it
-    if R_out_uncov_v == None:
-        uncov_r_out_v = uncov(R_out, kg, v, pmap)
-
-        # TEST BLOCK
-        # test = rulelist_coverage(R_out, v, kg, pmap)
-        # cove = cov(R_out, kg, v, pmap)
-        # if cove != test:
-        #     print(f"cov {cove}\n\ntest{test}\n\v {v}\n\n")
-        #     for r in R_out:
-        #         print(r)
-        #     exit()
-        # TEST BLOCK END
-
-
-        R_out_uncov_v = uncov_r_out_v
-    else:
-        uncov_r_out_v = R_out_uncov_v
-
-    cardinality_uncov_r_out_v = len(uncov_r_out_v)
-
-
-    # no need to check for the examples already in uncov_r_out_v (--> (v - uncov_r_out_v)),  since uncov_r_v is only used in union 
-    uncov_r_v = uncov(r, kg, (v - uncov_r_out_v), pmap)
-    cov_time = time.time() - t1
-    cardinality_uncov_r_out_r_v = len(set.union(uncov_r_out_v, uncov_r_v))
-
-
-
-
-    if not cardinality_cov_r_out_v:
-    # if this is zero we know the beta part is zero, the divisors will also be zero resulting in error, thus removing beta part altogether
-        return cov_time, -alpha * ((len(cov_g(r, rule_dict, R_out_dict) - cov_g(R_out, rule_dict, R_out_dict)))/len(g))
-    
-    if not cardinality_uncov_r_out_r_v:
-    # if this is zero there is division by zero in first fraction of beta part, setting it to zero
-        return cov_time, -alpha * ((len(cov_g(r, rule_dict, R_out_dict) - cov_g(R_out, rule_dict, R_out_dict)))/len(g)) - beta * (cardinality_cov_r_out_v / cardinality_uncov_r_out_v)
-
-
-    return cov_time, -alpha * ((len(cov_g(r, rule_dict, R_out_dict) - cov_g(R_out, rule_dict, R_out_dict)))/len(g)) + beta * ((cardinality_cov_r_out_v / cardinality_uncov_r_out_r_v) - (cardinality_cov_r_out_v / cardinality_uncov_r_out_v))
 
 
 """estimated marginal weight"""
@@ -1014,7 +946,6 @@ def est_m_weight(r:Rule, R_out_dict, rule_dict, kg:IncidenceList, g:set, v:set, 
         # TEST BLOCK
         # test = uncov(R_out, kg, v, pmap)
         # if test != uncov_r_out_v:
-        #     print("Du Hurensohn")
         #     exit()
 
 
@@ -1178,7 +1109,6 @@ def fits_domain_range(entity, triple, ontology:Ontology, kg:IncidenceList, pmap:
                 if fits_d or types_d.intersection(all_entity_types):
                     return True
 
-
             return False
 
 
@@ -1210,6 +1140,7 @@ def fits_domain_range(entity, triple, ontology:Ontology, kg:IncidenceList, pmap:
             if types.intersection(all_entity_types):
                 return True
 
+
             return False
 
 
@@ -1220,7 +1151,7 @@ def literal_type(l:str):
         if temp.__contains__("<"):
             # with uri
             split = temp.split("/")
-            return split[len(split)-1]
+            return split[len(split)-1].removesuffix(">")
         else:
             if temp.__contains__(":"):
                 # with prefix abbreviation
@@ -1376,71 +1307,6 @@ def getNegExamples(kg:IncidenceList, preds:set, count:int):
     return v
 
 """get negative examples for given predicates that satisfy the local closed world assumption, limited by count"""
-def getExamplesLCWAOLD(kg:IncidenceList, ontology:Ontology, pmap:P_map, count:int, type_predicate:str):
-
-    preds = pmap.predicates
-    out = set()
-    diff = count - len(out)
-
-    # will hold all instances of target predicate
-    eligible_edges = set()
-    for p in preds:
-        edges = kg.edges.get(p)
-        if edges:
-            eligible_edges.update(edges)
-    
-
-    j = diff
-
-    while len(out) < count:
-
-        max_i = int(diff /(len(preds)) + 1) 
-
-
-        i = 0
-        for e in eligible_edges:
-            # find object in neighbourhood that fits domain but doesnt have the relation with subject
-            # n = (s, o) find s' and o' s.t. not exists p(s, o') and p(s', o)
-            s = e[0]
-            o = e[1]
-            found1 = False
-            found2 = False
-            for f in eligible_edges:
-                s_prime = f[0]
-                o_prime = f[1]
-                # TODO ask if this is ok, recombining entities that have the relation, rather than combining one entity that has relation with one that may or may NOT have it
-
-                if not found1 and (s, o_prime) not in eligible_edges and (s, o_prime) not in out and fits_domain_range(o_prime, (s,pmap.target,o_prime), ontology, kg, pmap, type_predicate):
-                    out.add((s, o_prime))
-                    found1 = True
-                    i += 1
-
-                if not found2 and (s_prime, o) not in eligible_edges and (s_prime, o) not in out and fits_domain_range(s_prime, (s_prime,pmap.target,o), ontology, kg, pmap, type_predicate):
-                    out.add((s_prime, o))
-                    found2 = True
-                    i += 1
-
-                if found1 and found2:
-                    break 
-
-            if i > max_i:
-                j -= 1
-
-                break
-
-            if (not found1 and not found2):
-                j -= 1
-
-        if j < 1:
-            break
-        diff = count - len(out)
-
-
-    for _ in range(-diff):
-        out.pop()
-    return out
-
-"""get negative examples for given predicates that satisfy the local closed world assumption, limited by count"""
 def getExamplesLCWA(kg:IncidenceList, ontology:Ontology, pmap:P_map, count:int, type_predicate:str):
 
     preds = pmap.predicates
@@ -1460,6 +1326,8 @@ def getExamplesLCWA(kg:IncidenceList, ontology:Ontology, pmap:P_map, count:int, 
     subjects = list(subjects)
     objects = list(objects)
     for _ in range(3 * count):
+        if len(out) >= count or not subjects or not objects:
+            return out
         pair = (random.choice(subjects), random.choice(objects))
         if pair not in forbidden_edges:
             if fits_domain_range(pair[0], (pair[0], pmap.target, pair[1]), ontology, kg, pmap, type_predicate):
@@ -1471,8 +1339,7 @@ def getExamplesLCWA(kg:IncidenceList, ontology:Ontology, pmap:P_map, count:int, 
             else:
                 subjects.remove(pair[0])
 
-        if len(out) >= count or not subjects or not objects:
-            return out
+        
     return out
 
     
@@ -1484,7 +1351,9 @@ def getRandomNegExamples(kg:IncidenceList, preds:set, count:int, v=set()):
 
     forbidden_pairs = set()
     for p in preds:
-        forbidden_pairs.update(kg.edges.get(p))
+        ed = kg.edges.get(p)
+        if ed:
+            forbidden_pairs.update(ed)
 
 
     # finding set size where |set X set| > count
@@ -1672,3 +1541,129 @@ def is_valid_old(r:Rule):
         return False
 
     return True
+
+
+
+"""estimated marginal weight"""
+def est_m_weight_old(r:Rule, R_out_dict, rule_dict, kg:IncidenceList, g:set, v:set, alpha:float, beta:float, pmap:P_map, R_out_cov_v_cardinality:list, R_out_uncov_v:set):
+    t1 = time.time()
+
+    # contain only r_out
+    R_out = list(R_out_dict.keys())
+
+    # if there is no value pre saved, calculate it else use it
+    if R_out_cov_v_cardinality[0] == None:
+        cardinality_cov_r_out_v = len(cov(R_out, kg, v, pmap))
+        R_out_cov_v_cardinality[0] = cardinality_cov_r_out_v
+    else:
+        cardinality_cov_r_out_v = R_out_cov_v_cardinality[0]
+
+    # if there is no value pre saved, calculate it else use it
+    if R_out_uncov_v == None:
+        uncov_r_out_v = uncov(R_out, kg, v, pmap)
+
+        # TEST BLOCK
+        # test = rulelist_coverage(R_out, v, kg, pmap)
+        # cove = cov(R_out, kg, v, pmap)
+        # if cove != test:
+        #     print(f"cov {cove}\n\ntest{test}\n\v {v}\n\n")
+        #     for r in R_out:
+        #         print(r)
+        #     exit()
+        # TEST BLOCK END
+
+
+        R_out_uncov_v = uncov_r_out_v
+    else:
+        uncov_r_out_v = R_out_uncov_v
+
+    cardinality_uncov_r_out_v = len(uncov_r_out_v)
+
+
+    # no need to check for the examples already in uncov_r_out_v (--> (v - uncov_r_out_v)),  since uncov_r_v is only used in union 
+    uncov_r_v = uncov(r, kg, (v - uncov_r_out_v), pmap)
+    cov_time = time.time() - t1
+    cardinality_uncov_r_out_r_v = len(set.union(uncov_r_out_v, uncov_r_v))
+
+
+
+
+    if not cardinality_cov_r_out_v:
+    # if this is zero we know the beta part is zero, the divisors will also be zero resulting in error, thus removing beta part altogether
+        return cov_time, -alpha * ((len(cov_g(r, rule_dict, R_out_dict) - cov_g(R_out, rule_dict, R_out_dict)))/len(g))
+    
+    if not cardinality_uncov_r_out_r_v:
+    # if this is zero there is division by zero in first fraction of beta part, setting it to zero
+        return cov_time, -alpha * ((len(cov_g(r, rule_dict, R_out_dict) - cov_g(R_out, rule_dict, R_out_dict)))/len(g)) - beta * (cardinality_cov_r_out_v / cardinality_uncov_r_out_v)
+
+
+    return cov_time, -alpha * ((len(cov_g(r, rule_dict, R_out_dict) - cov_g(R_out, rule_dict, R_out_dict)))/len(g)) + beta * ((cardinality_cov_r_out_v / cardinality_uncov_r_out_r_v) - (cardinality_cov_r_out_v / cardinality_uncov_r_out_v))
+
+
+
+
+
+"""get negative examples for given predicates that satisfy the local closed world assumption, limited by count"""
+def getExamplesLCWAOLD(kg:IncidenceList, ontology:Ontology, pmap:P_map, count:int, type_predicate:str):
+
+    preds = pmap.predicates
+    out = set()
+    diff = count - len(out)
+
+    # will hold all instances of target predicate
+    eligible_edges = set()
+    for p in preds:
+        edges = kg.edges.get(p)
+        if edges:
+            eligible_edges.update(edges)
+    
+
+    j = diff
+
+    while len(out) < count:
+
+        max_i = int(diff /(len(preds)) + 1) 
+
+
+        i = 0
+        for e in eligible_edges:
+            # find object in neighbourhood that fits domain but doesnt have the relation with subject
+            # n = (s, o) find s' and o' s.t. not exists p(s, o') and p(s', o)
+            s = e[0]
+            o = e[1]
+            found1 = False
+            found2 = False
+            for f in eligible_edges:
+                s_prime = f[0]
+                o_prime = f[1]
+                # TODO ask if this is ok, recombining entities that have the relation, rather than combining one entity that has relation with one that may or may NOT have it
+
+                if not found1 and (s, o_prime) not in eligible_edges and (s, o_prime) not in out and fits_domain_range(o_prime, (s,pmap.target,o_prime), ontology, kg, pmap, type_predicate):
+                    out.add((s, o_prime))
+                    found1 = True
+                    i += 1
+
+                if not found2 and (s_prime, o) not in eligible_edges and (s_prime, o) not in out and fits_domain_range(s_prime, (s_prime,pmap.target,o), ontology, kg, pmap, type_predicate):
+                    out.add((s_prime, o))
+                    found2 = True
+                    i += 1
+
+                if found1 and found2:
+                    break 
+
+            if i > max_i:
+                j -= 1
+
+                break
+
+            if (not found1 and not found2):
+                j -= 1
+
+        if j < 1:
+            break
+        diff = count - len(out)
+
+
+    for _ in range(-diff):
+        out.pop()
+    return out

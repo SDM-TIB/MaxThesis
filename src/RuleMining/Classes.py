@@ -641,6 +641,49 @@ class Rule:
     #         print(f"rule {self}, name dict {name_dict}")
     #         raise ValueError
         
+    def as_csv_dict(self, negative_rules):
+        def triple_tsv(triple, negative=False):
+            s,p,o = triple
+            if negative:
+                return f"NOT({s} {p} {o})"
+            return f"{s} {p} {o}"
+            
+        # TODO refactor, also special case if head s=o should be adressed (no mistake, but inconsistency)
+        try:
+            out = {}
+            name_dict = {}
+            non_head_var = 3
+            for c in self.connections:
+                # head vars are always var1 and var 2, after that, need to ensure that no var is skipped for a more intuitive output (e.g. not V1, V2, and V5 as only vars)
+                m = min(c)
+                if m >= "?VAR3":
+                    # node is not in head
+                    m = f"?VAR{non_head_var}"
+                    non_head_var += 1
+                for var in c: 
+                    name_dict[var] = m
+                    
+            # need to account for leaves
+            for triple in self.body:
+                if triple[0] not in name_dict:
+                    name_dict[triple[0]] = f"?VAR{non_head_var}"
+                    non_head_var += 1
+                if triple[2] not in name_dict:
+                    name_dict[triple[2]] = f"?VAR{non_head_var}"
+                    non_head_var += 1
+            if negative_rules:
+                out['Head'] = triple_tsv((name_dict[self.head[0]], self.head[1], name_dict[self.head[2]]), negative_rules)
+            else:
+                out['Head'] = triple_tsv((name_dict[self.head[0]], self.head[1], name_dict[self.head[2]]))
+            out['Body'] = (";".join(triple_tsv((name_dict[t[0]], t[1], name_dict[t[2]])) for t in self.body))
+
+            return out
+        except:
+            print(f"rule {self}, name dict {name_dict}")
+            raise ValueError
+
+
+
     def as_tsv_dict(self, negative_rules):
         def triple_tsv(triple, negative=False):
             s,p,o = triple

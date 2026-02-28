@@ -161,3 +161,6 @@
 <http://example.org/Here_Comes_the_Sun> <http://example.org/includedIn> <http://example.org/Abbey_Road> .
 <http://example.org/I_Shot_the_Sheriff> <http://example.org/includedIn> <http://example.org/461_Ocean_Blvd.> .
 <http://example.org/Solid_Rock> <http://example.org/includedIn> <http://example.org/Making_Movies> .
+<http://example.org/Shape_of_my_Heart> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://example.org/Song> .
+<http://example.org/Lady_Writer> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://example.org/Song> .
+<http://example.org/Here_Comes_the_Sun> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://example.org/Song> .

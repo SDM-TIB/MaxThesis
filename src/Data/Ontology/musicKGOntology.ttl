@@ -39,7 +39,6 @@
                                            rdfs:label "Band"@en .
 
 <http://example.org/Solo_Artist> rdf:type rdfs:Class ;
-                                           rdfs:subClassOf <http://example.org/Artist> ;
                                            rdfs:subClassOf <http://example.org/Person> ;
                                            rdfs:label "Solo_Artist"@en .
 
@@ -58,13 +57,13 @@
 
 <http://example.org/isGenre> rdf:type owl:ObjectProperty, rdf:Property ;
                                         rdfs:subPropertyOf owl:topObjectProperty ;
-                                        rdfs:domain <http://example.org/Album> ;
+                                        rdfs:domain <http://example.org/Publication> ;
                                         rdfs:range <http://example.org/Genre> .
 
 <http://example.org/writer> rdf:type owl:ObjectProperty, rdf:Property ;
                                         rdfs:subPropertyOf owl:topObjectProperty ;
-                                        rdfs:domain <http://example.org/Artist> ;
-                                        rdfs:range <http://example.org/Song> .
+                                        rdfs:domain <http://example.org/Song> ;
+                                        rdfs:range <http://example.org/Artist> .
 
 <http://example.org/releaseYear> rdf:type owl:DatatypeProperty, rdf:Property ;
                                         rdfs:subPropertyOf owl:topObjectProperty ;
@@ -81,7 +80,7 @@
                                         rdfs:domain <http://example.org/Song> ;
                                         rdfs:range <http://example.org/Album> .
                                    
-<http://example.org/isMemeberOf> rdf:type owl:ObjectProperty, rdf:Property ;
+<http://example.org/isMemberOf> rdf:type owl:ObjectProperty, rdf:Property ;
                                         rdfs:subPropertyOf owl:topObjectProperty ;
                                         rdfs:domain <http://example.org/Person> ;
                                         rdfs:range <http://example.org/Band> .

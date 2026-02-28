@@ -6,7 +6,7 @@
   "constraints_folder": "YAGO3-10",
   "ontology_file": "YAGO3-10Ontology.ttl",
   "max_body_length": "",
-  "example_set_size": "",
+  "example_set_size": "20",
   "type_predicate":  "",
   "alpha": "",
   "mine_negative_rules": ""
