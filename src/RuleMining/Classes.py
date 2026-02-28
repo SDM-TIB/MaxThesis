@@ -255,15 +255,15 @@ class Path:
             return((triple[0], pmap.original_pred(triple[1]) ,triple[2]))
         
         def generate_var(count):
-            return f"?VAR{count}"
+            return f"?{chr(count)}"
           
 
         name_dict = {}
-        name_dict[self.head[0]] = {generate_var(1)}
+        name_dict[self.head[0]] = {generate_var(97)}
         if self.head[0] != self.head[2]:
-            name_dict[self.head[2]] = {generate_var(2)}
-        else: name_dict[self.head[0]].add(generate_var(2))
-        count = 3
+            name_dict[self.head[2]] = {generate_var(98)}
+        else: name_dict[self.head[0]].add(generate_var(98))
+        count = 99
     
         triple_set = set()
 
@@ -319,10 +319,10 @@ class Path:
                     name_dict[next_triple[2]] = {var_o}
                 triple_set.add((var_s, next_triple[1], var_o))
             else:
-                return Rule(original_triple((generate_var(1), self.head[1], generate_var(2)), pmap), triple_set, {tuple(c) for c in name_dict.values() if len(c) > 1})
+                return Rule(original_triple((generate_var(97), self.head[1], generate_var(98)), pmap), triple_set, {tuple(c) for c in name_dict.values() if len(c) > 1})
             node = next_node
 
-        return Rule(original_triple((generate_var(1), self.head[1], generate_var(2)), pmap), triple_set, {tuple(c) for c in name_dict.values() if len(c) > 1})
+        return Rule(original_triple((generate_var(97), self.head[1], generate_var(98)), pmap), triple_set, {tuple(c) for c in name_dict.values() if len(c) > 1})
 
 
     def rule(self, pmap:P_map):
@@ -652,13 +652,13 @@ class Rule:
         try:
             out = {}
             name_dict = {}
-            non_head_var = 3
+            non_head_var = 99
             for c in self.connections:
                 # head vars are always var1 and var 2, after that, need to ensure that no var is skipped for a more intuitive output (e.g. not V1, V2, and V5 as only vars)
                 m = min(c)
-                if m >= "?VAR3":
+                if m >= "?c":
                     # node is not in head
-                    m = f"?VAR{non_head_var}"
+                    m = f"?{chr(non_head_var)}"
                     non_head_var += 1
                 for var in c: 
                     name_dict[var] = m
@@ -666,16 +666,16 @@ class Rule:
             # need to account for leaves
             for triple in self.body:
                 if triple[0] not in name_dict:
-                    name_dict[triple[0]] = f"?VAR{non_head_var}"
+                    name_dict[triple[0]] = f"?{chr(non_head_var)}"
                     non_head_var += 1
                 if triple[2] not in name_dict:
-                    name_dict[triple[2]] = f"?VAR{non_head_var}"
+                    name_dict[triple[2]] = f"?{chr(non_head_var)}"
                     non_head_var += 1
             if negative_rules:
                 out['Head'] = triple_tsv((name_dict[self.head[0]], self.head[1], name_dict[self.head[2]]), negative_rules)
             else:
                 out['Head'] = triple_tsv((name_dict[self.head[0]], self.head[1], name_dict[self.head[2]]))
-            out['Body'] = (";".join(triple_tsv((name_dict[t[0]], t[1], name_dict[t[2]])) for t in self.body))
+            out['Body'] = ("   ".join(triple_tsv((name_dict[t[0]], t[1], name_dict[t[2]])) for t in self.body))
 
             return out
         except:

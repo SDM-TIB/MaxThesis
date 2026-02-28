@@ -20,18 +20,18 @@ def parse_rule(body, head):
 
     def parse_triple(triple_str):
         """Parse 's  p  o' format into (subject, predicate, object)"""
-        temp = triple_str.split("(")
-        p = temp[0]
-        vars = temp[1].removesuffix(")")
-        s = vars.split(",")[0]
-        o = vars.split(",")[1]
+        print(triple_str)
+        temp = triple_str.split(" ")
+        p = temp[1]
+        s = temp[0]
+        o = temp[2]
 
         return s,p,o
 
     # Parse body (multiple patterns separated by '   ')
     body_patterns = []
     if body:
-        body_triples = body.split(';')
+        body_triples = body.split('   ')
         for triple_str in body_triples:
             pattern = parse_triple(triple_str)
             if pattern:
@@ -233,7 +233,7 @@ def add_confidence_scores(csv_file, nt_file, output_file, namespace_prefix='ex',
     # Read rules from CSV
     rules = []
     with open(csv_file, 'r', encoding='utf-8') as f:
-        reader = csv.DictReader(f, delimiter="\t")
+        reader = csv.DictReader(f)
         rules = list(reader)
 
     print(f"\nProcessing {len(rules)} rules...")
@@ -270,23 +270,24 @@ def add_confidence_scores(csv_file, nt_file, output_file, namespace_prefix='ex',
         if pca_result:
             pca_conf, support, pca_body_size = pca_result
             rule['PCA Confidence'] = pca_conf
-            rule['Body size'] = len(body.split(';')) if body else 0
+            rule['Body size'] = len(body.split('   ')) if body else 0
             rule['PCA Body size'] = pca_body_size
             if i <= 3 or i % 20 == 0:
                 print(f"  PCA Confidence: {pca_conf:.6f} (Support: {support}, PCA Body Size: {pca_body_size})")
         else:
             rule['PCA Confidence'] = ''
-            rule['Body size'] = len(body.split(';')) if body else 0
+            rule['Body size'] = len(body.split('   ')) if body else 0
             rule['PCA Body size'] = ''
             if i <= 3 or i % 20 == 0:
                 print(f"  PCA Confidence: Could not calculate")
 
+        rule['Functional variable'] = "?a"
     # Write updated CSV
     with open(output_file, 'w', newline='', encoding='utf-8') as f:
         fieldnames = ['Body', 'Head', 'Head Coverage', 'Std Confidence',
                       'PCA Confidence', 'Positive Examples', 'Body size',
                       'PCA Body size', 'Functional variable']
-        writer = csv.DictWriter(f, fieldnames=fieldnames, delimiter="\t")
+        writer = csv.DictWriter(f, fieldnames=fieldnames)
         writer.writeheader()
         writer.writerows(rules)
 
@@ -320,9 +321,9 @@ if __name__ == "__main__":
 
 
         # set input here
-        csv_file = "./Data/Rules/musicKG.tsv"
+        csv_file = "./Data/Rules/musicKG.csv"
         nt_file = "./Data/KG/musicKG/musicKG.nt"
-        output_file = "./Data/Rules/musicKG_PCA.tsv"
+        output_file = "./Data/Rules/musicKG_PCA.csv"
         namespace_uri = "http://example.org/"
         namespace_prefix = "ex"
 

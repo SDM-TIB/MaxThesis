@@ -68,6 +68,8 @@ def initialize(input_config):
 
     negative_rules = True if input_data["mine_negative_rules"] else False
 
+    onto_valid = True if input_data["onto-valid"] else False
+
     logger.info(f"Configuration loaded:\n "
           f"- Prefix: {prefix}\n"
           f"- Rules file: {rules_path}\n"
@@ -80,7 +82,7 @@ def initialize(input_config):
           f"- alpha: {alpha}\n"
           f"- mining {"negative" if negative_rules else "positive"} rules\n"
     )
-    return prefix, rules_path, rdf_path, kg_path, ontology_path, predictions_folder, constraints_folder, kg_name, max_depth, set_size, type_predicate, alpha, negative_rules
+    return prefix, rules_path, rdf_path, kg_path, ontology_path, predictions_folder, constraints_folder, kg_name, max_depth, set_size, type_predicate, alpha, negative_rules, onto_valid
 
 def delete_existing_result(pfad):
     if os.path.exists(pfad) and os.path.isdir(pfad):
@@ -135,7 +137,7 @@ if __name__ == '__main__':
         logger = logging.getLogger(__name__)
 
         #Initializaing from the input.json file
-        prefix, rules_path, rdf_path, kg_path, ontology_path, predictions_folder, constraints_folder, kg_name, max_depth, set_size, type_predicate, alpha, negative_rules = initialize(input_config)
+        prefix, rules_path, rdf_path, kg_path, ontology_path, predictions_folder, constraints_folder, kg_name, max_depth, set_size, type_predicate, alpha, negative_rules, onto_valid = initialize(input_config)
 
 
         #delete result folder
@@ -163,7 +165,7 @@ if __name__ == '__main__':
         o = Ontology()
         parseOntology(ontology_path, o, prefix)
         time_start_mining = time.time()
-        mine_rules(kg_transformed_i_list,  original_predicates, transform_output_dir, o, rules_path, prefix, max_depth, set_size, alpha, type_predicate, negative_rules=negative_rules)
+        mine_rules(kg_transformed_i_list,  original_predicates, transform_output_dir, o, rules_path, prefix, max_depth, set_size, alpha, type_predicate, negative_rules=negative_rules, onto_valid=onto_valid)
 
         # Print execution time
         end_time = time.time()

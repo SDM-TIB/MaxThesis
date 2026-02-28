@@ -24,7 +24,8 @@ In ./Data/Constraints add a .ttl file containing the ontology. Here the name doe
 "example_set_size": num of pos/ neg examples per target predicate, leave empty for default 15
 "type_predicate": leave empty for default of 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type',
 "alpha": alpha used in weight formula, leave empty for default 0.5,
-"mine_negative_rules": leave empty for False --> will mine positive rules, put anything for True
+"mine_negative_rules": leave empty for False --> will mine positive rules, put anything for True,
+"onto-valid": wether the whole graph is validated against the ontology in the beginning:leave empty for False, put anything for True
 
 # example input
 
@@ -41,5 +42,6 @@ use this as input.json for testing
 "example_set_size": "",
 "type_predicate": "",
 "alpha": "",
-"mine_negative_rules": ""
+"mine_negative_rules": "",
+"onto-valid": ""
 }

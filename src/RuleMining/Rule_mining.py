@@ -10,7 +10,7 @@ from RuleMining.Classes import Path, Rule, P_map, IncidenceList, Ontology
 
 
 def mine_rules(transformed_kg:IncidenceList, targets:set, transform_output_dir:str, ontology:Ontology, rules_file:str, prefix:str, max_depth:int=3, set_size:int=100, 
-               alpha:float=0.5, type_predicate:str='http://www.w3.org/1999/02/22-rdf-syntax-ns#type', rule_type:str="rudik", negative_rules:bool=False):
+               alpha:float=0.5, type_predicate:str='http://www.w3.org/1999/02/22-rdf-syntax-ns#type', rule_type:str="rudik", negative_rules:bool=False, onto_valid:bool=False):
     """
     Mines rules for all original predicates of a normalized knowledge graph.
     
@@ -60,32 +60,33 @@ def mine_rules(transformed_kg:IncidenceList, targets:set, transform_output_dir:s
     with open(f"{transform_output_dir}/no_predicate_mappings.json", "r", encoding="utf-8") as np_map_file:
         neg_predicate_mappings = json.load(np_map_file)
 
-
-    pmap = P_map(None, None , set() , predicate_mappings, neg_predicate_mappings)
-    kg = IncidenceList()
-    count = 0
-    for k,v in transformed_kg.edges.items():
-        for pair in v:
-            if k.__contains__(type_predicate):
-                kg.add(pair[0], k, pair[1])
-                continue
-   
-            if fits_domain_range(pair[0], (pair[0], k, pair[1]), ontology, transformed_kg, pmap, type_predicate):
-                if fits_domain_range(pair[1], (pair[0], k, pair[1]), ontology, transformed_kg, pmap, type_predicate):
-                    count += 1
+    if onto_valid:
+        pmap = P_map(None, None , set() , predicate_mappings, neg_predicate_mappings)
+        kg = IncidenceList()
+        count = 0
+        for k,v in transformed_kg.edges.items():
+            for pair in v:
+                if k.__contains__(type_predicate):
                     kg.add(pair[0], k, pair[1])
-    transformed_kg = kg
+                    continue
+    
+                if fits_domain_range(pair[0], (pair[0], k, pair[1]), ontology, transformed_kg, pmap, type_predicate):
+                    if fits_domain_range(pair[1], (pair[0], k, pair[1]), ontology, transformed_kg, pmap, type_predicate):
+                        count += 1
+                        kg.add(pair[0], k, pair[1])
+        transformed_kg = kg
 
-    with open("./Data/Test/YAGO3-10-onto-valid.nt", 'w', encoding='utf-8')as f:
-        for edge in transformed_kg.edges.keys():
-            for pair in transformed_kg.edges[edge]:
-                if not pair[1].startswith("\""):
-                    f.write(f"<{prefix}{pair[0]}> <{prefix}{edge}> <{prefix}{pair[1]}> .\n")
-                elif k.__contains__(type_predicate):
-                    f.write(f"<{prefix}{pair[0]}> <{edge}> {pair[1]} .\n")
+        # TODO remove
+        with open("./Data/Test/YAGO3-10-onto-valid.nt", 'w', encoding='utf-8')as f:
+            for edge in transformed_kg.edges.keys():
+                for pair in transformed_kg.edges[edge]:
+                    if not pair[1].startswith("\""):
+                        f.write(f"<{prefix}{pair[0]}> <{prefix}{edge}> <{prefix}{pair[1]}> .\n")
+                    elif k.__contains__(type_predicate):
+                        f.write(f"<{prefix}{pair[0]}> <{edge}> {pair[1]} .\n")
 
-                else:
-                    f.write(f"<{prefix}{pair[0]}> <{prefix}{edge}> {pair[1]} .\n")
+                    else:
+                        f.write(f"<{prefix}{pair[0]}> <{prefix}{edge}> {pair[1]} .\n")
 
 
     # need to ensure predicate mapping consistency, every new predicate mentioned in mappings must be in kg, even if there is no corresponding triple
@@ -190,12 +191,12 @@ def mine_rules(transformed_kg:IncidenceList, targets:set, transform_output_dir:s
 
         print(f"mining rules for target predicate <{p}>...\n")
 
-        result.extend(mine_rules_for_target_predicate(g, v, pmap, transformed_kg, type_predicate, ontology, expand_fun, fits_max_depth, negative_rules, max_depth, alpha, beta, True))
+        result.extend(mine_rules_for_target_predicate(g, v, pmap, transformed_kg, type_predicate, ontology, expand_fun, fits_max_depth, negative_rules, max_depth, alpha, beta, onto_valid))
         
     print(result)
     #TODO add result to csvs
     with open(rules_file, mode='w', newline='', encoding='utf-8') as datei:
-        writer = csv.DictWriter(datei, fieldnames=['Head', 'Body'], delimiter="\t")
+        writer = csv.DictWriter(datei, fieldnames=['Body', 'Head'])
         writer.writeheader()
         writer.writerows(result)
 
@@ -678,7 +679,7 @@ def mine_rules_for_target_predicate(g:set, v:set, pmap:P_map, kg:IncidenceList, 
 
     
 
-    return list(rule.as_tsv_dict(negative_rules) for rule in R_out_dict.keys())
+    return list(rule.as_csv_dict(negative_rules) for rule in R_out_dict.keys())
 
 
 
