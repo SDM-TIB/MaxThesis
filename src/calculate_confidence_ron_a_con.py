@@ -20,7 +20,6 @@ def parse_rule(body, head):
 
     def parse_triple(triple_str):
         """Parse 's  p  o' format into (subject, predicate, object)"""
-        print(triple_str)
         temp = triple_str.split(" ")
         p = temp[1]
         s = temp[0]
@@ -55,7 +54,10 @@ def build_sparql_patterns(patterns, namespace_prefix='ex', namespace_uri='http:/
     sparql_lines = []
     for subj, pred, obj in patterns:
         # Add namespace to predicate
-        pred_uri = f"{namespace_prefix}:{pred}"
+        if pred == "http://www.w3.org/1999/02/22-rdf-syntax-ns#type":
+            pred_uri = "<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>"
+        else:
+            pred_uri = f"{namespace_prefix}:{pred}"
 
         # Handle subject
         if subj.startswith('?'):
@@ -240,7 +242,8 @@ def add_confidence_scores(csv_file, nt_file, output_file, namespace_prefix='ex',
 
     # Calculate scores for each rule
     for i, rule in enumerate(rules, 1):
-        print(rule)
+        if not any(v.__contains__("http://www.w3.org/1999/02/22-rdf-syntax-ns#type") for v in rule.values()):
+            continue
         body = rule['Body']
         head = rule['Head']
 
@@ -321,11 +324,11 @@ if __name__ == "__main__":
 
 
         # set input here
-        csv_file = "./Data/Rules/musicKG.csv"
-        nt_file = "./Data/KG/musicKG/musicKG.nt"
-        output_file = "./Data/Rules/musicKG_PCA.csv"
-        namespace_uri = "http://example.org/"
-        namespace_prefix = "ex"
+        csv_file = "./Data/Rules/FrenchRoyalty-AMIE.csv"
+        nt_file = "./Data/KG/FrenchRoyalty/FrenchRoyalty.nt"
+        output_file = "./Data/Rules/FrenchRoyalty-AMIE_PCA.csv"
+        namespace_uri = "http://FrenchRoyalty.org/"
+        namespace_prefix = "fr"
 
     # Ensure namespace URI ends with / or #
     if not namespace_uri.endswith('/') and not namespace_uri.endswith('#'):

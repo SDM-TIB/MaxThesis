@@ -76,17 +76,17 @@ def mine_rules(transformed_kg:IncidenceList, targets:set, transform_output_dir:s
                         kg.add(pair[0], k, pair[1])
         transformed_kg = kg
 
-        # TODO remove
-        with open("./Data/Test/YAGO3-10-onto-valid.nt", 'w', encoding='utf-8')as f:
-            for edge in transformed_kg.edges.keys():
-                for pair in transformed_kg.edges[edge]:
-                    if not pair[1].startswith("\""):
-                        f.write(f"<{prefix}{pair[0]}> <{prefix}{edge}> <{prefix}{pair[1]}> .\n")
-                    elif k.__contains__(type_predicate):
-                        f.write(f"<{prefix}{pair[0]}> <{edge}> {pair[1]} .\n")
+        # # TODO remove
+        # with open("./Data/Test/YAGO3-10-onto-valid.nt", 'w', encoding='utf-8')as f:
+        #     for edge in transformed_kg.edges.keys():
+        #         for pair in transformed_kg.edges[edge]:
+        #             if not pair[1].startswith("\""):
+        #                 f.write(f"<{prefix}{pair[0]}> <{prefix}{edge}> <{prefix}{pair[1]}> .\n")
+        #             elif k.__contains__(type_predicate):
+        #                 f.write(f"<{prefix}{pair[0]}> <{edge}> {pair[1]} .\n")
 
-                    else:
-                        f.write(f"<{prefix}{pair[0]}> <{prefix}{edge}> {pair[1]} .\n")
+        #             else:
+        #                 f.write(f"<{prefix}{pair[0]}> <{prefix}{edge}> {pair[1]} .\n")
 
 
     # need to ensure predicate mapping consistency, every new predicate mentioned in mappings must be in kg, even if there is no corresponding triple
@@ -98,33 +98,18 @@ def mine_rules(transformed_kg:IncidenceList, targets:set, transform_output_dir:s
         pmap = P_map(p, new_preds(p, predicate_mappings), set() , predicate_mappings, neg_predicate_mappings)
         pmap.neg_predicates = neg_preds(pmap.predicates, neg_predicate_mappings)
 
-        # count = 0
-        # fit_count = 0
-        # for k,v in transformed_kg.edges.items():
-        #     for pair in v:
-        #         count += 1
-        #         if fits_domain_range(pair[0], (pair[0], k, pair[1]), ontology, transformed_kg, pmap, type_predicate):
-        #             if fits_domain_range(pair[1], (pair[0], k, pair[1]), ontology, transformed_kg, pmap, type_predicate):
-        #                 fit_count += 1
-        # print(ontology)
-        # print(count)
-        # print(fit_count)
-
-        # exit()
-        
-        # print(p)
-        # g = getExamplesLCWA(transformed_kg,ontology, pmap, set_size, type_predicate)
-        # print(len(g))
-
+        # instances = sum(len(transformed_kg.edges[e]) for e in pmap.new_preds(p))
+        # set_size_p = min(max(set_size, int(instances * 0.1)), 100)
+        set_size_p = set_size
         if negative_rules:
             # TODO prepare g and v flipped
             # meaning, pos examples without predicate as v, negative examples with negative predicate as g
             pass
             print(f"creating input sets G and V in order to mine negative rules for target predicate <{p}>...\n")
 
-            v_temp = getExamples(transformed_kg, pmap.predicates, set_size)
+            v_temp = getExamples(transformed_kg, pmap.predicates, set_size_p)
             len_v = len(v_temp)
-            if len_v < set_size:
+            if len_v < set_size_p:
                 print(f"There aren't enough positive examples in the graph, proceeding with {len_v} examples in V.\n")  
             v = set()
             for ex in v_temp:
@@ -132,23 +117,23 @@ def mine_rules(transformed_kg:IncidenceList, targets:set, transform_output_dir:s
 
 
             # first, get constraint violating triples
-            g_temp = getNegExamples(transformed_kg, pmap.neg_predicates, set_size)
+            g_temp = getNegExamples(transformed_kg, pmap.neg_predicates, set_size_p)
 
             # if not enough in v fill with lcwa-conform examples
             len_g = len(g_temp)
-            if len_g < set_size:
-                print(f"{len_g} examples found from constraint violations, selecting remaining {set_size - len_g} examples from graph for G.\n")
-                g_temp.update(getExamplesLCWA(transformed_kg, ontology, pmap, set_size - len_g, type_predicate))
+            if len_g < set_size_p:
+                print(f"{len_g} examples found from constraint violations, selecting remaining {set_size_p - len_g} examples from graph for G.\n")
+                g_temp.update(getExamplesLCWA(transformed_kg, ontology, pmap, set_size_p - len_g, type_predicate))
 
             # if not enough in v fill with random examples
             len_g = len(g_temp)
-            if len_g < set_size:
-                print(f"There aren't enough negative examples in the graph, choosing {set_size - len_g} random examples for G.\n")  
-                v.update(getRandomNegExamples(transformed_kg, pmap.predicates, set_size - len_g, g_temp)) 
+            if len_g < set_size_p:
+                print(f"There aren't enough negative examples in the graph, choosing {set_size_p - len_g} random examples for G.\n")  
+                v.update(getRandomNegExamples(transformed_kg, pmap.predicates, set_size_p - len_g, g_temp)) 
 
 
             len_g = len(g_temp)
-            if len_g < set_size:
+            if len_g < set_size_p:
                 print(f"There aren't enough negative examples in the graph, proceeding with {len_g} examples for G.\n")   
 
             g = set()
@@ -157,29 +142,29 @@ def mine_rules(transformed_kg:IncidenceList, targets:set, transform_output_dir:s
         else:
             print(f"creating input sets G and V for target predicate <{p}>...\n")
             # create positive examples
-            g = getExamples(transformed_kg, pmap.predicates, set_size)
+            g = getExamples(transformed_kg, pmap.predicates, set_size_p)
             len_g = len(g)
-            if len_g < set_size:
+            if len_g < set_size_p:
                 print(f"There aren't enough positive examples in the graph, proceeding with {len_g} examples.\n")  
 
             # first, get constraint violating triples
-            v = getNegExamples(transformed_kg, pmap.neg_predicates, set_size)
+            v = getNegExamples(transformed_kg, pmap.neg_predicates, set_size_p)
 
             # if not enough in v fill with lcwa-conform examples
             len_v = len(v)
-            if len_v < set_size:
-                print(f"{len_v} examples found from constraint violations, selecting remaining {set_size - len_v} examples from graph.\n")
-                v.update(getExamplesLCWA(transformed_kg, ontology, pmap, set_size - len_v, type_predicate))
+            if len_v < set_size_p:
+                print(f"{len_v} examples found from constraint violations, selecting remaining {set_size_p - len_v} examples from graph.\n")
+                v.update(getExamplesLCWA(transformed_kg, ontology, pmap, set_size_p - len_v, type_predicate))
 
             # if not enough in v fill with random examples
             len_v = len(v)
-            if len_v < set_size:
-                print(f"There aren't enough negative examples in the graph, choosing {set_size - len_v} random examples.\n")  
-                v.update(getRandomNegExamples(transformed_kg, pmap.predicates, set_size - len_v, v)) 
+            if len_v < set_size_p:
+                print(f"There aren't enough negative examples in the graph, choosing {set_size_p - len_v} random examples.\n")  
+                v.update(getRandomNegExamples(transformed_kg, pmap.predicates, set_size_p - len_v, v)) 
 
 
             len_v = len(v)
-            if len_v < set_size:
+            if len_v < set_size_p:
                 print(f"There aren't enough negative examples in the graph, proceeding with {len_v} examples.\n")   
 
             if not g:
@@ -195,8 +180,8 @@ def mine_rules(transformed_kg:IncidenceList, targets:set, transform_output_dir:s
         
     print(result)
     #TODO add result to csvs
-    with open(rules_file, mode='w', newline='', encoding='utf-8') as datei:
-        writer = csv.DictWriter(datei, fieldnames=['Body', 'Head'])
+    with open(rules_file, mode='w', newline='', encoding='utf-8') as file:
+        writer = csv.DictWriter(file, fieldnames=['Body', 'Head'])
         writer.writeheader()
         writer.writerows(result)
 
@@ -283,13 +268,16 @@ def mine_rules_for_target_predicate(g:set, v:set, pmap:P_map, kg:IncidenceList, 
 #   "KG": "FrenchRoyalty",
 #   "prefix": "http://FrenchRoyalty.org/",
 #   "rules_file": "FrenchRoyalty.csv",
-#   "rdf_file": "french_royalty.nt",
+#   "rdf_file": "FrenchRoyalty.nt",
 #   "constraints_folder": "FrenchRoyalty",
 #   "ontology_file": "ontology_FrenchRoyalty.ttl",
-#   "pca_threshold": 0.75
-# }
-
-
+#   "max_body_length": "",
+#   "example_set_size": "20",
+#   "type_predicate":  "",
+#   "alpha": "",
+#   "mine_negative_rules": "",
+#   "onto-valid": ""
+#   }
 
     # rulelist = [Rule(
     #     head= ('?VAR1', 'parent', '?VAR2'),
@@ -652,7 +640,9 @@ def mine_rules_for_target_predicate(g:set, v:set, pmap:P_map, kg:IncidenceList, 
 
 
 
-        if not rule_dict or cov_g(list(R_out_dict.keys()), rule_dict, R_out_dict) == g or min_weight >= 0:
+        # if not rule_dict or cov_g(list(R_out_dict.keys()), rule_dict, R_out_dict) == g or min_weight >= 0:
+        if not rule_dict or len(cov_g(list(R_out_dict.keys()), rule_dict, R_out_dict))/len(g ) > 0.9 or min_weight >= 0:
+        
             break
         
         if is_valid(r):
@@ -766,7 +756,7 @@ def expand_path_rudik(rule_dict:dict, path:Path, kg:IncidenceList, ontology:Onto
 
                 if onto_safe or fits_domain_range(e, triple, ontology, kg, pmap, type_predicate):
 
-                    # check path.copy() -> is slow
+                    
                     new = path.copy()
 
                     new.graph.add(pair[0], p, pair[1])

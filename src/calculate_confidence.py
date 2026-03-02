@@ -315,6 +315,15 @@ if __name__ == "__main__":
             "Enter namespace URI (e.g., http://FrenchRoyalty.org/): ").strip() or 'http://FrenchRoyalty.org/'
         namespace_prefix = input("Enter namespace prefix (default: ex): ").strip() or 'ex'
 
+
+        # set input here
+        csv_file = "./Data/Rules/FrenchRoyalty-AMIE.csv"
+        nt_file = "./Data/KG/FrenchRoyalty/FrenchRoyalty.nt"
+        output_file = "./Data/Rules/FrenchRoyalty_PCA.csv"
+        namespace_uri = "http://FrenchRoyalty.org/"
+        namespace_prefix = "fr"
+
+
     # Ensure namespace URI ends with / or #
     if not namespace_uri.endswith('/') and not namespace_uri.endswith('#'):
         namespace_uri += '/'
