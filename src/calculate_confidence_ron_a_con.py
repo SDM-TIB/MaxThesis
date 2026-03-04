@@ -68,6 +68,8 @@ def build_sparql_patterns(patterns, namespace_prefix='ex', namespace_uri='http:/
         # Handle object
         if obj.startswith('?'):
             obj_sparql = obj
+        elif obj.startswith("\""):
+            obj_sparql = obj
         else:
             obj_sparql = f"{namespace_prefix}:{obj}"
 
@@ -188,6 +190,7 @@ SELECT (COUNT(*) AS ?Support) WHERE {{
     }}
 }}
 """
+        print(query_support)
         result_support = list(g.query(query_support))
         support = int(result_support[0][0]) if result_support and result_support[0][0] else 0
         print(f"support: {support}")
@@ -201,6 +204,7 @@ SELECT (COUNT(*) AS ?PCABodySize) WHERE {{
     }}
 }}
 """
+        print(query_pca_body)
         result_pca = list(g.query(query_pca_body))
         pca_body_size = int(result_pca[0][0]) if result_pca and result_pca[0][0] else 0
 
@@ -242,8 +246,10 @@ def add_confidence_scores(csv_file, nt_file, output_file, namespace_prefix='ex',
 
     # Calculate scores for each rule
     for i, rule in enumerate(rules, 1):
-        if not any(v.__contains__("http://www.w3.org/1999/02/22-rdf-syntax-ns#type") for v in rule.values()):
+        if i < 20:
             continue
+
+
         body = rule['Body']
         head = rule['Head']
 
@@ -324,9 +330,9 @@ if __name__ == "__main__":
 
 
         # set input here
-        csv_file = "./Data/Rules/FrenchRoyalty-AMIE.csv"
+        csv_file = "./Data/Rules/FrenchRoyalty-AnyBURL.csv"
         nt_file = "./Data/KG/FrenchRoyalty/FrenchRoyalty.nt"
-        output_file = "./Data/Rules/FrenchRoyalty-AMIE_PCA.csv"
+        output_file = "./Data/Rules/FrenchRoyalty-AnyBURL_PCA.csv"
         namespace_uri = "http://FrenchRoyalty.org/"
         namespace_prefix = "fr"
 
