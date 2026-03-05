@@ -1,0 +1,40 @@
+Body,Head,Head Coverage,Std Confidence,PCA Confidence,Positive Examples,Body size,PCA Body size,Functional variable
+?c child ?b   ?a child ?d   ?c child ?d,?a child ?b,1508,1.0,0.8558456299659478,1508,3,1762,?a
+?a father ?c   ?b gender ?d   ?c gender ?d,?a child ?b,1508,0.08620689655172414,0.0010851871947911015,130,3,119795,?a
+?c child ?b   ?c successor ?d   ?d mother ?a,?a child ?b,1508,0.07294429708222812,0.5445544554455446,110,3,202,?a
+?d mother ?c   ?c name ?b   ?a mother ?d,?a child ?b,1508,0.001326259946949602,0.02040816326530612,2,3,98,?a
+?c parent ?b   ?c gender ?d   ?a gender ?d,?a child ?b,1508,0.09814323607427056,0.0012946342658199058,148,3,114318,?a
+?b predecessor ?a,?a successor ?b,354,0.7570621468926554,0.9273356401384083,268,1,289,?a
+?a predecessor ?d   ?b father ?c   ?c parent ?d,?a successor ?b,354,0.10451977401129943,0.3008130081300813,37,3,123,?a
+?c gender ?d   ?a gender ?d   ?c child ?b,?a successor ?b,354,0.327683615819209,0.0010878943617061185,116,3,106628,?a
+?a successor ?c   ?c successor ?b,?a successor ?b,354,0.03672316384180791,0.04693140794223827,13,2,277,?a
+?a predecessor ?c   ?c spouse ?d   ?b mother ?d,?a successor ?b,354,0.022598870056497175,0.08333333333333333,8,3,96,?a
+?a child ?b,?a successor ?b,354,0.3587570621468927,0.19689922480620156,127,1,645,?a
+?b marriedTo ?a,?a marriedTo ?b,15,0.8,1.0,12,1,12,?a
+?b spouse ?a,?a marriedTo ?b,15,0.06666666666666667,0.25,1,1,4,?a
+?b successor ?c   ?c mother ?a,?a marriedTo ?b,15,0.13333333333333333,0.2857142857142857,2,2,7,?a
+?b spouse ?a,?a spouse ?b,865,0.7653179190751445,0.9323943661971831,662,1,710,?a
+?c spouse ?b   ?a parent ?c,?a parent ?b,946,0.45348837209302323,0.6146131805157593,429,2,698,?a
+?b parent ?c   ?c gender ?d   ?a gender ?d,?a parent ?b,946,0.3012684989429176,0.0015343203230148048,285,3,185750,?a
+?b gender ?d   ?c gender ?d   ?c parent ?a,?a parent ?b,946,0.2769556025369979,0.0014130311675844178,262,3,185417,?a
+?b gender ?c   ?a gender ?c,?a parent ?b,946,0.30655391120507397,0.0013363439472835353,290,2,217010,?a
+?c spouse ?b   ?a mother ?c,?a parent ?b,946,0.2346723044397463,0.7350993377483444,222,2,302,?a
+?c gender ?b   ?c parent ?d   ?d parent ?a,?a gender ?b,892,0.2858744394618834,0.5182926829268293,255,3,492,?a
+?c spouse ?d   ?c gender ?b   ?a parent ?d,?a gender ?b,892,0.1905829596412556,0.46831955922865015,170,3,363,?a
+?c spouse ?a   ?d gender ?b   ?c parent ?d,?a gender ?b,892,0.2802690582959641,0.5399568034557235,250,3,463,?a
+?c spouse ?d   ?d gender ?b   ?c mother ?a,?a gender ?b,892,0.1412556053811659,0.5971563981042654,126,3,211,?a
+?d gender ?b   ?c child ?a   ?c parent ?d,?a gender ?b,892,0.2320627802690583,0.4928571428571429,207,3,420,?a
+?c father ?a   ?c gender ?b,?a gender ?b,892,0.2141255605381166,0.5840978593272171,191,2,327,?a
+?c spouse ?d   ?c father ?a   ?d gender ?b,?a gender ?b,892,0.13789237668161436,0.47126436781609193,123,3,261,?a
+?a parent ?b,?a mother ?b,408,0.7647058823529411,0.4921135646687697,312,1,634,?a
+?b spouse ?c   ?a parent ?c,?a mother ?b,408,0.5416666666666666,0.4274661508704062,221,2,517,?a
+?b spouse ?c   ?a father ?c,?a mother ?b,408,0.5931372549019608,0.7538940809968847,242,2,321,?a
+?c name ?b   ?c gender ?d   ?a gender ?d,?a name ?b,585,0.7743589743589744,0.004581403345536924,453,3,98878,?a
+?a parent ?b,?a father ?b,561,0.768270944741533,0.5597402597402598,431,1,770,?a
+?c spouse ?b   ?a mother ?c,?a father ?b,561,0.43137254901960786,0.9063670411985019,242,2,267,?a
+?b gender ?d   ?c gender ?d   ?c parent ?a,?a father ?b,561,0.32798573975044565,0.001107733060413594,184,3,166105,?a
+?c spouse ?b   ?a parent ?c,?a father ?b,561,0.41711229946524064,0.4076655052264808,234,2,574,?a
+?b successor ?a,?a predecessor ?b,358,0.7486033519553073,0.8844884488448845,268,1,303,?a
+?c gender ?d   ?a gender ?d   ?c successor ?b,?a predecessor ?b,358,0.2011173184357542,0.002616469220146813,72,3,27518,?a
+?a predecessor ?c   ?c predecessor ?b,?a predecessor ?b,358,0.036312849162011177,0.04452054794520548,13,2,292,?a
+?b spouse ?c   ?c gender ?d   ?a gender ?d,?a predecessor ?b,358,0.036312849162011177,0.0002270980364754385,13,3,57244,?a
