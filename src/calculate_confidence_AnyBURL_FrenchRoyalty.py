@@ -328,10 +328,10 @@ if __name__ == "__main__":
 
 
         # set input here
-        csv_file = "./Data/Rules/YAGO3-10.csv"
-        nt_file = "./Data/KG/YAGO3-10/YAGO3-10.nt"
-        output_file = "./Data/Rules/YAGO3-10_PCA.csv"
-        namespace_uri = "http://yago-knowledge.org/resource/"
+        csv_file = "./Data/Rules/FrenchRoyalty-AnyBURL.csv"
+        nt_file = "./Data/KG/FrenchRoyalty/FrenchRoyalty.nt"
+        output_file = "./Data/Experimental_results/FrenchRoyalty-AnyBURL_PCA.csv"
+        namespace_uri = "http://FrenchRoyalty.org/"
         namespace_prefix = "fr"
 
     # Ensure namespace URI ends with / or #
