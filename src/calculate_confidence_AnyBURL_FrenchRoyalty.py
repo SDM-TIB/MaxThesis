@@ -306,33 +306,12 @@ def add_confidence_scores(csv_file, nt_file, output_file, namespace_prefix='ex',
 if __name__ == "__main__":
     import sys
 
-    # Check if command line arguments are provided
-    if len(sys.argv) >= 5:
-        csv_file = sys.argv[1]
-        nt_file = sys.argv[2]
-        output_file = sys.argv[3]
-        namespace_uri = sys.argv[4]
-        namespace_prefix = sys.argv[5] if len(sys.argv) > 5 else 'ex'
-    else:
-        # Interactive input
-        print("=== Rule Confidence Calculator ===\n")
-        csv_file = input(
-            "Enter CSV file path (default: anyburl_converted_to_amie.csv): ").strip() or 'anyburl_converted_to_amie.csv'
-        nt_file = input("Enter .nt file path (default: french_royalty.nt): ").strip() or 'french_royalty.nt'
-        output_file = input(
-            "Enter output file path (default: rules_with_confidence.csv): ").strip() or 'rules_with_confidence.csv'
-        namespace_uri = input(
-            "Enter namespace URI (e.g., http://FrenchRoyalty.org/): ").strip() or 'http://FrenchRoyalty.org/'
-        namespace_prefix = input("Enter namespace prefix (default: ex): ").strip() or 'ex'
-
-
-
-        # set input here
-        csv_file = "./Data/Rules/FrenchRoyalty-AnyBURL.csv"
-        nt_file = "./Data/KG/FrenchRoyalty/FrenchRoyalty.nt"
-        output_file = "./Data/Experimental_results/FrenchRoyalty-AnyBURL_PCA.csv"
-        namespace_uri = "http://FrenchRoyalty.org/"
-        namespace_prefix = "fr"
+    # set input here
+    csv_file = "./Data/Rules/FrenchRoyalty-AnyBURL.csv"
+    nt_file = "./Data/KG/FrenchRoyalty/FrenchRoyalty.nt"
+    output_file = "./Data/Experimental_results/FrenchRoyalty-AnyBURL_PCA.csv"
+    namespace_uri = "http://FrenchRoyalty.org/"
+    namespace_prefix = "fr"
 
     # Ensure namespace URI ends with / or #
     if not namespace_uri.endswith('/') and not namespace_uri.endswith('#'):
