@@ -200,7 +200,7 @@ def triple_ttl_to_nt(infile, outfile):
                     s[i] = s[i].split("^^")[0]
             nt.write("\t".join(s))
 
-def add_types_to_nt(nt, types, out):
+def add_types_to_nt(nt, types, out, classes):
         with open(nt, 'r', encoding='utf-8') as nt, open(types, 'r', encoding='utf-8') as types, open(out, 'w', encoding='utf-8') as out:
             entities = set()
             handled_entities = set()
@@ -214,7 +214,7 @@ def add_types_to_nt(nt, types, out):
             c = 0
             for line in types:
                 s = line.split(" ")
-                if s[0] in entities:
+                if s[0] in entities and s[2] in classes:
                     handled_entities.add(s[0])
                     c += 1
                     out.write(f"{s[0]} <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> {s[2].removesuffix("\n")} .\n")
@@ -248,8 +248,7 @@ def add_classes_to_ontology(tax, on, out):
             new_classes = set()
             if not classes:
                 break
-        for c in old_classes:
-            out.write(f"{c} rdf:type rdfs:Class .\n")
+        return old_classes
 
 def pyclause_rules_to_csv(txtf, csvf):
     def format_triple(triple, var_dict):
@@ -268,7 +267,7 @@ def pyclause_rules_to_csv(txtf, csvf):
     
     var_dict = {"X":"?a", "Y":"?b", "A":"?c", "B":"?d", "C":"?e", "D":"?f"}
     with open(txtf, 'r', encoding='utf-8') as txt, open(csvf, 'w',newline='', encoding='utf-8') as csvfile:
-        writer = csv.DictWriter(csvfile, fieldnames=['Body', 'Head'])
+        writer = csv.DictWriter(csvfile, fieldnames=['Body', 'Head'], quoting=csv.QUOTE_NONE, escapechar="\\")
         writer.writeheader()
 
         for line in txt:
@@ -318,7 +317,7 @@ def addPrefix(file, out, prefix):
             out.write(f"<{prefix}{s[0]}> <{prefix}{s[1]}> <{prefix}{s[2].removesuffix("\n")}> .\n")
 
 if __name__== '__main__':
-    #pyclause_rules_to_csv("./Data/Rules/FrenchRoyalty-AnyBURL.txt","./Data/Rules/FrenchRoyalty-AnyBURL.csv")
+    pyclause_rules_to_csv("./Data/Rules/FrenchRoyalty-AnyBURL.txt","./Data/Rules/FrenchRoyalty-AnyBURL.csv")
     #yago_tsv_to_nt("./Data/KG/YAGO3-10/files/yagoTypes.tsv","./Data/KG/YAGO3-10/files/yagoTypes.nt")
-    #add_types_to_nt("./Data/KG/YAGO3-10/files/YAGO3-10-no-types.nt","./Data/KG/YAGO3-10/files/yagoTypes.nt","./Data/KG/YAGO3-10/YAGO3-10.nt")
-    add_classes_to_ontology("./Data/KG/YAGO3-10/files/yagoTaxonomy.nt", "./Data/Ontology/YAGO3-10Ontology-properties.ttl","./Data/Ontology/YAGO3-10Ontology.ttl")
+    #classes = add_classes_to_ontology("./Data/KG/YAGO3-10/files/yagoTaxonomy.nt", "./Data/Ontology/YAGO3-10Ontology-properties.ttl","./Data/Ontology/YAGO3-10Ontology.ttl")
+    #add_types_to_nt("./Data/KG/YAGO3-10/files/YAGO3-10-no-types.nt","./Data/KG/YAGO3-10/files/yagoTypes.nt","./Data/KG/YAGO3-10/YAGO3-10.nt", classes)

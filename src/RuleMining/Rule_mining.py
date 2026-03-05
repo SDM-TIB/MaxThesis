@@ -106,7 +106,7 @@ def mine_rules(transformed_kg:IncidenceList, targets:set, transform_output_dir:s
             pass
             print(f"creating input sets G and V in order to mine negative rules for target predicate <{p}>...\n")
 
-            v_temp = getExamples(transformed_kg, pmap.predicates, set_size_p)
+            v_temp = getExamples(transformed_kg, pmap.predicates, set_size_p, ontology, pmap, type_predicate)
             len_v = len(v_temp)
             if len_v < set_size_p:
                 print(f"There aren't enough positive examples in the graph, proceeding with {len_v} examples in V.\n")  
@@ -141,7 +141,7 @@ def mine_rules(transformed_kg:IncidenceList, targets:set, transform_output_dir:s
         else:
             print(f"creating input sets G and V for target predicate <{p}>...\n")
             # create positive examples
-            g = getExamples(transformed_kg, pmap.predicates, set_size_p)
+            g = getExamples(transformed_kg, pmap.predicates, set_size_p, ontology, pmap, type_predicate)
             len_g = len(g)
             if len_g < set_size_p:
                 print(f"There aren't enough positive examples in the graph, proceeding with {len_g} examples.\n")  
@@ -322,7 +322,7 @@ def mine_rules_for_target_predicate(g:set, v:set, pmap:P_map, kg:IncidenceList, 
 
 
         # if not rule_dict or cov_g(list(R_out_dict.keys()), rule_dict, R_out_dict) == g or min_weight >= 0:
-        if not rule_dict or len(cov_g(list(R_out_dict.keys()), rule_dict, R_out_dict))/len(g ) > 0.9 or min_weight >= 0:
+        if not rule_dict or len(cov_g(list(R_out_dict.keys()), rule_dict, R_out_dict))/len(g ) > 1 or min_weight >= 0:
         
             break
         
@@ -388,7 +388,7 @@ def find_r(R_out_dict:dict, R_out_cov_v_cardinality:list, R_out_uncov_v:set, rul
 def expand_rule(rule, rule_dict, kg:IncidenceList, ontology:Ontology, pmap:P_map, type_predicate, expand_fun, onto_safe):
     for path in rule_dict[rule]:
         expand_fun(rule_dict, path, kg, ontology, pmap, type_predicate, onto_safe)
-    print(len(rule_dict))
+    #print(len(rule_dict))
 
 def fits_max_depth_rudik(r:Rule, max_depth):
     return len(r.body) < max_depth

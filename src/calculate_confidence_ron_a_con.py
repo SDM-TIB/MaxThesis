@@ -246,8 +246,6 @@ def add_confidence_scores(csv_file, nt_file, output_file, namespace_prefix='ex',
 
     # Calculate scores for each rule
     for i, rule in enumerate(rules, 1):
-        if i < 20:
-            continue
 
 
         body = rule['Body']
@@ -330,9 +328,9 @@ if __name__ == "__main__":
 
 
         # set input here
-        csv_file = "./Data/Rules/FrenchRoyalty-AnyBURL.csv"
+        csv_file = "./Data/Rules/FrenchRoyalty-AMIE.csv"
         nt_file = "./Data/KG/FrenchRoyalty/FrenchRoyalty.nt"
-        output_file = "./Data/Rules/FrenchRoyalty-AnyBURL_PCA.csv"
+        output_file = "./Data/Rules/FrenchRoyalty-AMIE_PCA.csv"
         namespace_uri = "http://FrenchRoyalty.org/"
         namespace_prefix = "fr"
 

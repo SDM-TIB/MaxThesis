@@ -1209,7 +1209,7 @@ def neg_preds(new_preds:set, map):
 #########################################
 
 """get distributed examples for given predicates, limited by count"""
-def getExamples(kg:IncidenceList, preds:set, count:int):
+def getExamples(kg:IncidenceList, preds:set, count:int, ontology, pmap, type_predicate):
     g = set()
     g_sub = set()
     eligible_preds = preds.copy()
@@ -1237,12 +1237,13 @@ def getExamples(kg:IncidenceList, preds:set, count:int):
         for n in edges_p:
             triple = (n[0], p, n[1])
             if triple not in g:
-                g.add(triple)
-                i += 1
-            if i > max_i:
-                g_sub.add(triple)
-                if i > 2*max_i and len(g_sub) >= count:
-                    break
+                if fits_domain_range(n[0], triple, ontology, kg, pmap, type_predicate) and fits_domain_range(n[1], triple, ontology, kg, pmap, type_predicate):
+                    g.add(triple)
+                    i += 1
+                if i > max_i:
+                    g_sub.add(triple)
+                    if i > 2*max_i and len(g_sub) >= count:
+                        break
             
         diff = count - len(g)
 
