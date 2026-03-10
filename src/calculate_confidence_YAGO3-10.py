@@ -309,7 +309,7 @@ if __name__ == "__main__":
     # set input here
     csv_file = "./Data/Rules/YAGO3-10.csv"
     nt_file = "./Data/KG/YAGO3-10/YAGO3-10.nt"
-    output_file = "./Data/Rules/YAGO3-10_PCA.csv"
+    output_file = "./Data/Experimental_results/YAGO3-10_PCA.csv"
     namespace_uri = "http://yago-knowledge.org/resource/"
     namespace_prefix = "yago"
 
