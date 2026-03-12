@@ -12,6 +12,7 @@ exS:DireStraitsAlbumGenreShape
       WHERE {
         <http://example.org/Dire_Straits> <http://example.org/hasAlbum> $this .
         FILTER NOT EXISTS { $this <http://example.org/isGenre> <http://example.org/Rock> .}
+        FILTER EXISTS { $this <http://example.org/isGenre> <http://example.org/Rock> .}
       }
     """ ;
   ] ;

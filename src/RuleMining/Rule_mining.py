@@ -217,7 +217,8 @@ def mine_rules_for_target_predicate(g:set, v:set, pmap:P_map, kg:IncidenceList, 
 #   "example_set_size": "",
 #   "type_predicate":  "",
 #   "alpha": "",
-#   "mine_negative_rules": ""
+#   "mine_negative_rules": "",
+#   "onto-valid": ""
 #   }
 
     
@@ -232,7 +233,8 @@ def mine_rules_for_target_predicate(g:set, v:set, pmap:P_map, kg:IncidenceList, 
 #   "example_set_size": "",
 #   "type_predicate":  "",
 #   "alpha": "",
-#   "mine_negative_rules": ""
+#   "mine_negative_rules": "",
+#   "onto-valid": ""
 #   }
 
 
@@ -249,7 +251,8 @@ def mine_rules_for_target_predicate(g:set, v:set, pmap:P_map, kg:IncidenceList, 
 #   "example_set_size": "",
 #   "type_predicate":  "",
 #   "alpha": "",
-#   "mine_negative_rules": ""
+#   "mine_negative_rules": "",
+#   "onto-valid": ""
 #   }
 
 # {
@@ -322,7 +325,7 @@ def mine_rules_for_target_predicate(g:set, v:set, pmap:P_map, kg:IncidenceList, 
 
 
         # if not rule_dict or cov_g(list(R_out_dict.keys()), rule_dict, R_out_dict) == g or min_weight >= 0:
-        if not rule_dict or len(cov_g(list(R_out_dict.keys()), rule_dict, R_out_dict))/len(g ) > 1 or min_weight >= 0:
+        if not rule_dict or len(cov_g(list(R_out_dict.keys()), rule_dict, R_out_dict))/len(g) == 1 or min_weight >= 0:
         
             break
         
