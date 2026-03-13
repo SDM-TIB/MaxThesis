@@ -332,7 +332,7 @@ if __name__ == "__main__":
         nt_file = "./Data/KG/YAGO3-10/YAGO3-10.nt"
         output_file = "./Data/Rules/YAGO3-10_PCA.csv"
         namespace_uri = "http://yago-knowledge.org/resource/"
-        namespace_prefix = "fr"
+        namespace_prefix = "yago"
 
     # Ensure namespace URI ends with / or #
     if not namespace_uri.endswith('/') and not namespace_uri.endswith('#'):

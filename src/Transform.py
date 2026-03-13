@@ -316,8 +316,18 @@ def addPrefix(file, out, prefix):
             s = line.split("\t")
             out.write(f"<{prefix}{s[0]}> <{prefix}{s[1]}> <{prefix}{s[2].removesuffix("\n")}> .\n")
 
+def remove_rules_with_constants(file, out):
+    with open(file, "r", encoding="utf-8") as f, open(out, "w", encoding="utf-8") as out:
+        for line in f:
+            s = line.split(",")
+            if not s[1].__contains__("?a") or not s[1].__contains__("?b"):
+                continue
+            out.write(line)
+
+
 if __name__== '__main__':
-    pyclause_rules_to_csv("./Data/Rules/FrenchRoyalty-AnyBURL.txt","./Data/Rules/FrenchRoyalty-AnyBURL.csv")
+    #pyclause_rules_to_csv("./Data/Rules/FrenchRoyalty-AnyBURL.txt","./Data/Rules/FrenchRoyalty-AnyBURL.csv")
     #yago_tsv_to_nt("./Data/KG/YAGO3-10/files/yagoTypes.tsv","./Data/KG/YAGO3-10/files/yagoTypes.nt")
     #classes = add_classes_to_ontology("./Data/KG/YAGO3-10/files/yagoTaxonomy.nt", "./Data/Ontology/YAGO3-10Ontology-properties.ttl","./Data/Ontology/YAGO3-10Ontology.ttl")
     #add_types_to_nt("./Data/KG/YAGO3-10/files/YAGO3-10-no-types.nt","./Data/KG/YAGO3-10/files/yagoTypes.nt","./Data/KG/YAGO3-10/YAGO3-10.nt", classes)
+    remove_rules_with_constants(".\Data\Experimental_results\FrenchRoyalty-AnyBURL_PCA-adapted.csv", ".\Data\Experimental_results\FrenchRoyalty_PCA-no-constants.csv")
