@@ -1,0 +1,394 @@
+?b isLocatedIn ?a,?a owns ?b,0.047506
+?a isLocatedIn ?b,?a owns ?b,0.018059
+?b isMarriedTo ?a,?a isMarriedTo ?b,0.988573
+?b hasChild ?a,?a isMarriedTo ?b,0.030830
+?a hasChild ?b,?a isMarriedTo ?b,0.026216
+?b influences ?a,?a influences ?b,0.019191
+?b influences ?a,?a isInterestedIn ?b,0.007042
+?a imports ?b,?a exports ?b,0.177843
+?a isCitizenOf ?b,?a isPoliticianOf ?b,0.755639
+?a isLeaderOf ?b,?a isPoliticianOf ?b,0.454545
+?a livesIn ?b,?a isPoliticianOf ?b,0.223097
+?a wasBornIn ?b,?a diedIn ?b,0.174562
+?a livesIn ?b,?a diedIn ?b,0.140351
+?a worksAt ?b,?a graduatedFrom ?b,0.194039
+?b hasNeighbor ?a,?a hasNeighbor ?b,0.998205
+?b dealsWith ?a,?a hasNeighbor ?b,0.176225
+?a dealsWith ?b,?a hasNeighbor ?b,0.166998
+?a directed ?b,?a actedIn ?b,0.104136
+?a created ?b,?a actedIn ?b,0.080885
+?a isCitizenOf ?b,?a livesIn ?b,0.471316
+?a wasBornIn ?b,?a livesIn ?b,0.104500
+?a diedIn ?b,?a livesIn ?b,0.244131
+?a isPoliticianOf ?b,?a livesIn ?b,0.284281
+?a isLeaderOf ?b,?a livesIn ?b,0.212500
+?b isLocatedIn ?a,?a hasCapital ?b,0.038146
+?a isLocatedIn ?b,?a hasCapital ?b,0.234176
+?b isConnectedTo ?a,?a isConnectedTo ?b,0.677601
+?a created ?b,?a wroteMusicFor ?b,0.126391
+?b happenedIn ?a,?a participatedIn ?b,0.310052
+?a directed ?b,?a edited ?b,0.022402
+?a created ?b,?a edited ?b,0.012850
+?a livesIn ?b,?a isCitizenOf ?b,0.356293
+?a isPoliticianOf ?b,?a isCitizenOf ?b,0.747212
+?a graduatedFrom ?b,?a worksAt ?b,0.280477
+?a diedIn ?b,?a wasBornIn ?b,0.174562
+?b influences ?a,?a hasAcademicAdvisor ?b,0.185294
+?a isPoliticianOf ?b,?a isLeaderOf ?b,0.092287
+?a isAffiliatedTo ?b,?a isLeaderOf ?b,0.069074
+?a livesIn ?b,?a isLeaderOf ?b,0.053125
+?a wasBornIn ?b,?a isLeaderOf ?b,0.005788
+?b participatedIn ?a,?a happenedIn ?b,0.366667
+?a isLocatedIn ?b,?a happenedIn ?b,0.014936
+?a directed ?b,?a created ?b,0.328414
+?a wroteMusicFor ?b,?a created ?b,0.158394
+?a actedIn ?b,?a created ?b,0.026142
+?a created ?b,?a directed ?b,0.237026
+?a actedIn ?b,?a directed ?b,0.023618
+?a edited ?b,?a directed ?b,0.022070
+?b hasChild ?a,?a hasChild ?b,0.110034
+?b isMarriedTo ?a,?a hasChild ?b,0.051325
+?a isMarriedTo ?b,?a hasChild ?b,0.051282
+?a exports ?b,?a imports ?b,0.172316
+?b hasNeighbor ?a,?a dealsWith ?b,0.347023
+?b dealsWith ?a,?a dealsWith ?b,0.148080
+?a hasNeighbor ?b,?a dealsWith ?b,0.344262
+?a isLocatedIn ?b,?a dealsWith ?b,0.048485
+?b isLocatedIn ?a,?a isLocatedIn ?b,0.072234
+?b hasCapital ?a,?a isLocatedIn ?b,0.684109
+?a hasCapital ?b,?a isLocatedIn ?b,0.419609
+?a isAffiliatedTo ?b,?a playsFor ?b,0.833110
+?a playsFor ?b,?a isAffiliatedTo ?b,0.954666
+?a owns ?c   ?c isLocatedIn ?b,?a owns ?b,0.275000
+?a owns ?c   ?c isConnectedTo ?b,?a owns ?b,0.068966
+?a owns ?c   ?b isConnectedTo ?c,?a owns ?b,0.069124
+?a hasCapital ?c   ?b isLocatedIn ?c,?a owns ?b,0.016529
+?a hasNeighbor ?c   ?c owns ?b,?a owns ?b,0.102804
+?a dealsWith ?c   ?c owns ?b,?a owns ?b,0.024096
+?a hasChild ?c   ?c owns ?b,?a owns ?b,0.360000
+?a owns ?c   ?b isLocatedIn ?c,?a owns ?b,0.141026
+?a wasBornIn ?c   ?b isLocatedIn ?c,?a owns ?b,0.000161
+?a isMarriedTo ?c   ?b hasChild ?c,?a isMarriedTo ?b,0.025851
+?a isMarriedTo ?c   ?c hasChild ?b,?a isMarriedTo ?b,0.022247
+?a actedIn ?c   ?b directed ?c,?a isMarriedTo ?b,0.011689
+?a diedIn ?c   ?b diedIn ?c,?a isMarriedTo ?b,0.001625
+?a diedIn ?c   ?b wasBornIn ?c,?a isMarriedTo ?b,0.000433
+?a actedIn ?c   ?b actedIn ?c,?a isMarriedTo ?b,0.007002
+?a graduatedFrom ?c   ?b graduatedFrom ?c,?a isMarriedTo ?b,0.002093
+?a directed ?c   ?b actedIn ?c,?a isMarriedTo ?b,0.016844
+?a wasBornIn ?c   ?b diedIn ?c,?a isMarriedTo ?b,0.000554
+?a hasChild ?c   ?b isMarriedTo ?c,?a isMarriedTo ?b,0.033557
+?a hasChild ?c   ?c isMarriedTo ?b,?a isMarriedTo ?b,0.033520
+?a isPoliticianOf ?c   ?b isPoliticianOf ?c,?a isMarriedTo ?b,0.005502
+?a hasChild ?c   ?b hasChild ?c,?a isMarriedTo ?b,0.237029
+?a livesIn ?c   ?b livesIn ?c,?a isMarriedTo ?b,0.003301
+?a hasWonPrize ?c   ?b hasWonPrize ?c,?a isMarriedTo ?b,0.000841
+?a wasBornIn ?c   ?b wasBornIn ?c,?a isMarriedTo ?b,0.000328
+?a influences ?c   ?b influences ?c,?a influences ?b,0.058344
+?a influences ?c   ?c influences ?b,?a influences ?b,0.061840
+?a wasBornIn ?c   ?b diedIn ?c,?a influences ?b,0.000590
+?a hasWonPrize ?c   ?b hasWonPrize ?c,?a influences ?b,0.003329
+?a wasBornIn ?c   ?b wasBornIn ?c,?a influences ?b,0.000506
+?a diedIn ?c   ?b diedIn ?c,?a influences ?b,0.002477
+?a graduatedFrom ?c   ?b graduatedFrom ?c,?a influences ?b,0.001397
+?a diedIn ?c   ?b wasBornIn ?c,?a influences ?b,0.001560
+?a isInterestedIn ?c   ?b isInterestedIn ?c,?a influences ?b,0.039963
+?a isInterestedIn ?c   ?c isInterestedIn ?b,?a isInterestedIn ?b,0.800000
+?a isInterestedIn ?c   ?b isInterestedIn ?c,?a isInterestedIn ?b,0.000548
+?a isCitizenOf ?c   ?b isCitizenOf ?c,?a influences ?b,0.000782
+?a isAffiliatedTo ?c   ?b isAffiliatedTo ?c,?a isMarriedTo ?b,0.002280
+?a influences ?c   ?c isInterestedIn ?b,?a isInterestedIn ?b,0.328358
+?a dealsWith ?c   ?c exports ?b,?a exports ?b,0.136238
+?a dealsWith ?c   ?c imports ?b,?a exports ?b,0.097663
+?a hasNeighbor ?c   ?c exports ?b,?a exports ?b,0.250765
+?a hasNeighbor ?c   ?c imports ?b,?a exports ?b,0.112930
+?a isLocatedIn ?c   ?c hasOfficialLanguage ?b,?a hasOfficialLanguage ?b,0.692308
+?a dealsWith ?c   ?c hasOfficialLanguage ?b,?a hasOfficialLanguage ?b,0.256595
+?a hasNeighbor ?c   ?c hasOfficialLanguage ?b,?a hasOfficialLanguage ?b,0.493506
+?a isPoliticianOf ?c   ?c isLocatedIn ?b,?a isPoliticianOf ?b,0.064073
+?a isPoliticianOf ?c   ?b isLocatedIn ?c,?a isPoliticianOf ?b,0.000083
+?a isAffiliatedTo ?c   ?c isLocatedIn ?b,?a isPoliticianOf ?b,0.215764
+?a wasBornIn ?c   ?c isLocatedIn ?b,?a isPoliticianOf ?b,0.257247
+?a wasBornIn ?c   ?b hasCapital ?c,?a isPoliticianOf ?b,0.135862
+?a graduatedFrom ?c   ?c isLocatedIn ?b,?a isPoliticianOf ?b,0.203001
+?a hasChild ?c   ?c isPoliticianOf ?b,?a isPoliticianOf ?b,0.875468
+?a hasChild ?c   ?c isCitizenOf ?b,?a isPoliticianOf ?b,0.832215
+?a hasChild ?c   ?c isLeaderOf ?b,?a isPoliticianOf ?b,0.391941
+?a hasChild ?c   ?c livesIn ?b,?a isPoliticianOf ?b,0.144144
+?a diedIn ?c   ?c isLocatedIn ?b,?a isPoliticianOf ?b,0.227754
+?a diedIn ?c   ?b hasCapital ?c,?a isPoliticianOf ?b,0.130393
+?a livesIn ?c   ?c isLocatedIn ?b,?a isPoliticianOf ?b,0.259686
+?a livesIn ?c   ?b hasCapital ?c,?a isPoliticianOf ?b,0.222772
+?a livesIn ?c   ?b isLocatedIn ?c,?a isPoliticianOf ?b,0.000132
+?a isLeaderOf ?c   ?c isLocatedIn ?b,?a isPoliticianOf ?b,0.143805
+?a isCitizenOf ?c   ?b isLocatedIn ?c,?a isPoliticianOf ?b,0.000114
+?a isMarriedTo ?c   ?c isPoliticianOf ?b,?a isPoliticianOf ?b,0.878378
+?a created ?c   ?c isLocatedIn ?b,?a isPoliticianOf ?b,0.265957
+?a isLocatedIn ?c   ?b isLocatedIn ?c,?a owns ?b,0.000182
+?a hasWonPrize ?c   ?b hasWonPrize ?c,?a diedIn ?b,0.000168
+?a playsFor ?c   ?c isLocatedIn ?b,?a diedIn ?b,0.145486
+?a isAffiliatedTo ?c   ?c isLocatedIn ?b,?a diedIn ?b,0.153333
+?a graduatedFrom ?c   ?c isLocatedIn ?b,?a diedIn ?b,0.062817
+?a hasChild ?c   ?c diedIn ?b,?a diedIn ?b,0.241355
+?a hasChild ?c   ?c wasBornIn ?b,?a diedIn ?b,0.262407
+?a isMarriedTo ?c   ?c diedIn ?b,?a diedIn ?b,0.326624
+?a isMarriedTo ?c   ?c wasBornIn ?b,?a diedIn ?b,0.105357
+?a isCitizenOf ?c   ?c hasCapital ?b,?a diedIn ?b,0.068093
+?a influences ?c   ?c diedIn ?b,?a diedIn ?b,0.073556
+?a influences ?c   ?c wasBornIn ?b,?a diedIn ?b,0.032330
+?a worksAt ?c   ?c isLocatedIn ?b,?a diedIn ?b,0.113321
+?a isPoliticianOf ?c   ?c hasCapital ?b,?a diedIn ?b,0.105924
+?a isPoliticianOf ?c   ?b isLocatedIn ?c,?a diedIn ?b,0.000491
+?a livesIn ?c   ?b isLocatedIn ?c,?a diedIn ?b,0.000172
+?a wasBornIn ?c   ?b isLocatedIn ?c,?a graduatedFrom ?b,0.008486
+?a isCitizenOf ?c   ?b isLocatedIn ?c,?a diedIn ?b,0.000190
+?a diedIn ?c   ?b isLocatedIn ?c,?a graduatedFrom ?b,0.006957
+?a isPoliticianOf ?c   ?b isLocatedIn ?c,?a graduatedFrom ?b,0.000409
+?a livesIn ?c   ?b isLocatedIn ?c,?a graduatedFrom ?b,0.000209
+?a hasAcademicAdvisor ?c   ?c worksAt ?b,?a graduatedFrom ?b,0.304926
+?a hasAcademicAdvisor ?c   ?c graduatedFrom ?b,?a graduatedFrom ?b,0.216889
+?a hasChild ?c   ?c graduatedFrom ?b,?a graduatedFrom ?b,0.200613
+?a influences ?c   ?c graduatedFrom ?b,?a graduatedFrom ?b,0.060060
+?a isLeaderOf ?c   ?b isLocatedIn ?c,?a graduatedFrom ?b,0.001731
+?a hasNeighbor ?c   ?c hasNeighbor ?b,?a hasNeighbor ?b,0.272079
+?a hasNeighbor ?c   ?c dealsWith ?b,?a hasNeighbor ?b,0.136499
+?a hasNeighbor ?c   ?b hasNeighbor ?c,?a hasNeighbor ?b,0.272378
+?a hasNeighbor ?c   ?b dealsWith ?c,?a hasNeighbor ?b,0.066089
+?a isCitizenOf ?c   ?b isLocatedIn ?c,?a graduatedFrom ?b,0.000189
+?a isLocatedIn ?c   ?b dealsWith ?c,?a hasNeighbor ?b,0.000009
+?a isLocatedIn ?c   ?b isLocatedIn ?c,?a hasNeighbor ?b,0.011224
+?a dealsWith ?c   ?c hasNeighbor ?b,?a hasNeighbor ?b,0.050580
+?a dealsWith ?c   ?c dealsWith ?b,?a hasNeighbor ?b,0.050000
+?a dealsWith ?c   ?b dealsWith ?c,?a hasNeighbor ?b,0.021659
+?a dealsWith ?c   ?b hasNeighbor ?c,?a hasNeighbor ?b,0.050707
+?a dealsWith ?c   ?b isLocatedIn ?c,?a hasNeighbor ?b,0.087302
+?a imports ?c   ?b imports ?c,?a hasNeighbor ?b,0.020585
+?a imports ?c   ?b exports ?c,?a hasNeighbor ?b,0.022044
+?a participatedIn ?c   ?c happenedIn ?b,?a hasNeighbor ?b,0.039362
+?a participatedIn ?c   ?c isLocatedIn ?b,?a hasNeighbor ?b,0.051163
+?a participatedIn ?c   ?b participatedIn ?c,?a hasNeighbor ?b,0.033469
+?a exports ?c   ?b exports ?c,?a hasNeighbor ?b,0.039726
+?a exports ?c   ?b imports ?c,?a hasNeighbor ?b,0.022378
+?a owns ?c   ?b owns ?c,?a hasNeighbor ?b,0.098093
+?a hasOfficialLanguage ?c   ?b hasOfficialLanguage ?c,?a hasNeighbor ?b,0.044990
+?a hasCurrency ?c   ?b hasCurrency ?c,?a hasNeighbor ?b,0.098361
+?a isMarriedTo ?c   ?c actedIn ?b,?a actedIn ?b,0.040374
+?a isCitizenOf ?c   ?b isLocatedIn ?c,?a actedIn ?b,0.000074
+?a livesIn ?c   ?c isLocatedIn ?b,?a livesIn ?b,0.118365
+?a livesIn ?c   ?c hasCapital ?b,?a livesIn ?b,0.089921
+?a livesIn ?c   ?c dealsWith ?b,?a livesIn ?b,0.023522
+?a livesIn ?c   ?b isLocatedIn ?c,?a livesIn ?b,0.000199
+?a livesIn ?c   ?b hasCapital ?c,?a livesIn ?b,0.129314
+?a livesIn ?c   ?b dealsWith ?c,?a livesIn ?b,0.002260
+?a wasBornIn ?c   ?c isLocatedIn ?b,?a livesIn ?b,0.099045
+?a wasBornIn ?c   ?b hasCapital ?c,?a livesIn ?b,0.053717
+?a graduatedFrom ?c   ?c isLocatedIn ?b,?a livesIn ?b,0.145001
+?a isCitizenOf ?c   ?c dealsWith ?b,?a livesIn ?b,0.021999
+?a isCitizenOf ?c   ?c hasCapital ?b,?a livesIn ?b,0.032929
+?a isCitizenOf ?c   ?b isLocatedIn ?c,?a livesIn ?b,0.000120
+?a isCitizenOf ?c   ?b dealsWith ?c,?a livesIn ?b,0.001599
+?a isAffiliatedTo ?c   ?c isLocatedIn ?b,?a livesIn ?b,0.173057
+?a diedIn ?c   ?c isLocatedIn ?b,?a livesIn ?b,0.161528
+?a diedIn ?c   ?b hasCapital ?c,?a livesIn ?b,0.088207
+?a worksAt ?c   ?c isLocatedIn ?b,?a livesIn ?b,0.169544
+?a actedIn ?c   ?c isLocatedIn ?b,?a livesIn ?b,0.056361
+?a isPoliticianOf ?c   ?c hasCapital ?b,?a livesIn ?b,0.189135
+?a isPoliticianOf ?c   ?c isLocatedIn ?b,?a livesIn ?b,0.065306
+?a isPoliticianOf ?c   ?b isLocatedIn ?c,?a livesIn ?b,0.000342
+?a hasAcademicAdvisor ?c   ?c isCitizenOf ?b,?a livesIn ?b,0.437768
+?a hasAcademicAdvisor ?c   ?c livesIn ?b,?a livesIn ?b,0.436709
+?a isMarriedTo ?c   ?c livesIn ?b,?a livesIn ?b,0.464000
+?a isLeaderOf ?c   ?c isLocatedIn ?b,?a livesIn ?b,0.189435
+?a isLeaderOf ?c   ?b isLocatedIn ?c,?a livesIn ?b,0.001330
+?a hasChild ?c   ?c livesIn ?b,?a livesIn ?b,0.316176
+?a isLocatedIn ?c   ?c hasCapital ?b,?a hasCapital ?b,0.074337
+?a isLocatedIn ?c   ?c isLocatedIn ?b,?a hasCapital ?b,0.016305
+?a isLocatedIn ?c   ?b isLocatedIn ?c,?a hasCapital ?b,0.001667
+?a hasGender ?c   ?b hasGender ?c,?a isInterestedIn ?b,0.000002
+?a participatedIn ?c   ?c happenedIn ?b,?a hasCapital ?b,0.003525
+?a hasGender ?c   ?b hasGender ?c,?a isMarriedTo ?b,0.000001
+?a isConnectedTo ?c   ?c isConnectedTo ?b,?a isConnectedTo ?b,0.077378
+?a isConnectedTo ?c   ?b isConnectedTo ?c,?a isConnectedTo ?b,0.073511
+?a isCitizenOf ?c   ?b isLocatedIn ?c,?a wroteMusicFor ?b,0.000013
+?a isMarriedTo ?c   ?c hasWonPrize ?b,?a hasWonPrize ?b,0.310261
+?a hasChild ?c   ?c hasWonPrize ?b,?a hasWonPrize ?b,0.304279
+?a influences ?c   ?c hasWonPrize ?b,?a hasWonPrize ?b,0.167245
+?a hasAcademicAdvisor ?c   ?c hasWonPrize ?b,?a hasWonPrize ?b,0.256614
+?a isLocatedIn ?c   ?c participatedIn ?b,?a participatedIn ?b,0.000129
+?a isLocatedIn ?c   ?b happenedIn ?c,?a participatedIn ?b,0.001010
+?a isLocatedIn ?c   ?b isLocatedIn ?c,?a participatedIn ?b,0.000664
+?a dealsWith ?c   ?c participatedIn ?b,?a participatedIn ?b,0.033137
+?a dealsWith ?c   ?b happenedIn ?c,?a participatedIn ?b,0.011874
+?a hasCapital ?c   ?b happenedIn ?c,?a participatedIn ?b,0.086370
+?a hasNeighbor ?c   ?c participatedIn ?b,?a participatedIn ?b,0.171277
+?a hasNeighbor ?c   ?b happenedIn ?c,?a participatedIn ?b,0.057027
+?a isCitizenOf ?c   ?b isLocatedIn ?c,?a edited ?b,0.000011
+?a isLocatedIn ?c   ?b isLocatedIn ?c,?a isConnectedTo ?b,0.001316
+?a wasBornIn ?c   ?b hasCapital ?c,?a isCitizenOf ?b,0.101753
+?a graduatedFrom ?c   ?c isLocatedIn ?b,?a isCitizenOf ?b,0.194648
+?a diedIn ?c   ?c isLocatedIn ?b,?a isCitizenOf ?b,0.218516
+?a diedIn ?c   ?b hasCapital ?c,?a isCitizenOf ?b,0.107242
+?a worksAt ?c   ?c isLocatedIn ?b,?a isCitizenOf ?b,0.143438
+?a wasBornIn ?c   ?c isLocatedIn ?b,?a isCitizenOf ?b,0.217996
+?a isCitizenOf ?c   ?c dealsWith ?b,?a isCitizenOf ?b,0.014379
+?a isCitizenOf ?c   ?c hasNeighbor ?b,?a isCitizenOf ?b,0.006313
+?a isCitizenOf ?c   ?b hasNeighbor ?c,?a isCitizenOf ?b,0.006320
+?a hasAcademicAdvisor ?c   ?c isCitizenOf ?b,?a isCitizenOf ?b,0.536000
+?a isCitizenOf ?c   ?b dealsWith ?c,?a isCitizenOf ?b,0.001199
+?a hasAcademicAdvisor ?c   ?c livesIn ?b,?a isCitizenOf ?b,0.385496
+?a livesIn ?c   ?c dealsWith ?b,?a isCitizenOf ?b,0.026531
+?a livesIn ?c   ?b dealsWith ?c,?a isCitizenOf ?b,0.003041
+?a livesIn ?c   ?c isLocatedIn ?b,?a isCitizenOf ?b,0.139472
+?a livesIn ?c   ?b hasCapital ?c,?a isCitizenOf ?b,0.093516
+?a influences ?c   ?c isCitizenOf ?b,?a isCitizenOf ?b,0.395760
+?a isPoliticianOf ?c   ?c isLocatedIn ?b,?a isCitizenOf ?b,0.092593
+?a created ?c   ?c isLocatedIn ?b,?a isCitizenOf ?b,0.368421
+?a isLeaderOf ?c   ?c isLocatedIn ?b,?a isCitizenOf ?b,0.223810
+?a hasChild ?c   ?c isPoliticianOf ?b,?a isCitizenOf ?b,0.796053
+?a hasChild ?c   ?c isCitizenOf ?b,?a isCitizenOf ?b,0.922222
+?a actedIn ?c   ?c isLocatedIn ?b,?a isCitizenOf ?b,0.368932
+?a directed ?c   ?c isLocatedIn ?b,?a isCitizenOf ?b,0.512500
+?a isAffiliatedTo ?c   ?c isLocatedIn ?b,?a isCitizenOf ?b,0.144763
+?a wasBornIn ?c   ?b isLocatedIn ?c,?a worksAt ?b,0.004879
+?a diedIn ?c   ?b isLocatedIn ?c,?a worksAt ?b,0.020813
+?a influences ?c   ?c graduatedFrom ?b,?a worksAt ?b,0.108541
+?a influences ?c   ?c worksAt ?b,?a worksAt ?b,0.099448
+?a hasAcademicAdvisor ?c   ?c worksAt ?b,?a worksAt ?b,0.174924
+?a hasAcademicAdvisor ?c   ?c graduatedFrom ?b,?a worksAt ?b,0.134901
+?a livesIn ?c   ?b isLocatedIn ?c,?a worksAt ?b,0.000255
+?a isCitizenOf ?c   ?b isLocatedIn ?c,?a worksAt ?b,0.000227
+?a playsFor ?c   ?c isLocatedIn ?b,?a wasBornIn ?b,0.081255
+?a graduatedFrom ?c   ?c isLocatedIn ?b,?a wasBornIn ?b,0.058042
+?a isAffiliatedTo ?c   ?c isLocatedIn ?b,?a wasBornIn ?b,0.064475
+?a isPoliticianOf ?c   ?b isLocatedIn ?c,?a wasBornIn ?b,0.000490
+?a isCitizenOf ?c   ?b isLocatedIn ?c,?a wasBornIn ?b,0.000149
+?a hasAcademicAdvisor ?c   ?c hasAcademicAdvisor ?b,?a hasAcademicAdvisor ?b,0.025316
+?a hasAcademicAdvisor ?c   ?b hasAcademicAdvisor ?c,?a hasAcademicAdvisor ?b,0.007582
+?a graduatedFrom ?c   ?b worksAt ?c,?a hasAcademicAdvisor ?b,0.008004
+?a graduatedFrom ?c   ?b graduatedFrom ?c,?a hasAcademicAdvisor ?b,0.002616
+?a hasGender ?c   ?b hasGender ?c,?a influences ?b,0.000066
+?a wasBornIn ?c   ?b diedIn ?c,?a hasAcademicAdvisor ?b,0.001205
+?a wasBornIn ?c   ?b wasBornIn ?c,?a hasAcademicAdvisor ?b,0.000364
+?a isCitizenOf ?c   ?b isCitizenOf ?c,?a hasAcademicAdvisor ?b,0.000727
+?a isCitizenOf ?c   ?b livesIn ?c,?a hasAcademicAdvisor ?b,0.000962
+?a worksAt ?c   ?b worksAt ?c,?a hasAcademicAdvisor ?b,0.003554
+?a worksAt ?c   ?b graduatedFrom ?c,?a hasAcademicAdvisor ?b,0.001518
+?a hasWonPrize ?c   ?b hasWonPrize ?c,?a hasAcademicAdvisor ?b,0.002966
+?a diedIn ?c   ?b diedIn ?c,?a hasAcademicAdvisor ?b,0.002489
+?a diedIn ?c   ?b wasBornIn ?c,?a hasAcademicAdvisor ?b,0.000379
+?a livesIn ?c   ?b isCitizenOf ?c,?a hasAcademicAdvisor ?b,0.000611
+?a livesIn ?c   ?b livesIn ?c,?a hasAcademicAdvisor ?b,0.001458
+?a influences ?c   ?b influences ?c,?a hasAcademicAdvisor ?b,0.007874
+?a http://www.w3.org/1999/02/22-rdf-syntax-ns#type ?c   ?b http://www.w3.org/1999/02/22-rdf-syntax-ns#type ?c,?a isInterestedIn ?b,0.000001
+?a isLeaderOf ?c   ?c isLocatedIn ?b,?a isLeaderOf ?b,0.173554
+?a isLeaderOf ?c   ?b isLocatedIn ?c,?a isLeaderOf ?b,0.088650
+?a isLeaderOf ?c   ?b dealsWith ?c,?a isLeaderOf ?b,0.009181
+?a wasBornIn ?c   ?c isLocatedIn ?b,?a isLeaderOf ?b,0.002554
+?a wasBornIn ?c   ?b hasCapital ?c,?a isLeaderOf ?b,0.004386
+?a wasBornIn ?c   ?b isLocatedIn ?c,?a isLeaderOf ?b,0.001871
+?a graduatedFrom ?c   ?c isLocatedIn ?b,?a isLeaderOf ?b,0.016200
+?a isAffiliatedTo ?c   ?c isLocatedIn ?b,?a isLeaderOf ?b,0.004771
+?a livesIn ?c   ?c isLocatedIn ?b,?a isLeaderOf ?b,0.026748
+?a livesIn ?c   ?b isLocatedIn ?c,?a isLeaderOf ?b,0.002344
+?a livesIn ?c   ?b hasCapital ?c,?a isLeaderOf ?b,0.039548
+?a isPoliticianOf ?c   ?b isLocatedIn ?c,?a isLeaderOf ?b,0.001834
+?a hasChild ?c   ?c isPoliticianOf ?b,?a isLeaderOf ?b,0.035141
+?a hasChild ?c   ?c isAffiliatedTo ?b,?a isLeaderOf ?b,0.041555
+?a hasChild ?c   ?c isLeaderOf ?b,?a isLeaderOf ?b,0.053360
+?a isCitizenOf ?c   ?b isLocatedIn ?c,?a isLeaderOf ?b,0.000405
+?a diedIn ?c   ?b isLocatedIn ?c,?a isLeaderOf ?b,0.001697
+?a http://www.w3.org/1999/02/22-rdf-syntax-ns#type ?c   ?b http://www.w3.org/1999/02/22-rdf-syntax-ns#type ?c,?a hasNeighbor ?b,0.005292
+?a happenedIn ?c   ?c dealsWith ?b,?a happenedIn ?b,0.085395
+?a happenedIn ?c   ?c isLocatedIn ?b,?a happenedIn ?b,0.173291
+?a happenedIn ?c   ?c hasNeighbor ?b,?a happenedIn ?b,0.105588
+?a happenedIn ?c   ?c hasCapital ?b,?a happenedIn ?b,0.033618
+?a happenedIn ?c   ?b dealsWith ?c,?a happenedIn ?b,0.021568
+?a happenedIn ?c   ?b hasNeighbor ?c,?a happenedIn ?b,0.105526
+?a happenedIn ?c   ?b hasCapital ?c,?a happenedIn ?b,0.284790
+?a happenedIn ?c   ?b isLocatedIn ?c,?a happenedIn ?b,0.030034
+?a isLocatedIn ?c   ?c dealsWith ?b,?a happenedIn ?b,0.000461
+?a isLocatedIn ?c   ?c isLocatedIn ?b,?a happenedIn ?b,0.003567
+?a isLocatedIn ?c   ?c hasNeighbor ?b,?a happenedIn ?b,0.000845
+?a isLocatedIn ?c   ?b hasCapital ?c,?a happenedIn ?b,0.007008
+?a isLocatedIn ?c   ?b hasNeighbor ?c,?a happenedIn ?b,0.000847
+?a isMarriedTo ?c   ?c created ?b,?a created ?b,0.088203
+?a http://www.w3.org/1999/02/22-rdf-syntax-ns#type ?c   ?b http://www.w3.org/1999/02/22-rdf-syntax-ns#type ?c,?a isMarriedTo ?b,0.000017
+?a wasBornIn ?c   ?b isLocatedIn ?c,?a directed ?b,0.004493
+?a isMarriedTo ?c   ?c actedIn ?b,?a directed ?b,0.012554
+?a isCitizenOf ?c   ?b isLocatedIn ?c,?a created ?b,0.000074
+?a isCitizenOf ?c   ?b isLocatedIn ?c,?a directed ?b,0.000020
+?a dealsWith ?c   ?c hasCurrency ?b,?a hasCurrency ?b,0.315068
+?a hasNeighbor ?c   ?c hasCurrency ?b,?a hasCurrency ?b,0.666667
+?a isLocatedIn ?c   ?c hasCurrency ?b,?a hasCurrency ?b,0.562500
+?a hasChild ?c   ?c hasChild ?b,?a hasChild ?b,0.076150
+?a hasChild ?c   ?c isMarriedTo ?b,?a hasChild ?b,0.151150
+?a hasChild ?c   ?b hasChild ?c,?a hasChild ?b,0.087379
+?a hasChild ?c   ?b isMarriedTo ?c,?a hasChild ?b,0.151233
+?a wasBornIn ?c   ?b wasBornIn ?c,?a hasChild ?b,0.001891
+?a wasBornIn ?c   ?b diedIn ?c,?a hasChild ?b,0.001169
+?a isLocatedIn ?c   ?b isLocatedIn ?c,?a happenedIn ?b,0.000285
+?a diedIn ?c   ?b wasBornIn ?c,?a hasChild ?b,0.003885
+?a diedIn ?c   ?b diedIn ?c,?a hasChild ?b,0.004296
+?a http://www.w3.org/1999/02/22-rdf-syntax-ns#type ?c   ?b http://www.w3.org/1999/02/22-rdf-syntax-ns#type ?c,?a hasCapital ?b,0.000046
+?a isAffiliatedTo ?c   ?b isLeaderOf ?c,?a hasChild ?b,0.016573
+?a isMarriedTo ?c   ?c hasChild ?b,?a hasChild ?b,0.583880
+?a isMarriedTo ?c   ?c isMarriedTo ?b,?a hasChild ?b,0.040390
+?a isMarriedTo ?c   ?b isMarriedTo ?c,?a hasChild ?b,0.040334
+?a isPoliticianOf ?c   ?b isPoliticianOf ?c,?a hasChild ?b,0.018538
+?a isPoliticianOf ?c   ?b isCitizenOf ?c,?a hasChild ?b,0.009254
+?a isPoliticianOf ?c   ?b isLeaderOf ?c,?a hasChild ?b,0.042824
+?a isAffiliatedTo ?c   ?b isAffiliatedTo ?c,?a hasChild ?b,0.008895
+?a hasGender ?c   ?b hasGender ?c,?a hasAcademicAdvisor ?b,0.000018
+?a graduatedFrom ?c   ?b graduatedFrom ?c,?a hasChild ?b,0.006816
+?a isCitizenOf ?c   ?b isPoliticianOf ?c,?a hasChild ?b,0.000702
+?a hasChild ?c   ?c hasGender ?b,?a hasGender ?b,0.698408
+?a influences ?c   ?c hasGender ?b,?a hasGender ?b,0.805708
+?a hasAcademicAdvisor ?c   ?c hasGender ?b,?a hasGender ?b,0.961202
+?a dealsWith ?c   ?c imports ?b,?a imports ?b,0.189210
+?a dealsWith ?c   ?c exports ?b,?a imports ?b,0.126842
+?a hasNeighbor ?c   ?c imports ?b,?a imports ?b,0.252280
+?a hasNeighbor ?c   ?c exports ?b,?a imports ?b,0.110000
+?a hasWonPrize ?c   ?b hasWonPrize ?c,?a hasChild ?b,0.002783
+?a isCitizenOf ?c   ?b isCitizenOf ?c,?a hasChild ?b,0.001695
+?a dealsWith ?c   ?c dealsWith ?b,?a dealsWith ?b,0.251752
+?a dealsWith ?c   ?c hasNeighbor ?b,?a dealsWith ?b,0.091625
+?a dealsWith ?c   ?b dealsWith ?c,?a dealsWith ?b,0.041943
+?a dealsWith ?c   ?b hasNeighbor ?c,?a dealsWith ?b,0.091854
+?a isLocatedIn ?c   ?c dealsWith ?b,?a dealsWith ?b,0.166667
+?a isLocatedIn ?c   ?b dealsWith ?c,?a dealsWith ?b,0.029774
+?a imports ?c   ?b imports ?c,?a dealsWith ?b,0.039959
+?a imports ?c   ?b exports ?c,?a dealsWith ?b,0.069529
+?a participatedIn ?c   ?c happenedIn ?b,?a dealsWith ?b,0.041684
+?a participatedIn ?c   ?c isLocatedIn ?b,?a dealsWith ?b,0.039125
+?a participatedIn ?c   ?b participatedIn ?c,?a dealsWith ?b,0.063794
+?a exports ?c   ?b exports ?c,?a dealsWith ?b,0.053465
+?a exports ?c   ?b imports ?c,?a dealsWith ?b,0.043167
+?a hasNeighbor ?c   ?c dealsWith ?b,?a dealsWith ?b,0.335725
+?a hasNeighbor ?c   ?c hasNeighbor ?b,?a dealsWith ?b,0.147985
+?a hasNeighbor ?c   ?b hasNeighbor ?c,?a dealsWith ?b,0.148078
+?a hasNeighbor ?c   ?b dealsWith ?c,?a dealsWith ?b,0.054680
+?a hasOfficialLanguage ?c   ?b hasOfficialLanguage ?c,?a dealsWith ?b,0.036971
+?a owns ?c   ?b owns ?c,?a dealsWith ?b,0.190601
+?a hasCurrency ?c   ?b hasCurrency ?c,?a dealsWith ?b,0.069272
+?a isLocatedIn ?c   ?c isLocatedIn ?b,?a isLocatedIn ?b,0.231789
+?a isLocatedIn ?c   ?c hasCapital ?b,?a isLocatedIn ?b,0.025354
+?a isLocatedIn ?c   ?c dealsWith ?b,?a isLocatedIn ?b,0.014680
+?a isLocatedIn ?c   ?c hasNeighbor ?b,?a isLocatedIn ?b,0.012894
+?a isLocatedIn ?c   ?b isLocatedIn ?c,?a dealsWith ?b,0.007522
+?a isLocatedIn ?c   ?b hasCapital ?c,?a isLocatedIn ?b,0.145932
+?a isLocatedIn ?c   ?b dealsWith ?c,?a isLocatedIn ?b,0.001521
+?a isLocatedIn ?c   ?b hasNeighbor ?c,?a isLocatedIn ?b,0.012907
+?a isLocatedIn ?c   ?b isLocatedIn ?c,?a isLocatedIn ?b,0.000326
+?a hasCapital ?c   ?c isLocatedIn ?b,?a isLocatedIn ?b,0.317366
+?a wasBornIn ?c   ?b isLocatedIn ?c,?a playsFor ?b,0.013593
+?a isLocatedIn ?c   ?c http://www.w3.org/1999/02/22-rdf-syntax-ns#type ?b,?a http://www.w3.org/1999/02/22-rdf-syntax-ns#type ?b,0.077142
+?a isMarriedTo ?c   ?c http://www.w3.org/1999/02/22-rdf-syntax-ns#type ?b,?a http://www.w3.org/1999/02/22-rdf-syntax-ns#type ?b,0.265205
+?a hasChild ?c   ?c http://www.w3.org/1999/02/22-rdf-syntax-ns#type ?b,?a http://www.w3.org/1999/02/22-rdf-syntax-ns#type ?b,0.348821
+?a wasBornIn ?c   ?b isLocatedIn ?c,?a isAffiliatedTo ?b,0.017862
+?a http://www.w3.org/1999/02/22-rdf-syntax-ns#type ?c   ?b http://www.w3.org/1999/02/22-rdf-syntax-ns#type ?c,?a influences ?b,0.000063
+?a http://www.w3.org/1999/02/22-rdf-syntax-ns#type ?c   ?b http://www.w3.org/1999/02/22-rdf-syntax-ns#type ?c,?a hasAcademicAdvisor ?b,0.000017
+?a hasGender ?c   ?b hasGender ?c,?a hasChild ?b,0.000026
+?a http://www.w3.org/1999/02/22-rdf-syntax-ns#type ?c   ?b http://www.w3.org/1999/02/22-rdf-syntax-ns#type ?c,?a isLeaderOf ?b,0.000003
+?a http://www.w3.org/1999/02/22-rdf-syntax-ns#type ?c   ?b http://www.w3.org/1999/02/22-rdf-syntax-ns#type ?c,?a dealsWith ?b,0.007447
+?a http://www.w3.org/1999/02/22-rdf-syntax-ns#type ?c   ?b http://www.w3.org/1999/02/22-rdf-syntax-ns#type ?c,?a isLocatedIn ?b,0.000068
+?a http://www.w3.org/1999/02/22-rdf-syntax-ns#type ?c   ?b http://www.w3.org/1999/02/22-rdf-syntax-ns#type ?c,?a hasChild ?b,0.000025

@@ -254,8 +254,8 @@ def pyclause_rules_to_csv(txtf, csvf):
     def format_triple(triple, var_dict):
         temp = triple.strip().split("(")
         p = temp[0]
-        s = temp[1].split(",")[0]
-        o = temp[1].split(",")[1].split(")")[0]
+        s = "(".join(temp[1:]).split(",")[0]
+        o = "(".join(temp[1:]).split(",")[1].removesuffix(")")
 
         if s in var_dict and o in var_dict:
             return f"{var_dict[s]} {p} {var_dict[o]}"
@@ -267,10 +267,17 @@ def pyclause_rules_to_csv(txtf, csvf):
     
     var_dict = {"X":"?a", "Y":"?b", "A":"?c", "B":"?d", "C":"?e", "D":"?f"}
     with open(txtf, 'r', encoding='utf-8') as txt, open(csvf, 'w',newline='', encoding='utf-8') as csvfile:
-        writer = csv.DictWriter(csvfile, fieldnames=['Body', 'Head'], quoting=csv.QUOTE_NONE, escapechar="\\")
+        writer = csv.DictWriter(csvfile, fieldnames=['Body', 'Head', 'Confidence'], quoting=csv.QUOTE_NONE, escapechar="\\")
         writer.writeheader()
 
         for line in txt:
+            s = line[0]
+            if not s in ["0","1","2","3","4","5","6","7","8","9"]:
+                continue
+            if not line.endswith(")\n"):
+                continue
+            if line.__contains__("XXXXXXXXXX"):
+                continue
             if not line:
                 continue
             split = line.split("<=")
@@ -282,6 +289,7 @@ def pyclause_rules_to_csv(txtf, csvf):
             rule = {}
             rule["Head"] = format_triple(head, var_dict)
             rule["Body"] = "   ".join(format_triple(t, var_dict) for t in body)
+            rule["Confidence"] = sp[len(sp)-2]
             print(rule)
             writer.writerow(rule)
 
@@ -324,10 +332,36 @@ def remove_rules_with_constants(file, out):
                 continue
             out.write(line)
 
+def remove_rules_with_constants_from_txt(file, out):
+    with open(file, "r", encoding="utf-8") as f, open(out, "w", encoding="utf-8") as out:
+        for line in f:
+            s = line.split("<=")[0].split("\t")
+            head = s[len(s)-2]
+            if not head.__contains__("?a") or not head.__contains__("?b"):
+                continue
+            out.write(line)
+
+def filter_rules_with_threshold(file, out, threshold):
+        with open(file, "r", encoding="utf-8") as f, open(out, "w", encoding="utf-8") as out:
+            c = 0
+            for line in f:
+                if c == 0:
+                    c+=1
+                    continue
+                s = line.split(",")
+                print(float(s[2].removesuffix("\n")))
+                if float(s[2].removesuffix("\n")) < threshold or float(s[2].removesuffix("\n")) > 0.99:
+                    continue
+                out.write(",".join(s[:2]))
+                out.write("\n")
+                
+
 
 if __name__== '__main__':
-    #pyclause_rules_to_csv("./Data/Rules/FrenchRoyalty-AnyBURL.txt","./Data/Rules/FrenchRoyalty-AnyBURL.csv")
+    #pyclause_rules_to_csv("./Data/Rules/YAGO3-10-AMIE.txt","./Data/Rules/YAGO3-10-AMIE.csv")
     #yago_tsv_to_nt("./Data/KG/YAGO3-10/files/yagoTypes.tsv","./Data/KG/YAGO3-10/files/yagoTypes.nt")
     #classes = add_classes_to_ontology("./Data/KG/YAGO3-10/files/yagoTaxonomy.nt", "./Data/Ontology/YAGO3-10Ontology-properties.ttl","./Data/Ontology/YAGO3-10Ontology.ttl")
     #add_types_to_nt("./Data/KG/YAGO3-10/files/YAGO3-10-no-types.nt","./Data/KG/YAGO3-10/files/yagoTypes.nt","./Data/KG/YAGO3-10/YAGO3-10.nt", classes)
-    remove_rules_with_constants(".\Data\Experimental_results\FrenchRoyalty-AnyBURL_PCA-adapted.csv", ".\Data\Experimental_results\FrenchRoyalty_PCA-no-constants.csv")
+    #remove_rules_with_constants(".\Data\Rules\YAGO3-10-AMIE.csv", ".\Data\Rules\YAGO3-10-AMIE-no-constants.csv")
+    #remove_rules_with_constants_from_txt(".\Data\Rules\yago-amie.txt", ".\Data\Rules\YAGO3-10-AMIE.txt")
+    filter_rules_with_threshold(".\Data\Rules\YAGO3-10-AMIE.csv", ".\Data\Rules\YAGO3-10-AMIE-filtered.csv", 0.85)
