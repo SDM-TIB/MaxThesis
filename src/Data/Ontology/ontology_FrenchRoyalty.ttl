@@ -3,7 +3,6 @@
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#>.
 @prefix fr: <http://FrenchRoyalty.org/>.
 @prefix dbr: <http://dbpedia.org/resource/>.
-@prefix foaf: <http://xmlns.com/foaf/0.1/>.
 
 fr:Person  a  rdfs:Class .
 fr:Binary  a  rdfs:Class .
@@ -18,7 +17,7 @@ fr:hasSpouse a rdfs:Property , owl:ObjectProperty;
     rdfs:domain fr:Person ;
     rdfs:range  fr:Binary .
 
-foaf:name a rdfs:Property , owl:DatatypeProperty;
+fr:name a rdfs:Property , owl:DatatypeProperty;
     rdfs:domain fr:Person ;
     rdfs:range  fr:Person .
 

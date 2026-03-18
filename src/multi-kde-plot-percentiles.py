@@ -48,7 +48,7 @@ def generate_multi_kde_plot(csv_paths, dataset_names=None, output_path=None,
     if suffix is None:
         suffix = "NoSuffix"
     else:
-        suffix = f"_{suffix}"
+        suffix = f"{suffix}"
 
     # Process output path if provided
     if output_path:
@@ -59,7 +59,7 @@ def generate_multi_kde_plot(csv_paths, dataset_names=None, output_path=None,
             # Create the directory if it doesn't exist
             output_file.mkdir(parents=True, exist_ok=True)
             # Set a default filename inside that directory
-            output_file = output_file / "multi_kde_distribution_{suffix}.pdf"
+            output_file = output_file / f"multi_kde_distribution_{suffix}.pdf"
         else:
             # Ensure the parent directory exists
             output_file.parent.mkdir(parents=True, exist_ok=True)
@@ -124,7 +124,7 @@ def generate_multi_kde_plot(csv_paths, dataset_names=None, output_path=None,
     # Use a colorblind-friendly palette for better accessibility
     colors = sns.color_palette("YlGn", n_colors=len(datasets))
 
-    farben =  ["#e18ab3", "#5fc5ad", "#1f7ab6"]
+    farben =  ["#e18ab3", "#3aa590ff", "#3a56a5ff"]
 
     # Setzen Sie die Farbpalette
     sns.set_palette(farben)
@@ -435,3 +435,4 @@ if __name__ == "__main__":
 #python fixed-multi-kde-plot.py FrenchRoyalty-full-enriched.csv synLC_1000.csv --names 'FrenchRoyalty' 'SynthLC-1000' --output ./VANILLA --no-grid
 #python .\multi-kde-plot-percentiles.py FrenchRoyalty-full-enriched.csv synLC_1000.csv --names 'FrenchRoyalty' 'SynthLC-1000' --output ./plot_thesis/percentile --suffix 'small'
 #python .\multi-kde-plot-percentiles.py .\Data\Experimental_results\FrenchRoyalty-AnyBURL_PCA.csv .\Data\Experimental_results\FrenchRoyalty-AMIE_PCA.csv  .\Data\Experimental_results\FrenchRoyalty_PCA.csv --names 'AnyBURL' 'AMIE3' 'RON-a-CON' --output ./Data/Experimental_results/plots --suffix 'small'
+#python .\multi-kde-plot-percentiles.py .\Data\Rules\YAGO3-10-AnyBURL.csv .\Data\Rules\YAGO3-10-AMIE.csv  --names 'AnyBURL' 'AMIE3'  --output ./Data/Experimental_results/plots --suffix 'small'
