@@ -436,3 +436,4 @@ if __name__ == "__main__":
 #python .\multi-kde-plot-percentiles.py FrenchRoyalty-full-enriched.csv synLC_1000.csv --names 'FrenchRoyalty' 'SynthLC-1000' --output ./plot_thesis/percentile --suffix 'small'
 #python .\multi-kde-plot-percentiles.py .\Data\Experimental_results\FrenchRoyalty-AnyBURL_PCA.csv .\Data\Experimental_results\FrenchRoyalty-AMIE_PCA.csv  .\Data\Experimental_results\FrenchRoyalty_PCA.csv --names 'AnyBURL' 'AMIE3' 'RON-a-CON' --output ./Data/Experimental_results/plots --suffix 'small'
 #python .\multi-kde-plot-percentiles.py .\Data\Rules\YAGO3-10-AnyBURL.csv .\Data\Rules\YAGO3-10-AMIE.csv  --names 'AnyBURL' 'AMIE3'  --output ./Data/Experimental_results/plots --suffix 'small'
+#python .\multi-kde-plot-percentiles.py .\Data\Rules\SynthLC_1000-AnyBURL_PCA.csv  --names 'AnyBURL' --output ./Data/Experimental_results/plots --suffix 'LCanyburl'

@@ -52,33 +52,24 @@ def csv_to_nt(csv_file, nt_file, prefix='http://example.org/'):
     return
 
 def nt_to_txt(input_file, output_file, prefix):
-    try:
-        with open(input_file, 'r', encoding='utf-8') as nt_file, open(output_file, 'w', encoding='utf-8') as txt_file:
-            for line in nt_file:
-                # Entfernen von Kommentaren und leeren Zeilen
-                line = line.strip()
-                if not line or line.startswith('#'):
-                    continue
+
+    with open(input_file, 'r', encoding='utf-8') as nt_file, open(output_file, 'w', encoding='utf-8') as txt_file:
+        for line in nt_file:
+            line = line.strip()
+            if not line or line.startswith('#'):
+                continue
+
+            parts = line.split(' ')
+
+            
+            subject = removePrefix(parts[0], prefix)
+            predicate = removePrefix(parts[1], prefix) if not parts[1].__contains__(".org/1999/02/22-rdf-syntax-ns#ty") else "http://www.w3.org/1999/02/22-rdf-syntax-ns#type"
+            obj = removePrefix(parts[2], prefix).removesuffix(">.")
+
+            txt_file.write(f"{subject}\t{predicate}\t{obj}\n")
 
 
 
-                # Trennen in Subjekt, Prädikat und Objekt
-                parts = line.split(' ')
-
-                
-                subject = removePrefix(parts[0], prefix)
-                predicate = removePrefix(parts[1], prefix)
-                obj = removePrefix(parts[2], prefix)
-
-                # Schreiben in die TXT-Datei mit Tabulator als Trennzeichen
-                txt_file.write(f"{subject}\t{predicate}\t{obj}\n")
-
-        print(f"Konvertierung abgeschlossen. Die tab-separierte Datei wurde als '{output_file}' gespeichert.")
-
-    except FileNotFoundError:
-        print(f"Die Datei '{input_file}' wurde nicht gefunden.")
-    except Exception as e:
-        print(f"Ein Fehler ist aufgetreten: {e}")
 
 def txt_to_nt(input_file, output_file, prefix):
     
@@ -355,13 +346,22 @@ def filter_rules_with_threshold(file, out, threshold):
                 out.write(",".join(s[:2]))
                 out.write("\n")
                 
-
-
+def denormalise(normalised_kg, out):
+        with open(normalised_kg, "r", encoding="utf-8") as f, open(out, "w", encoding="utf-8") as out:
+            for line in f:
+                if line.__contains__("NONONO"):
+                    continue
+                s = line.split()
+                s[1] = s[1].split("_")[0] +">"
+                l = " ".join(s)
+                out.write(l+"\n")
 if __name__== '__main__':
-    pyclause_rules_to_csv("./Data/Rules/YAGO3-10-AnyBURL.txt","./Data/Rules/YAGO3-10-AnyBURL.csv")
+    pyclause_rules_to_csv("./Data/Rules/SynthLC_1000-AnyBURL.txt","./Data/Rules/SynthLC_1000-AnyBURL.csv")
     #yago_tsv_to_nt("./Data/KG/YAGO3-10/files/yagoTypes.tsv","./Data/KG/YAGO3-10/files/yagoTypes.nt")
     #classes = add_classes_to_ontology("./Data/KG/YAGO3-10/files/yagoTaxonomy.nt", "./Data/Ontology/YAGO3-10Ontology-properties.ttl","./Data/Ontology/YAGO3-10Ontology.ttl")
     #add_types_to_nt("./Data/KG/YAGO3-10/files/YAGO3-10-no-types.nt","./Data/KG/YAGO3-10/files/yagoTypes.nt","./Data/KG/YAGO3-10/YAGO3-10.nt", classes)
     #remove_rules_with_constants(".\Data\Rules\YAGO3-10-AMIE.csv", ".\Data\Rules\YAGO3-10-AMIE-no-constants.csv")
-    #remove_rules_with_constants_from_txt(".\Data\Rules\yago-anyburl-raw.txt", ".\Data\Rules\YAGO3-10-AnyBURL.txt")
+    #remove_rules_with_constants_from_txt(".\Data\Rules\synth-anyburl.txt", ".\Data\Rules\SynthLC_1000-AnyBURL.txt")
     #filter_rules_with_threshold(".\Data\Rules\YAGO3-10-AnyBURL-no-constants.csv", ".\Data\Rules\YAGO3-10-AMIE-filtered-score1.csv", 0.85)
+    #denormalise(".\Data\Transformed_SynthLC_1000\TransformedKG_SynthLC_1000.nt", ".\Data\KG\SynthLC_1000\SynthLC_1000-valid.nt")
+    #nt_to_txt(".\Data\KG\SynthLC_1000\SynthLC_1000.nt",".\Data\KG\SynthLC_1000\SynthLC_1000.txt","http://synthetic-LC.org/lungCancer/")

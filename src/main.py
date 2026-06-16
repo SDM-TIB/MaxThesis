@@ -54,7 +54,7 @@ def initialize(input_config):
     else:
         max_depth = int(input_data['max_body_length'])
     if not input_data['example_set_size']:
-        set_size = 15
+        set_size = 20
     else:
         set_size = int(input_data['example_set_size'])
 
@@ -109,7 +109,6 @@ if __name__ == '__main__':
             raise RuntimeError(f"Expected working directory to be the projects 'src' folder, but got {cwd}")
 
         start_time = time.time()
-        print("Starting symbolic prediction generation...")
 
         # Initialize configuration
         input_config = './Data/input.json'

@@ -1,14 +1,15 @@
- {
-   "KG": "YAGO3-10",
-   "prefix": "http://yago-knowledge.org/resource/",
-   "rules_file": "YAGO3-10.csv",
-   "rdf_file": "YAGO3-10.nt",
-   "constraints_folder": "YAGO3-10",
-   "ontology_file": "YAGO3-10Ontology.ttl",
-   "max_body_length": "",
-   "example_set_size": "25",
-   "type_predicate":  "",
-   "alpha": "",
-   "mine_negative_rules": "",
-   "onto-valid": "true"
-   }
+
+{
+  "KG": "SynthLC_1000",
+  "prefix": "http://synthetic-LC.org/lungCancer/",
+  "rules_file": "SynthLC_1000.csv",
+  "rdf_file": "SynthLC_1000_Enriched_KG-anyburl.nt",
+  "constraints_folder": "SynthLC_1000",
+  "ontology_file": "ontology_LungCancer.ttl",
+  "max_body_length": "",
+  "example_set_size": "",
+  "type_predicate":  "",
+  "alpha": "",
+  "mine_negative_rules": "",
+  "onto-valid": ""
+}

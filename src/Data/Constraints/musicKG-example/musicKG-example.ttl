@@ -41,6 +41,9 @@ exS:SongAlbumGenreConstraint a sh:NodeShape ;
                 FILTER NOT EXISTS {
                     ?album <http://example.org/isGenre> ?genre .
                 }
+                FILTER EXISTS {
+                    $this <http://example.org/isGenre> ?genre .
+                }
             }
 """ ] ;
     sh:targetClass ex:Song.

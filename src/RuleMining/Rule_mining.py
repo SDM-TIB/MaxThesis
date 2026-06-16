@@ -262,8 +262,13 @@ def mine_rules_for_target_predicate(g:set, v:set, pmap:P_map, kg:IncidenceList, 
 #   "rdf_file": "SynthLC_1000.nt",
 #   "constraints_folder": "SynthLC_1000",
 #   "ontology_file": "ontology_LungCancer.ttl",
-#   "pca_threshold": 0.75
-# }
+#   "max_body_length": "",
+#   "example_set_size": "",
+#   "type_predicate":  "",
+#   "alpha": "",
+#   "mine_negative_rules": "",
+#   "onto-valid": ""
+#   }
 
 
 # {

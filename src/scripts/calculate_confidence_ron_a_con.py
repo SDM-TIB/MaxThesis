@@ -314,25 +314,14 @@ if __name__ == "__main__":
         namespace_uri = sys.argv[4]
         namespace_prefix = sys.argv[5] if len(sys.argv) > 5 else 'ex'
     else:
-        # Interactive input
-        print("=== Rule Confidence Calculator ===\n")
-        csv_file = input(
-            "Enter CSV file path (default: anyburl_converted_to_amie.csv): ").strip() or 'anyburl_converted_to_amie.csv'
-        nt_file = input("Enter .nt file path (default: french_royalty.nt): ").strip() or 'french_royalty.nt'
-        output_file = input(
-            "Enter output file path (default: rules_with_confidence.csv): ").strip() or 'rules_with_confidence.csv'
-        namespace_uri = input(
-            "Enter namespace URI (e.g., http://FrenchRoyalty.org/): ").strip() or 'http://FrenchRoyalty.org/'
-        namespace_prefix = input("Enter namespace prefix (default: ex): ").strip() or 'ex'
-
 
 
         # set input here
-        csv_file = "./Data/Rules/YAGO3-10.csv"
-        nt_file = "./Data/KG/YAGO3-10/YAGO3-10.nt"
-        output_file = "./Data/Rules/YAGO3-10_PCA.csv"
-        namespace_uri = "http://yago-knowledge.org/resource/"
-        namespace_prefix = "yago"
+        csv_file = "./Data/Rules/SynthLC_1000-AnyBURL.csv"
+        nt_file = "./Data/KG/SynthLC_1000/SynthLC_1000-valid.nt"
+        output_file = "./Data/Rules/SynthLC_1000-AnyBURL_PCA.csv"
+        namespace_uri = "http://synthetic-LC.org/lungCancer/"
+        namespace_prefix = "lc"
 
     # Ensure namespace URI ends with / or #
     if not namespace_uri.endswith('/') and not namespace_uri.endswith('#'):

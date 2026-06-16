@@ -548,7 +548,7 @@ def rulelist_unbounded_coverage(R, v, kg, pmap):
 
 """estimated marginal weight"""
 def est_m_weight(r:Rule, R_out_dict, rule_dict, kg:IncidenceList, g:set, v:set, alpha:float, beta:float, pmap:P_map, R_out_cov_v_cardinality:list, R_out_uncov_v:set):
-
+    test = False
     # contain only r_out
     R_out = list(R_out_dict.keys())
 
@@ -556,6 +556,7 @@ def est_m_weight(r:Rule, R_out_dict, rule_dict, kg:IncidenceList, g:set, v:set, 
     if R_out_cov_v_cardinality[0] == None:
         cardinality_cov_r_out_v = len(rulelist_coverage(R_out, v,kg,  pmap))
         R_out_cov_v_cardinality[0] = cardinality_cov_r_out_v
+        test = True
     else:
         cardinality_cov_r_out_v = R_out_cov_v_cardinality[0]
 
@@ -574,17 +575,18 @@ def est_m_weight(r:Rule, R_out_dict, rule_dict, kg:IncidenceList, g:set, v:set, 
     uncov_r_v = unbounded_coverage(r, (v - uncov_r_out_v), kg, pmap)
     cardinality_uncov_r_out_r_v = len(set.union(uncov_r_out_v, uncov_r_v))
 
-
-
-
-    if not cardinality_cov_r_out_v:
+    if cardinality_uncov_r_out_v:
+        if (cardinality_cov_r_out_v / cardinality_uncov_r_out_v) > 1.0:
+            print("AAAAHHH")
+    elif cardinality_cov_r_out_v:
+        print("IIIIHH")
+    if not cardinality_cov_r_out_v or not cardinality_uncov_r_out_v:
     # if this is zero we know the beta part is zero, the divisors will also be zero resulting in error, thus removing beta part altogether
         return -alpha * ((len(cov_g(r, rule_dict, R_out_dict) - cov_g(R_out, rule_dict, R_out_dict)))/len(g))
     
     if not cardinality_uncov_r_out_r_v:
     # if this is zero there is division by zero in first fraction of beta part, setting it to zero
         return  -alpha * ((len(cov_g(r, rule_dict, R_out_dict) - cov_g(R_out, rule_dict, R_out_dict)))/len(g)) - beta * (cardinality_cov_r_out_v / cardinality_uncov_r_out_v)
-
 
     return -alpha * ((len(cov_g(r, rule_dict, R_out_dict) - cov_g(R_out, rule_dict, R_out_dict)))/len(g)) + beta * ((cardinality_cov_r_out_v / cardinality_uncov_r_out_r_v) - (cardinality_cov_r_out_v / cardinality_uncov_r_out_v))
 

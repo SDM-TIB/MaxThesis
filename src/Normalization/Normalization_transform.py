@@ -40,21 +40,28 @@ def extract_triple_patterns(query_text: str) -> List[TriplePattern]:
 
     patterns = []
 
-    filter_match = re.search(r'FILTER (?:NOT )?EXISTS \{([^}]+)\}', query_text)
+    filter_not_exists_match = re.search(r'FILTER NOT ?EXISTS\s?\{([^}]+)\}', query_text)
+    filter_exists_match = re.search(r'FILTER ?EXISTS\s?\{([^}]+)\}', query_text)
+    
     main_query = query_text
-    filter_query = ""
-    is_not_exists = False
+    filter_exists_query = ""
+    filter_not_exists_query = ""
+
+    if filter_exists_match:
+        filter_exists_query = filter_exists_match.group(1)
+        if filter_not_exists_match:
+            filter_not_exists_query = filter_not_exists_match.group(1)
+
+            # exclude both filters from complete query
+            main_query = "".join([query_text[:min(filter_exists_match.start(),filter_not_exists_match.start())], query_text[min(filter_exists_match.end(),filter_not_exists_match.end()):max(filter_exists_match.start(),filter_not_exists_match.start())], query_text[max(filter_exists_match.end(),filter_not_exists_match.end()):]])
+        else:
+            main_query = query_text[:filter_exists_match.start()]
+    elif filter_not_exists_match:
+        filter_not_exists_query = filter_not_exists_match.group(1)
+        main_query = query_text[:filter_not_exists_match.start()]
 
 
-    if filter_match:
-        filter_query = filter_match.group(1)
-        main_query = query_text[:filter_match.start()]
-
-        # MAX
-        # original: is_not_exists = "NOT EXISTS" in query_text[filter_match.start() - 4:filter_match.start() + 15]
-        is_not_exists = "NOT EXISTS" in filter_match.group()
-
-    def extract_from_text(text: str, in_filter: bool) -> None:
+    def extract_from_text(text: str, in_filter: bool, is_not_exists) -> None:
         # Direct patterns with $this
         direct_matches = re.finditer(r'\$this\s+<([^>]+)>\s+(?:<([^>]+)>|\?(\w+))', text)
         for match in direct_matches:
@@ -68,9 +75,12 @@ def extract_triple_patterns(query_text: str) -> List[TriplePattern]:
             pred = URIRef(match.group(2).strip())
             patterns.append(TriplePattern(pred, None, in_filter, is_not_exists if in_filter else False))
 
-    extract_from_text(main_query, False)
-    if filter_query:
-        extract_from_text(filter_query, True)
+    extract_from_text(main_query, False, False)
+    if filter_exists_query:
+        extract_from_text(filter_exists_query, True, False)
+
+    if filter_not_exists_query:
+        extract_from_text(filter_not_exists_query, True, True)
 
     return patterns
 
@@ -238,12 +248,13 @@ def transform_triple(triple: Tuple[URIRef, URIRef, URIRef],
     for pattern in patterns:
         if pattern.in_filter and orig_pred_str and orig_pred_str == removePrefix(pattern.predicate, prefix):
             # Check if this specific object value is mentioned in the constraint
+            #print(f"\n transform triple filter pattern: {pattern} object is {pattern.object} and obj {obj}")
             if pattern.object is None or pattern.object == obj:
                 matching_filter_pattern = pattern
                 
                 # original: no_prefix = "NO_" if not matching_filter_pattern.is_not_exists else ""
                 # MAX
-                no_prefix = "NONONO" if matching_filter_pattern.is_not_exists else ""
+                no_prefix = "NONONO" if not matching_filter_pattern.is_not_exists else ""
                 entity_name = str(obj).split('/')[-1]
 
                 # Create new predicate with 'No' prefix for the object part
@@ -261,7 +272,7 @@ def transform(kg: Graph, constraints_folder: str, prefix,  kg_name: str = None) 
     """
     Transforms a given knowledge graph (KG) based on a series of predicate-object transformations,
     SHACL constraints, and violation reports. The transformation involves modifying triples in the graph as
-    per defined patterns and saving the results to the appropriate output files.
+    pre defined patterns and saving the results to the appropriate output files.
 
     Args:
         kg: The input RDF graph to be transformed.
@@ -308,7 +319,6 @@ def transform(kg: Graph, constraints_folder: str, prefix,  kg_name: str = None) 
         violations = process_validation_report(validation_report)
         print(f"Found {len(violations)} violations")
 
-
         transformed_kg = Graph()
         transformed_kg += kg_transform
 
@@ -323,7 +333,6 @@ def transform(kg: Graph, constraints_folder: str, prefix,  kg_name: str = None) 
 
             condition_patterns = [p for p in patterns if not p.in_filter]
             filter_patterns = [p for p in patterns if p.in_filter]
-
             # We need to adapt condition patterns for the transformed predicates
             matches_conditions = True
             for pattern in condition_patterns:
@@ -374,8 +383,7 @@ def transform(kg: Graph, constraints_folder: str, prefix,  kg_name: str = None) 
         with open(f"{output_dir}/predicate_mappings.json", "w") as file:
             json.dump(predicate_mapping, file, indent=4)
         print(f"Saving predicate mappings (negated-transformed to transformed) to {output_dir}/no_predicate_mappings.json...")
-        #TODO delete line
-        #no_predicate_mapping["isGenre_NONONO_Pop"] = "isGenre_Pop"
+
         with open(f"{output_dir}/no_predicate_mappings.json", "w") as file:
             json.dump(no_predicate_mapping, file, indent=4)
 
