@@ -9,8 +9,8 @@ from RuleMining.Classes import Path, Rule, P_map, IncidenceList, Ontology
 
 
 
-def mine_rules(transformed_kg:IncidenceList, targets:set, transform_output_dir:str, ontology:Ontology, rules_file:str, prefix:str, max_depth:int=3, set_size:int=100, 
-               alpha:float=0.5, type_predicate:str='http://www.w3.org/1999/02/22-rdf-syntax-ns#type', rule_type:str="rudik", negative_rules:bool=False, onto_valid:bool=False):
+def mine_rules(transformed_kg:IncidenceList, targets:set, transform_output_dir:str, ontology:Ontology, rules_file:str, prefix:str, max_depth:int=3, set_size:int=20, 
+               alpha:float=0.5, type_predicate:str='http://www.w3.org/1999/02/22-rdf-syntax-ns#type', rule_type:str="closed", negative_rules:bool=False, onto_valid:bool=False):
     """
     Mines rules for all original predicates of a normalized knowledge graph.
     
@@ -43,9 +43,9 @@ def mine_rules(transformed_kg:IncidenceList, targets:set, transform_output_dir:s
 
 
     # TODO if clauses for other rule types
-    if rule_type == "rudik":
-        expand_fun = expand_path_rudik
-        fits_max_depth = fits_max_depth_rudik
+    if rule_type == "closed":
+        expand_fun = expand_path_closed_rule
+        fits_max_depth = fits_max_depth_closed_rule
 
     if not expand_fun or not fits_max_depth:
         raise ValueError("parameter rule_type must be one of the following strings: \"rudik\". If not spedified, it defaults to \"rudik\".")
@@ -61,9 +61,9 @@ def mine_rules(transformed_kg:IncidenceList, targets:set, transform_output_dir:s
         neg_predicate_mappings = json.load(np_map_file)
 
     if onto_valid:
+        # validate the whole graph before mining, instead of validating during traversal
         pmap = P_map(None, None , set() , predicate_mappings, neg_predicate_mappings)
         kg = IncidenceList()
-        count = 0
         for k,v in transformed_kg.edges.items():
             for pair in v:
                 if k.__contains__(type_predicate):
@@ -72,23 +72,12 @@ def mine_rules(transformed_kg:IncidenceList, targets:set, transform_output_dir:s
     
                 if fits_domain_range(pair[0], (pair[0], k, pair[1]), ontology, transformed_kg, pmap, type_predicate):
                     if fits_domain_range(pair[1], (pair[0], k, pair[1]), ontology, transformed_kg, pmap, type_predicate):
-                        count += 1
                         kg.add(pair[0], k, pair[1])
         transformed_kg = kg
 
-        # # TODO remove
-        # with open("./Data/Test/YAGO3-10-onto-valid.nt", 'w', encoding='utf-8')as f:
-        #     for edge in transformed_kg.edges.keys():
-        #         for pair in transformed_kg.edges[edge]:
-        #             if not pair[1].startswith("\""):
-        #                 f.write(f"<{prefix}{pair[0]}> <{prefix}{edge}> <{prefix}{pair[1]}> .\n")
-        #             elif k.__contains__(type_predicate):
-        #                 f.write(f"<{prefix}{pair[0]}> <{edge}> {pair[1]} .\n")
 
-        #             else:
-        #                 f.write(f"<{prefix}{pair[0]}> <{prefix}{edge}> {pair[1]} .\n")
-        print(count)
     # need to ensure predicate mapping consistency, every new predicate mentioned in mappings must be in kg, even if there is no corresponding triple
+    # to avoid case where there is a negative version of a predicate but no pos. normalized version.
     check_preds_in_graph(neg_predicate_mappings, transformed_kg)
 
     result = []
@@ -97,13 +86,10 @@ def mine_rules(transformed_kg:IncidenceList, targets:set, transform_output_dir:s
         pmap = P_map(p, new_preds(p, predicate_mappings), set() , predicate_mappings, neg_predicate_mappings)
         pmap.neg_predicates = neg_preds(pmap.predicates, neg_predicate_mappings)
 
-        # instances = sum(len(transformed_kg.edges[e]) for e in pmap.new_preds(p))
-        # set_size_p = min(max(set_size, int(instances * 0.1)), 100)
+
         set_size_p = set_size
         if negative_rules:
-            # TODO prepare g and v flipped
-            # meaning, pos examples without predicate as v, negative examples with negative predicate as g
-            pass
+
             print(f"creating input sets G and V in order to mine negative rules for target predicate <{p}>...\n")
 
             v_temp = getExamples(transformed_kg, pmap.predicates, set_size_p, ontology, pmap, type_predicate)
@@ -205,100 +191,6 @@ def mine_rules_for_target_predicate(g:set, v:set, pmap:P_map, kg:IncidenceList, 
         R_out -- mined rules for the target predicate
     """
 
-
-# {
-#   "KG": "YAGO3-10",
-#   "prefix": "http://yago-knowledge.org/resource/",
-#   "rules_file": "YAGO3-10.csv",
-#   "rdf_file": "YAGO3-10.nt",
-#   "constraints_folder": "YAGO3-10",
-#   "ontology_file": "YAGO3-10Ontology.ttl",
-#   "max_body_length": "",
-#   "example_set_size": "",
-#   "type_predicate":  "",
-#   "alpha": "",
-#   "mine_negative_rules": "",
-#   "onto-valid": ""
-#   }
-
-    
-# {
-#   "KG": "DB100K",
-#   "prefix": "http://db100k.org/",
-#   "rules_file": "DB100K.tsv",
-#   "rdf_file": "DB100K.nt",
-#   "constraints_folder": "DB100K",
-#   "ontology_file": "DB100K.ttl",
-#   "max_body_length": "",
-#   "example_set_size": "",
-#   "type_predicate":  "",
-#   "alpha": "",
-#   "mine_negative_rules": "",
-#   "onto-valid": ""
-#   }
-
-
-    
-   
-# {
-#   "KG": "musicKG",
-#   "prefix": "http://example.org/",
-#   "rules_file": "musicKG.csv",
-#   "rdf_file": "musicKG.nt",
-#   "constraints_folder": "musicKG",
-#   "ontology_file": "musicKGOntology.ttl",
-#   "max_body_length": "",
-#   "example_set_size": "",
-#   "type_predicate":  "",
-#   "alpha": "",
-#   "mine_negative_rules": "",
-#   "onto-valid": ""
-#   }
-
-# {
-#   "KG": "SynthLC_1000",
-#   "prefix": "http://synthetic-LC.org/lungCancer/",
-#   "rules_file": "SynthLC_1000.csv",
-#   "rdf_file": "SynthLC_1000.nt",
-#   "constraints_folder": "SynthLC_1000",
-#   "ontology_file": "ontology_LungCancer.ttl",
-#   "max_body_length": "",
-#   "example_set_size": "",
-#   "type_predicate":  "",
-#   "alpha": "",
-#   "mine_negative_rules": "",
-#   "onto-valid": ""
-#   }
-
-
-# {
-#   "KG": "FrenchRoyalty",
-#   "prefix": "http://FrenchRoyalty.org/",
-#   "rules_file": "FrenchRoyalty.csv",
-#   "rdf_file": "FrenchRoyalty.nt",
-#   "constraints_folder": "FrenchRoyalty",
-#   "ontology_file": "ontology_FrenchRoyalty.ttl",
-#   "max_body_length": "",
-#   "example_set_size": "20",
-#   "type_predicate":  "",
-#   "alpha": "",
-#   "mine_negative_rules": "",
-#   "onto-valid": ""
-#   }
-
-
-
-
-
-
-    ###########################
-    # end of test code
-    ###########################
-
-
-    #TODO when expanding, excluding bad paths better?
-    # TODO when finding r, mind rules with same weight, collect all and look through those until a rule is found
-
     # initialise
     # create a path per pair in g
     # expand by one and save resulting paths in rule dict
@@ -327,11 +219,7 @@ def mine_rules_for_target_predicate(g:set, v:set, pmap:P_map, kg:IncidenceList, 
 
     while True:
 
-
-
-        # if not rule_dict or cov_g(list(R_out_dict.keys()), rule_dict, R_out_dict) == g or min_weight >= 0:
         if not rule_dict or len(cov_g(list(R_out_dict.keys()), rule_dict, R_out_dict))/len(g) == 1 or min_weight >= 0:
-        
             break
         
         if is_valid(r):
@@ -342,7 +230,7 @@ def mine_rules_for_target_predicate(g:set, v:set, pmap:P_map, kg:IncidenceList, 
             rule_weight_dict = {}
             R_out_cov_v_cardinality = [None, None]
             R_out_uncov_v = None
-            print(f"\n\nFOUND RULE {r} with {min_weight}\n\n")
+            print(f"\n\nFOUND RULE {r} with marginal weight{min_weight}\n\n")
             
         else:
             # expand
@@ -355,8 +243,6 @@ def mine_rules_for_target_predicate(g:set, v:set, pmap:P_map, kg:IncidenceList, 
         r, min_weight = find_r(R_out_dict, R_out_cov_v_cardinality, R_out_uncov_v, rule_dict, rule_weight_dict, kg, g, v, alpha, beta, pmap, fits_max_depth, max_depth)
 
     # TODO possibly return the whole R_out_dict or calc some metrics here 
-
-    
 
     return list(rule.as_csv_dict(negative_rules) for rule in R_out_dict.keys())
 
@@ -385,7 +271,7 @@ def find_r(R_out_dict:dict, R_out_cov_v_cardinality:list, R_out_uncov_v:set, rul
             r = rule
             min_weight = weight
 
-    # remove hopeless rules, declutter rule_dict
+    # remove hopeless rules to declutter rule_dict
     for rule in rules_to_remove:
         rule_dict.pop(rule)
 
@@ -396,25 +282,26 @@ def find_r(R_out_dict:dict, R_out_cov_v_cardinality:list, R_out_uncov_v:set, rul
 def expand_rule(rule, rule_dict, kg:IncidenceList, ontology:Ontology, pmap:P_map, type_predicate, expand_fun, onto_safe):
     for path in rule_dict[rule]:
         expand_fun(rule_dict, path, kg, ontology, pmap, type_predicate, onto_safe)
-    #print(len(rule_dict))
 
-def fits_max_depth_rudik(r:Rule, max_depth):
+
+"""function for closed rules: states wether a rule is of allowed length"""
+def fits_max_depth_closed_rule(r:Rule, max_depth):
     return len(r.body) < max_depth
 
 
-"""expands given path by one from frontiers, creates straight paths in line with RuDiK"""
-def expand_path_rudik(rule_dict:dict, path:Path, kg:IncidenceList, ontology:Ontology, pmap:P_map, type_predicate:str, onto_safe):
+"""expands given path by one from frontiers, creates closed rules (like RuDiK and AMIE)"""
+def expand_path_closed_rule(rule_dict:dict, path:Path, kg:IncidenceList, ontology:Ontology, pmap:P_map, type_predicate:str, onto_safe):
 
-    # find  leaf, head object doesn't count
-    f = path.frontiers_rudik()
+    # find  node to expand from
+    f = path.frontiers_closed_rule()
 
     if f == None:
         print(f"no frontier for {path}")
-        print(path.frontiers_rudik())
+        print(path.frontiers_closed_rule())
         exit()
 
-    # TODO literal comparisons
     if is_literal(f):
+        # TODO include literal comparisons as connection 
         pass
 
     preds = kg.nodes.get(f)
@@ -445,12 +332,11 @@ def expand_path_rudik(rule_dict:dict, path:Path, kg:IncidenceList, ontology:Onto
 
                 if onto_safe or fits_domain_range(e, triple, ontology, kg, pmap, type_predicate):
 
-                    
                     new = path.copy()
 
                     new.graph.add(pair[0], p, pair[1])
 
-                    r = new.rule_rudik(pmap)
+                    r = new.to_rule_closed_rule(pmap)
 
 
                     if r in rule_dict:
@@ -462,11 +348,14 @@ def expand_path_rudik(rule_dict:dict, path:Path, kg:IncidenceList, ontology:Onto
     return 
 
 
-
-def fits_max_depth_branch(r:Rule, max_depth):
+"""for non-closed rules(rules of tree shape): checks wether a rule is of allowed length"""
+def fits_max_depth_tree(r:Rule, max_depth):
+    # TODO
     pass
 
-def expand_path_branch(path:Path, kg:IncidenceList, ontology:Ontology, pmap:P_map, type_predicate:str):
+"""expamds given path byy one from frontiers, creates non-closed (tree shaped) rules."""
+def expand_path_tree(path:Path, kg:IncidenceList, ontology:Ontology, pmap:P_map, type_predicate:str):
+    # TODO
     pass
 
 

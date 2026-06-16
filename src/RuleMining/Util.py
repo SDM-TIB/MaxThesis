@@ -1,8 +1,5 @@
 import random
-import numpy as np
-from itertools import combinations 
 from RuleMining.Classes import Path, Rule, P_map, IncidenceList, Ontology, is_literal_comp
-import time
 
 ########################################
 # filling custom datastructures
@@ -15,7 +12,6 @@ def parseGraph(ntFilePath, graph:IncidenceList, prefix=""):
         for row in file:
             triple = tripleRemovePrefix(row.split()[0:3], prefix)
             graph.add(triple[0], triple[1], triple[2])
-
 
 """parse a .ttl ontology into Ontology Type"""
 def parseOntology(ontology_file:str, ontology:Ontology, prefix:str=""):
@@ -217,7 +213,7 @@ def parseOntology(ontology_file:str, ontology:Ontology, prefix:str=""):
                     block = []
                     block_end = False
 
-
+"""ensures that for all negative predicates there is a positive normalized version to guarantee predicate-mapping stability"""
 def check_preds_in_graph(neg_predicate_mappings, kg:IncidenceList):
     for p in neg_predicate_mappings.values():
         if p not in kg.edges:
@@ -245,7 +241,7 @@ def tripleAddPrefix(triple:tuple[str], prefix:str):
 
 
 ##############################
-# RuDiK util/math
+# Rule Mining util/math
 ##############################
 
 """
@@ -295,7 +291,7 @@ def cov_g(r, rule_dict, R_out_dict):
     
     return c
 
-
+"""checks wether given triple patterns are instantiable in KG"""
 def patterns_in_graph(rule:Rule, triple_patterns, name_dict, kg:IncidenceList, pmap:P_map):
     #print(f"call with {triple_patterns} and dict {name_dict}")
 
@@ -432,7 +428,7 @@ def patterns_in_graph(rule:Rule, triple_patterns, name_dict, kg:IncidenceList, p
         solutions = new_solutions
         #print(f"got these solutions left {solutions}")
 
-
+"""checks wether a rule covers a given example pair"""
 def covers_example(rule:Rule, example:tuple[str, str], kg:IncidenceList, pmap:P_map):
 
 # I: in triple patterns, find connected groups, for each:
@@ -502,7 +498,7 @@ def covers_example(rule:Rule, example:tuple[str, str], kg:IncidenceList, pmap:P_
     # check everything connected to head s
     return patterns_in_graph(rule, head_s_connected_patterns, name_dict_s|name_dict_o, kg, pmap)
 
-
+"""checks wether a specific triple exists in KG"""
 def triple_exists(pair, original_p, kg:IncidenceList, pmap:P_map):
     s, o = pair
     for object_pred in kg.nodes[o]:
@@ -511,7 +507,7 @@ def triple_exists(pair, original_p, kg:IncidenceList, pmap:P_map):
                 return True
     return False
 
-
+"""compute a rules coverage over a set of examples (v)"""
 def coverage(r, v, kg, pmap):
     out = set()
     for example_pair in v:
@@ -519,11 +515,11 @@ def coverage(r, v, kg, pmap):
             out.add(example_pair)
     return out
 
-
-def unbounded_coverage(r, v, kg, pmap):
+"""compute a rules unbound coverage over a set of examples (v)"""
+def unbound_coverage(r, v, kg, pmap):
     return coverage(unbind(r), v, kg, pmap)
 
-
+"""helper function to rulelist_coverage and rulelist_unbound_coverage"""
 def rulelist_call_coverage(r, v, kg, pmap, out:set):
     for example_pair in v:
         if example_pair in out:
@@ -531,15 +527,15 @@ def rulelist_call_coverage(r, v, kg, pmap, out:set):
         if covers_example(r, example_pair, kg, pmap):
             out.add(example_pair)
 
-
+"""computes a list of rules' coverage over example set v"""
 def rulelist_coverage(R, v, kg, pmap):
     out = set()
     for rule in R:    
         rulelist_call_coverage(rule, v, kg, pmap, out)
     return out
 
-
-def rulelist_unbounded_coverage(R, v, kg, pmap):
+"""computes a list of rules' unbound coverage over example set v"""
+def rulelist_unbound_coverage(R, v, kg, pmap):
     out = set()
     for rule in R:    
         rulelist_call_coverage(unbind(rule), v, kg, pmap, out)
@@ -548,7 +544,6 @@ def rulelist_unbounded_coverage(R, v, kg, pmap):
 
 """estimated marginal weight"""
 def est_m_weight(r:Rule, R_out_dict, rule_dict, kg:IncidenceList, g:set, v:set, alpha:float, beta:float, pmap:P_map, R_out_cov_v_cardinality:list, R_out_uncov_v:set):
-    test = False
     # contain only r_out
     R_out = list(R_out_dict.keys())
 
@@ -562,7 +557,7 @@ def est_m_weight(r:Rule, R_out_dict, rule_dict, kg:IncidenceList, g:set, v:set, 
 
     # if there is no value pre saved, calculate it else use it
     if R_out_uncov_v == None:
-        uncov_r_out_v = rulelist_unbounded_coverage(R_out,  v,kg, pmap)
+        uncov_r_out_v = rulelist_unbound_coverage(R_out,  v,kg, pmap)
 
         R_out_uncov_v = uncov_r_out_v
     else:
@@ -572,14 +567,9 @@ def est_m_weight(r:Rule, R_out_dict, rule_dict, kg:IncidenceList, g:set, v:set, 
 
 
     # no need to check for the examples already in uncov_r_out_v (--> (v - uncov_r_out_v)),  since uncov_r_v is only used in union 
-    uncov_r_v = unbounded_coverage(r, (v - uncov_r_out_v), kg, pmap)
+    uncov_r_v = unbound_coverage(r, (v - uncov_r_out_v), kg, pmap)
     cardinality_uncov_r_out_r_v = len(set.union(uncov_r_out_v, uncov_r_v))
 
-    if cardinality_uncov_r_out_v:
-        if (cardinality_cov_r_out_v / cardinality_uncov_r_out_v) > 1.0:
-            print("AAAAHHH")
-    elif cardinality_cov_r_out_v:
-        print("IIIIHH")
     if not cardinality_cov_r_out_v or not cardinality_uncov_r_out_v:
     # if this is zero we know the beta part is zero, the divisors will also be zero resulting in error, thus removing beta part altogether
         return -alpha * ((len(cov_g(r, rule_dict, R_out_dict) - cov_g(R_out, rule_dict, R_out_dict)))/len(g))
@@ -604,8 +594,8 @@ def is_valid(r:Rule):
             return True
     return False
 
-
-def is_valid_comp(triple, kg, pmap:P_map):
+"""checks wether a triple represents a valid literal comparison."""
+def is_valid_comp(triple):
     if not is_literal_comp(triple[1]) or (literal_type(triple[0]) != literal_type(triple[2])):
         return False  
     
@@ -618,29 +608,21 @@ def is_valid_comp(triple, kg, pmap:P_map):
         
     return True
 
-
+"""checks wether an entitiy that is part of a given triple is in line with ontological restrictions."""
 def fits_domain_range(entity, triple, ontology:Ontology, kg:IncidenceList, pmap:P_map, type_predicate):
     if entity not in triple:
         raise ValueError("Entity not in triple.")
     
-
     check_domain = False
     check_range = False
     literal = is_literal(entity)
 
-    
-
-
-
-    
     if is_literal_comp(triple[1]):
         if literal and is_valid_comp(triple):
             return True
         
         # it is a literal comp, but it is not valid as checked before
         return False
-    
-    
 
     if entity == triple[0]:
         if literal:
@@ -650,7 +632,6 @@ def fits_domain_range(entity, triple, ontology:Ontology, kg:IncidenceList, pmap:
 
     if entity == triple[2]:
         check_range = True
-
     
     p = triple[1] 
     original = pmap.original_pred(p)
@@ -662,7 +643,6 @@ def fits_domain_range(entity, triple, ontology:Ontology, kg:IncidenceList, pmap:
     else:
         return False
         
-
     if literal:
         types = domain_range[1]
         literal_t = literal_type(entity)
@@ -671,7 +651,6 @@ def fits_domain_range(entity, triple, ontology:Ontology, kg:IncidenceList, pmap:
             if derivable(literal_t, t, ontology.literal_hierarchy):
                 return True
         return False
-
 
     else:
         # get type predicate(s) the entity has 
@@ -747,7 +726,7 @@ def fits_domain_range(entity, triple, ontology:Ontology, kg:IncidenceList, pmap:
             return False
 
 
-"""help function for fits_domain_range()"""
+"""help function for fits_domain_range(), extracts an xsd-type from a string"""
 def literal_type(l:str):
     temp = l.split("\"")[2]
     if temp:
@@ -764,12 +743,12 @@ def literal_type(l:str):
     return "anyType"
 
    
-"""help function for fits_domain_range()"""
+"""help function for fits_domain_range(), checks wether an entity is a literal"""
 def is_literal(e:str):
     return e.__contains__("\"")
         
 """help function for fits_domain_range()
-checks if literal_type can be derived from from t according to the Type hierachy provided."""
+checks if literal_type can be derived from t according to the Type hierachy provided."""
 def derivable(literal_type, t, hierarchy):
     if literal_type == t:
         return True

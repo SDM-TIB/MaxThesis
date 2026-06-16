@@ -1,15 +1,14 @@
-
 {
-  "KG": "SynthLC_1000",
-  "prefix": "http://synthetic-LC.org/lungCancer/",
-  "rules_file": "SynthLC_1000.csv",
-  "rdf_file": "SynthLC_1000_Enriched_KG-anyburl.nt",
-  "constraints_folder": "SynthLC_1000",
-  "ontology_file": "ontology_LungCancer.ttl",
-  "max_body_length": "",
-  "example_set_size": "",
-  "type_predicate":  "",
-  "alpha": "",
-  "mine_negative_rules": "",
-  "onto-valid": ""
+"KG": "musicKG",
+"prefix": "http://example.org/",
+"rules_file": "musicKG.csv",
+"rdf_file": "musicKG.nt",
+"constraints_folder": "musicKG",
+"ontology_file": "musicKGOntology.ttl",
+"max_body_length": "",
+"example_set_size": "",
+"type_predicate": "",
+"alpha": "",
+"mine_negative_rules": "",
+"onto-valid": "ef"
 }

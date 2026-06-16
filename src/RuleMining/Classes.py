@@ -1,7 +1,4 @@
 from hashlib import sha256
-from copy import deepcopy
-import numpy as np
-
 
 ###############################################
 # Classes
@@ -17,7 +14,6 @@ class IncidenceList:
         self.edges = edges
         self.nodes = nodes
 
-
     def copy(self):
         copied_edges = {key: value.copy() for key, value in self.edges.items()}
         copied_nodes = {key: value.copy() for key, value in self.nodes.items()}
@@ -25,7 +21,6 @@ class IncidenceList:
     
     def __repr__(self):
         return f"Graph:\nedges: {self.edges},\nnodes: {self.nodes}.\n"
-
 
     def addNode(self, n, edges=None):
         if edges == None:
@@ -178,43 +173,13 @@ class Path:
         self.head = head
         return
     
-    
     def copy(self):
         return Path(self.head, self.graph.copy())
+    
     def __repr__(self):
         return f"Path with:\n head: {self.head}\n{self.graph}\n"
-        
-    
 
-
-
-    
- # calculates a paths frontier in line with rudik
-    def frontiers_rudik_old(self):
-        
-        h1 = self.head[0]
-        if h1 not in self.graph.nodes.keys():
-            # head subject is leaf
-            return h1
-
-        for node, preds in self.graph.nodes.items():
-            # if node has more than one predicate, it can't be a leaf
-            if node == h1 or len(preds) > 1:
-                continue
-
-            # node has only one predicate, count instances of it
-            count = 0
-            for pair in self.graph.edges[next(p for p in preds)]:
-                if node in pair:
-                    if count:
-                        count += 1
-                        break
-                    count = 1
-            if count == 1:
-                return node
-        return None
-
-    def frontiers_rudik(self):
+    def frontiers_closed_rule(self):
         
         h1 = self.head[0]
         if not self.graph.nodes or (len(self.graph.nodes) == 1 and h1 in self.graph.nodes):
@@ -250,7 +215,7 @@ class Path:
         return None
 
     """converts a path into a rule, assusemes the body is a straight path starting from head subject with the the exception of possible reflexive predicates/triples"""
-    def rule_rudik(self, pmap:P_map):
+    def to_rule_closed_rule(self, pmap:P_map):
         def original_triple(triple, pmap:P_map):
             return((triple[0], pmap.original_pred(triple[1]) ,triple[2]))
         
@@ -325,123 +290,122 @@ class Path:
         return Rule(original_triple((generate_var(97), self.head[1], generate_var(98)), pmap), triple_set, {tuple(c) for c in name_dict.values() if len(c) > 1})
 
 
-    def rule(self, pmap:P_map):
-        ###################
-        #
-        # !!ATTENTION!!
-        # has a problem with reflexive predicates, requires fix
-        #
-        #
-        ##################
+    # def rule(self, pmap:P_map):
+    #     ###################
+    #     #
+    #     # !!ATTENTION!!
+    #     # has a problem with reflexive predicates, requires fix
+    #     #
+    #     #
+    #     ##################
 
-        def original_triple(triple, pmap:P_map):
-            return((triple[0], pmap.original_pred(triple[1]) ,triple[2]))
+    #     def original_triple(triple, pmap:P_map):
+    #         return((triple[0], pmap.original_pred(triple[1]) ,triple[2]))
 
-        def traverse(path:Path, pmap:P_map, current_node:str, visited:list=[]):            
-            # initialise
-            out = []
-            connecting_triples = set()
-            p_list = []
+    #     def traverse(path:Path, pmap:P_map, current_node:str, visited:list=[]):            
+    #         # initialise
+    #         out = []
+    #         connecting_triples = set()
+    #         p_list = []
 
             
-            # build all unvisited triples connected to current entity
-            for edge in path.graph.nodes[current_node]:
-                p = pmap.original_pred(edge)
-                if p not in p_list:
-                    p_list.append(p)
+    #         # build all unvisited triples connected to current entity
+    #         for edge in path.graph.nodes[current_node]:
+    #             p = pmap.original_pred(edge)
+    #             if p not in p_list:
+    #                 p_list.append(p)
                 
-                for pair in path.graph.edges[edge]:
-                    triple = (pair[0], p, pair[1])
-                    if current_node in pair and triple not in visited:
-                        # TODO need to filter for self circle at current node and if it exists directly add as next triple
-                        if pair[0] == pair[1]:
-                            out.append(triple)
-                        else:
-                            connecting_triples.add(triple)
+    #             for pair in path.graph.edges[edge]:
+    #                 triple = (pair[0], p, pair[1])
+    #                 if current_node in pair and triple not in visited:
+    #                     # TODO need to filter for self circle at current node and if it exists directly add as next triple
+    #                     if pair[0] == pair[1]:
+    #                         out.append(triple)
+    #                     else:
+    #                         connecting_triples.add(triple)
 
 
-            if not connecting_triples:
-                return []
+    #         if not connecting_triples:
+    #             return []
             
-            if len(connecting_triples) == 1:
-                # add to queue and recurse
-                triple = connecting_triples.pop()
-                out.append(triple)
+    #         if len(connecting_triples) == 1:
+    #             # add to queue and recurse
+    #             triple = connecting_triples.pop()
+    #             out.append(triple)
 
-                # prepare visited for recursion
-                if out:
-                    if visited:
-                        visited.extend(out)
-                    else:
-                        visited = out.copy()
-                    visited = out.copy()
-                out.extend(traverse(path, pmap, (triple[0] if current_node==triple[2] else triple[2]), visited))
+    #             # prepare visited for recursion
+    #             if out:
+    #                 if visited:
+    #                     visited.extend(out)
+    #                 else:
+    #                     visited = out.copy()
+    #                 visited = out.copy()
+    #             out.extend(traverse(path, pmap, (triple[0] if current_node==triple[2] else triple[2]), visited))
 
-            else:
-            # len > 1
+    #         else:
 
-            # TODO only needed for non rudik path shape
-                raise ValueError( "this shouldn't be reached, there must be a branching path")
-                p_list.sort()
-                while p_list:
-                    min_p = p_list.pop(0)
-                    possible_next_triples = {t for t in connecting_triples if t[1] == min_p}
+    #         # TODO only needed for non-closed rule shape
+    #             raise ValueError( "this shouldn't be reached, there must be a branching path")
+    #             p_list.sort()
+    #             while p_list:
+    #                 min_p = p_list.pop(0)
+    #                 possible_next_triples = {t for t in connecting_triples if t[1] == min_p}
 
-                    if len(possible_next_triples) == 1:
-                        # chose the triple as next
-                        t = possible_next_triples.pop()
-                        out.append(t)
+    #                 if len(possible_next_triples) == 1:
+    #                     # chose the triple as next
+    #                     t = possible_next_triples.pop()
+    #                     out.append(t)
 
-                        # recurse, the new node becomes next current node, the triples already in out are given as visited
-                        traverse(path, pmap, {t[0] if current_node==t[2] else t[2]}, out)
+    #                     # recurse, the new node becomes next current node, the triples already in out are given as visited
+    #                     traverse(path, pmap, {t[0] if current_node==t[2] else t[2]}, out)
 
-                    else:
-                        #len > 1, need to decide btw the same-predicate triples
-                        pass
+    #                 else:
+    #                     #len > 1, need to decide btw the same-predicate triples
+    #                     pass
 
-            return out
+    #         return out
 
 
-            # increments p counter and generates a unique variable 
+    #         # increments p counter and generates a unique variable 
         
-        def generate_var(count):
-            return f"?VAR{count}"
+    #     def generate_var(count):
+    #         return f"?VAR{count}"
             
 
-        def create_rule(head, triple_queue:list):
-            name_dict = {}
-            hs = generate_var(1)
-            ho = generate_var(2)
-            if head[0] == head[2]:
-                name_dict[head[0]] = {hs, ho}
-            else:
-                name_dict[head[0]] = {hs}
-                name_dict[head[2]] = {ho}
+    #     def create_rule(head, triple_queue:list):
+    #         name_dict = {}
+    #         hs = generate_var(1)
+    #         ho = generate_var(2)
+    #         if head[0] == head[2]:
+    #             name_dict[head[0]] = {hs, ho}
+    #         else:
+    #             name_dict[head[0]] = {hs}
+    #             name_dict[head[2]] = {ho}
 
-            head = (hs, head[1], ho)
-            body = set()
-            count = 3
-            for (s,p,o) in triple_queue:
-                var_s = generate_var(count)
-                if s in name_dict:
-                    name_dict[s].add(var_s)
-                else:
-                    name_dict[s] = {var_s}
-                count += 1
-                var_o = generate_var(count)
-                if o in name_dict:
-                    name_dict[o].add(var_o)
-                else:
-                    name_dict[o] = {var_o}
-                count += 1
-                body.add((var_s, p, var_o))
+    #         head = (hs, head[1], ho)
+    #         body = set()
+    #         count = 3
+    #         for (s,p,o) in triple_queue:
+    #             var_s = generate_var(count)
+    #             if s in name_dict:
+    #                 name_dict[s].add(var_s)
+    #             else:
+    #                 name_dict[s] = {var_s}
+    #             count += 1
+    #             var_o = generate_var(count)
+    #             if o in name_dict:
+    #                 name_dict[o].add(var_o)
+    #             else:
+    #                 name_dict[o] = {var_o}
+    #             count += 1
+    #             body.add((var_s, p, var_o))
                 
-            return Rule(head, body, {tuple(c) for c in name_dict.values() if len(c) > 1})
+    #         return Rule(head, body, {tuple(c) for c in name_dict.values() if len(c) > 1})
 
 
-        # head is a special case, add it first then order the body triples
-        triple_queue = traverse(self, pmap, self.head[0])
-        return create_rule(original_triple(self.head, pmap), triple_queue)
+    #     # head is a special case, add it first then order the body triples
+    #     triple_queue = traverse(self, pmap, self.head[0])
+    #     return create_rule(original_triple(self.head, pmap), triple_queue)
 
 
 
@@ -455,7 +419,6 @@ class Rule:
         self.head = head
         self.body = body
         self.connections = connections
-
 
     def __key(self):
         return (self.head, self.body, self.connections)
@@ -484,47 +447,6 @@ class Rule:
                 return con
         return ()
 
-    
-    # def as_csv_row(self, negative_rules):
-    #     def triple_csv(triple, negative=False):
-    #         s,p,o = triple
-    #         if negative:
-    #             return f"NOT{p}({s};{o})"
-    #         return f"{p}({s};{o})"
-            
-    #     # TODO refactor, also special case if head s=o should be adressed (no mistake, but inconsistency)
-    #     try:
-    #         name_dict = {}
-    #         non_head_var = 3
-    #         for c in self.connections:
-    #             # head vars are always var1 and var 2, after that, need to ensure that no var is skipped for a more intuitive output (e.g. not V1, V2, and V5 as only vars)
-    #             m = min(c)
-    #             if m >= "?VAR3":
-    #                 # node is not in head
-    #                 m = f"?VAR{non_head_var}"
-    #                 non_head_var += 1
-    #             for var in c: 
-    #                 name_dict[var] = m
-                    
-    #         # need to account for leaves
-    #         for triple in self.body:
-    #             if triple[0] not in name_dict:
-    #                 name_dict[triple[0]] = f"?VAR{non_head_var}"
-    #                 non_head_var += 1
-    #             if triple[2] not in name_dict:
-    #                 name_dict[triple[2]] = f"?VAR{non_head_var}"
-    #                 non_head_var += 1
-    #         if negative_rules:
-    #             out = [triple_csv((name_dict[self.head[0]], self.head[1], name_dict[self.head[2]]), negative_rules)]
-    #         else:
-    #             out = [triple_csv((name_dict[self.head[0]], self.head[1], name_dict[self.head[2]]))]
-    #         out.extend(list(triple_csv((name_dict[t[0]], t[1], name_dict[t[2]])) for t in self.body))
-
-    #         return out
-    #     except:
-    #         print(f"rule {self}, name dict {name_dict}")
-    #         raise ValueError
-        
     def as_csv_dict(self, negative_rules):
         def triple_tsv(triple, negative=False):
             s,p,o = triple
@@ -565,8 +487,6 @@ class Rule:
         except:
             print(f"rule {self}, name dict {name_dict}")
             raise ValueError
-
-
 
     def as_tsv_dict(self, negative_rules):
         def triple_tsv(triple, negative=False):
@@ -679,8 +599,6 @@ class Ontology:
             self.properties[name][0].update(d)
             self.properties[name][1].update(r)
             
-
-
 
 
 ################################################
