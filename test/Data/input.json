@@ -1,0 +1,14 @@
+{
+"KG": "musicKG",
+"prefix": "http://example.org/",
+"rules_file": "musicKG.csv",
+"rdf_file": "musicKG.nt",
+"constraints_folder": "musicKG",
+"ontology_file": "musicKGOntology.ttl",
+"max_body_length": "",
+"example_set_size": "",
+"type_predicate": "",
+"alpha": "",
+"mine_negative_rules": "",
+"onto-valid": "ef"
+}

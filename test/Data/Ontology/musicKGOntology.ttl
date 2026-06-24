@@ -1,0 +1,88 @@
+@prefix ex: <http://example.org/> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix xml: <http://www.w3.org/XML/1998/namespace> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+
+
+#################################################################
+#    Classes
+#################################################################
+
+<http://example.org/Artist> rdf:type rdfs:Class ;
+                                           rdfs:subClassOf owl:Thing ;
+                                           rdfs:label "Artist"@en .
+
+<http://example.org/Publication> rdf:type rdfs:Class ;
+                                           rdfs:subClassOf owl:Thing ;
+                                           rdfs:label "Publication"@en .
+
+<http://example.org/Person> rdf:type rdfs:Class ;
+                                            rdfs:subClassOf owl:Thing ;
+                                            rdfs:label "Person"@en .
+
+<http://example.org/Genre> rdf:type rdfs:Class ;
+                                           rdfs:subClassOf owl:Thing ;
+                                           rdfs:label "Genre"@en .
+
+<http://example.org/Album> rdf:type rdfs:Class ;
+                                           rdfs:subClassOf <http://example.org/Publication> ;
+                                           rdfs:label "Album"@en .
+
+<http://example.org/Song> rdf:type rdfs:Class ;
+                                           rdfs:subClassOf <http://example.org/Publication> ;
+                                           rdfs:label "Song"@en .
+
+<http://example.org/Band> rdf:type rdfs:Class ;
+                                           rdfs:subClassOf <http://example.org/Artist> ;
+                                           rdfs:label "Band"@en .
+
+<http://example.org/Solo_Artist> rdf:type rdfs:Class ;
+                                           rdfs:subClassOf <http://example.org/Person> ;
+                                           rdfs:label "Solo_Artist"@en .
+
+
+
+
+
+#################################################################
+#    Object Properties
+#################################################################
+
+<http://example.org/hasAlbum> rdf:type owl:ObjectProperty, rdf:Property ;
+                                        rdfs:subPropertyOf owl:topObjectProperty ;
+                                        rdfs:domain <http://example.org/Artist> ;
+                                        rdfs:range <http://example.org/Album> .
+
+<http://example.org/isGenre> rdf:type owl:ObjectProperty, rdf:Property ;
+                                        rdfs:subPropertyOf owl:topObjectProperty ;
+                                        rdfs:domain <http://example.org/Publication> ;
+                                        rdfs:range <http://example.org/Genre> .
+
+<http://example.org/writer> rdf:type owl:ObjectProperty, rdf:Property ;
+                                        rdfs:subPropertyOf owl:topObjectProperty ;
+                                        rdfs:domain <http://example.org/Song> ;
+                                        rdfs:range <http://example.org/Artist> .
+
+<http://example.org/releaseYear> rdf:type owl:DatatypeProperty, rdf:Property ;
+                                        rdfs:subPropertyOf owl:topObjectProperty ;
+                                        rdfs:domain <http://example.org/Album> ;
+                                        rdfs:range xsd:anyType .
+
+<http://example.org/collaboratedWith> rdf:type owl:ObjectProperty, rdf:Property ;
+                                        rdfs:subPropertyOf owl:topObjectProperty ;
+                                        rdfs:domain <http://example.org/Artist> ;
+                                        rdfs:range <http://example.org/Artist> .
+
+<http://example.org/includedIn> rdf:type owl:ObjectProperty, rdf:Property ;
+                                        rdfs:subPropertyOf owl:topObjectProperty ;
+                                        rdfs:domain <http://example.org/Song> ;
+                                        rdfs:range <http://example.org/Album> .
+                                   
+<http://example.org/isMemberOf> rdf:type owl:ObjectProperty, rdf:Property ;
+                                        rdfs:subPropertyOf owl:topObjectProperty ;
+                                        rdfs:domain <http://example.org/Person> ;
+                                        rdfs:range <http://example.org/Band> .
+                                        
+
