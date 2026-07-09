@@ -2,8 +2,8 @@ import json
 import csv
 import numpy as np
 import warnings
-from RuleMining.Util import *
-from RuleMining.Classes import Path, Rule, P_map, IncidenceList, Ontology
+from Util.Util import *
+from Util.Classes import Path, Rule, P_map, IncidenceList, Ontology
 
 
 

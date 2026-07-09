@@ -103,7 +103,7 @@ def delete_existing_result(pfad):
 
 if __name__ == '__main__':
     try:
-        #MAX check cwd
+        #check cwd
         cwd = os.getcwd()
         if (os.path.basename(cwd) != 'src'):
             raise RuntimeError(f"Expected working directory to be the projects 'src' folder, but got {cwd}")

@@ -1,5 +1,5 @@
 import random
-from RuleMining.Classes import Path, Rule, P_map, IncidenceList, Ontology, is_literal_comp
+from Util.Classes import Path, Rule, P_map, IncidenceList, Ontology, is_literal_comp
 
 ########################################
 # filling custom datastructures
@@ -283,7 +283,7 @@ def cov_g(r, rule_dict, R_out_dict):
                 c.add((path.head[0], path.head[2]))  
         else: 
             raise ValueError("unknown rule")  
-    elif type(r) == list and r and type(r[0]) == Rule:
+    elif type(r) == list and type(r[0]) == Rule:
         for rule in r:
             c.update(cov_g(rule, rule_dict, R_out_dict))
     else:

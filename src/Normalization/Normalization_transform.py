@@ -5,7 +5,7 @@ from rdflib import Graph, URIRef, Namespace
 from rdflib.namespace import SH, RDF
 from typing import Dict, List, Tuple, Set, Optional
 
-from RuleMining.Classes import removePrefix, addPrefix
+from Util.Classes import removePrefix, addPrefix
 
 
 class TriplePattern:
