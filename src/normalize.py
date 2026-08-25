@@ -1,19 +1,14 @@
 import json
-import pandas as pd
-from rdflib.plugins.sparql.processor import SPARQLResult
-from pandasql import sqldf
-from rdflib import Graph, URIRef
-import re
+from rdflib import Graph, URIRef, Namespace
 import os
 import time
 import shutil
 import sys
 from Normalization.Validation import travshacl
 from Normalization.Normalization_transform import transform
-from RuleMining.Rule_mining import mine_rules
+from Normalization.Normalization import *
 from Util.Util import parseGraph, parseOntology
 from Util.Classes import IncidenceList, Ontology
-
 import logging
 
 def initialize(input_config):
@@ -26,15 +21,7 @@ def initialize(input_config):
         input_config (str): The path to the configuration file in JSON format.
 
     Returns:
-        tuple: A tuple containing the following elements in order:
-            - prefix (str): The prefix specified in the configuration file.
-            - rules (str): Path to the rules file.
-            - rdf (str): Path to the RDF file.
-            - path (str): Path to the knowledge graph (KG) directory.
-            - predictions_folder (str): Path to the predictions folder.
-            - constraints (str): Path to the constraints folder.
-            - kg (str): Name of the knowledge graph (KG).
-            - pca_threshold (float): PCA threshold value from the configuration file.
+
     """
     print(f"Reading configuration from {input_config}")
     with open(input_config, "r") as input_file_descriptor:
@@ -146,34 +133,41 @@ if __name__ == '__main__':
         delete_existing_result(result_path)
         user_input_end_time = time.time()
 
+        NS = Namespace(prefix)
         g = Graph()
+        g.bind("ex", NS)
+        g.bind("xsd","http://www.w3.org/2001/XMLSchema/")
         g.parse(rdf_path, format='nt')
-
 
         # Validate SHACL constraints
         print("\nValidating results...")
         val_results = travshacl(g, constraints_folder, kg_name)
 
-        # Normalizing enriched KG (enrichedKG obtained from symbolic predictions)
-        print("\nTransforming results...")
-        transformed_kg, transform_output_dir, original_predicates = transform(g,constraints_folder, prefix, kg_name)
+        # # Normalizing enriched KG (enrichedKG obtained from symbolic predictions)
+        # print("\nTransforming results...")
+        # transformed_kg, transform_output_dir, original_predicates = transform(g,constraints_folder, prefix, kg_name)
 
 
-
-        time_start_parse = time.time()
-        kg_transformed_i_list = IncidenceList()
-        parseGraph(f"{transform_output_dir}/TransformedKG_{kg_name}.nt", kg_transformed_i_list, prefix)
         o = Ontology()
         parseOntology(ontology_path, o, prefix)
 
+        #new normalzation
+        normalize(g, o, NS, "ex", True, True, True, True, kg_name, constraints_folder)
 
-        # Rule Mining
-        time_start_mining = time.time()
-        mine_rules(kg_transformed_i_list,  original_predicates, transform_output_dir, o, rules_path, prefix, max_depth, set_size, alpha, type_predicate, negative_rules=negative_rules, onto_valid=onto_valid)
+
+        # time_start_parse = time.time()
+        # kg = IncidenceList()
+        # parseGraph(f"{kg_path}", kg, prefix)
+
+
+
+        # # Rule Mining
+        # time_start_mining = time.time()
+        # mine_rules(kg,  original_predicates, transform_output_dir, o, rules_path, prefix, max_depth, set_size, alpha, type_predicate, negative_rules=negative_rules, onto_valid=onto_valid)
 
         # Print execution time
         end_time = time.time()
-        print(f"\nTime to parse data: {time_start_mining - time_start_parse} s\nTime for rule mining (incl. example generation):{end_time-time_start_mining} s")
+        # print(f"\nTime to parse data: {time_start_mining - time_start_parse} s\nTime for rule mining (incl. example generation):{end_time-time_start_mining} s")
         print(f"\nTotal execution time: {end_time - start_time - (user_input_end_time - user_input_start_time):.2f} seconds")
         print("Process completed successfully!")
 

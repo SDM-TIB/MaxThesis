@@ -75,7 +75,6 @@ def mine_rules(transformed_kg:IncidenceList, targets:set, transform_output_dir:s
                         kg.add(pair[0], k, pair[1])
         transformed_kg = kg
 
-
     # need to ensure predicate mapping consistency, every new predicate mentioned in mappings must be in kg, even if there is no corresponding triple
     # to avoid case where there is a negative version of a predicate but no pos. normalized version.
     check_preds_in_graph(neg_predicate_mappings, transformed_kg)

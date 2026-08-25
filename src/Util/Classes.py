@@ -1,4 +1,5 @@
 from hashlib import sha256
+from math import ceil
 
 ###############################################
 # Classes
@@ -63,10 +64,57 @@ class IncidenceList:
                         else:
                             neighbors.add(pair[0])
         return neighbors
+
+    def ttl(self, file, prefix_dict, abbr):
+
+        out = ""
+        for k,v in prefix_dict.items():
+            out += f"@prefix {v}: <{k}> .\n"
+        out += "\n"
+        for node in self.nodes:
+            block = ""
+            first_subject = True
+            first_triple = True
+            for edge in self.nodes[node]:
+                first_predicate = True
+                for pair in self.edges[edge]:
+                    if pair[0] == node:
+
+                        #print subject
+                        if first_subject:
+                            first_subject = False
+                            # if 
+                            block += f"{abbreviate(node, abbr, prefix_dict)} "
+
+                        # write predicate
+                        if first_predicate:
+                            if first_triple:
+                                first_triple = False
+                            else:
+                                block += '\t' * ceil(len(node)/4)
+                            first_predicate = False
+                            block += f"{abbreviate(edge, abbr, prefix_dict)} "
+                         
+
+                        # print object and comma
+                        block += f"{abbreviate(pair[1], abbr, prefix_dict)}, "
+
+
+                if block and block[len(block)-2] == ",":
+                    block = block[:-2] + " ;\n"
+                    pass # remove last , and print semicolon
+            if block and block[len(block)-2] == ";":
+                block = block[:-2] + " . \n"
+                pass # remove last ; and print dot
+            out += block
+
+            with open(file, mode="w") as f:
+                f.write(out)
+        # TODO: output the graph in ttl star format to provided file
+
+
+
     
-
-
-
 """class that holds all information on predicate mappings for a kg and specific target"""
 class P_map:
     def __init__(self, target, predicates, neg_predicates, predicate_mappings, neg_predicate_mappings):
@@ -160,9 +208,6 @@ class P_map:
     """
     def neg_preds(self, new_preds:set):
         return {k for k, v in self.neg_predicate_mappings.items() if v in new_preds}
-
-
-
 
 """ represents a path in the graph"""
 class Path:
@@ -407,8 +452,6 @@ class Path:
     #     triple_queue = traverse(self, pmap, self.head[0])
     #     return create_rule(original_triple(self.head, pmap), triple_queue)
 
-
-
 """ represents a (sub)rule"""
 class Rule:
     def __init__(self, head=(), body=None, connections=None):
@@ -529,12 +572,10 @@ class Rule:
             print(f"rule {self}, name dict {name_dict}")
             raise ValueError
     
-
-
 """represents information from an ontology.
    namely the class hierarchy and domain and range for properties."""
 class Ontology:
-    def __init__(self, classes=None, properties=None):
+    def __init__(self, classes:dict=None, properties:dict=None):
         if classes == None:
             classes = dict()
         if properties == None:
@@ -578,13 +619,14 @@ class Ontology:
     def addClass(self, prefix, c:str, super:str=""):
             classname = removePrefix(c, prefix)
             if not classname in self.classes:
-                if super:
+                if type(super) == str:
                     self.classes[classname] = {super}
                 else:
                     self.classes[classname] = set()
             else:
-                if super:
+                if type(super) == str:
                     self.classes[classname].add(super) 
+
 
     def addProperty(self, prefix, p, d=None, r=None):
         if d == None:
@@ -599,6 +641,19 @@ class Ontology:
             self.properties[name][0].update(d)
             self.properties[name][1].update(r)
             
+    def get_all_supertypes(self, class_name: str) -> set[str]:
+        """Recursively collects all direct and indirect superclasses (transitive closure)."""
+        visited = set()
+        queue = [class_name]
+
+        while queue:
+            curr = queue.pop(0)
+            if curr not in visited:
+                visited.add(curr)
+                parents = self.classes.get(curr, set())
+                queue.extend(parents - visited)
+
+        return visited
 
 
 ################################################
@@ -620,3 +675,15 @@ def is_literal_comp(p):
     if p == "=" or p=="<":
         return True
     return False
+
+
+"""abbreviates an item if it uses a known prefix"""
+def abbreviate(item:str, abbr, prefix_dict:dict):
+            if item.startswith("<<"):
+                return item
+            if not item.startswith(("http://", "https://", "ftp://")):
+                return f"{abbr}:{item} "
+            for k,v in prefix_dict.items():
+                if item.startswith(k):
+                    return f"{v}:{item[len(k):]}"
+            return item

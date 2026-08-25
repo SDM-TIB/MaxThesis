@@ -265,7 +265,6 @@ def unbind(r:Rule):
 
     return out
 
-
 """
 coverage of r over g
 """
@@ -541,7 +540,6 @@ def rulelist_unbound_coverage(R, v, kg, pmap):
         rulelist_call_coverage(unbind(rule), v, kg, pmap, out)
     return out
 
-
 """estimated marginal weight"""
 def est_m_weight(r:Rule, R_out_dict, rule_dict, kg:IncidenceList, g:set, v:set, alpha:float, beta:float, pmap:P_map, R_out_cov_v_cardinality:list, R_out_uncov_v:set):
     # contain only r_out
@@ -725,7 +723,6 @@ def fits_domain_range(entity, triple, ontology:Ontology, kg:IncidenceList, pmap:
 
             return False
 
-
 """help function for fits_domain_range(), extracts an xsd-type from a string"""
 def literal_type(l:str):
     temp = l.split("\"")[2]
@@ -741,7 +738,6 @@ def literal_type(l:str):
     
     # no xsd type given
     return "anyType"
-
    
 """help function for fits_domain_range(), checks wether an entity is a literal"""
 def is_literal(e:str):

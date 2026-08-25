@@ -37,7 +37,7 @@ def csv_to_nt(csv_file, nt_file, prefix='http://example.org/'):
 
                 o = o.replace(" ", "_")
                 if o.isdigit():
-                    o = f"\"{o}\"^^<http://www.w3.org/2001/XMLSchema#/int>"
+                    o = f"\"{o}\"^^<http://www.w3.org/2001/XMLSchema#int>"
                 else:
                     o = f"<{prefix}{o}>"
 
