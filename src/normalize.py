@@ -143,27 +143,12 @@ if __name__ == '__main__':
         print("\nValidating results...")
         val_results = travshacl(g, constraints_folder, kg_name)
 
-        # # Normalizing enriched KG (enrichedKG obtained from symbolic predictions)
-        # print("\nTransforming results...")
-        # transformed_kg, transform_output_dir, original_predicates = transform(g,constraints_folder, prefix, kg_name)
-
-
         o = Ontology()
         parseOntology(ontology_path, o, prefix)
 
         #new normalzation
         normalize(g, o, NS, "ex", True, True, True, True, kg_name, constraints_folder)
 
-
-        # time_start_parse = time.time()
-        # kg = IncidenceList()
-        # parseGraph(f"{kg_path}", kg, prefix)
-
-
-
-        # # Rule Mining
-        # time_start_mining = time.time()
-        # mine_rules(kg,  original_predicates, transform_output_dir, o, rules_path, prefix, max_depth, set_size, alpha, type_predicate, negative_rules=negative_rules, onto_valid=onto_valid)
 
         # Print execution time
         end_time = time.time()

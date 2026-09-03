@@ -254,7 +254,7 @@ def transform_triple(triple: Tuple[URIRef, URIRef, URIRef],
                 
                 # original: no_prefix = "NO_" if not matching_filter_pattern.is_not_exists else ""
                 # MAX
-                no_prefix = "NONONO" if not matching_filter_pattern.is_not_exists else ""
+                no_prefix = "NO_" if not matching_filter_pattern.is_not_exists else ""
                 entity_name = str(obj).split('/')[-1]
 
                 # Create new predicate with 'No' prefix for the object part
