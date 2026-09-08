@@ -638,7 +638,7 @@ class Ontology:
             self.properties[name][0].update(d)
             self.properties[name][1].update(r)
             
-    def get_all_supertypes(self, class_name: str) -> set[str]:
+    def get_all_supertypes(self, class_name:str) -> set[str]:
         """Recursively collects all direct and indirect superclasses (transitive closure)."""
         visited = set()
         queue = [class_name]
@@ -652,6 +652,23 @@ class Ontology:
 
         return visited
 
+    def get_all_subtypes(self, class_name: str) -> set[str]:
+        subtypes = set()
+        to_visit = [class_name]
+        visited = []
+        while to_visit:
+            current_type = to_visit.pop()
+            if current_type in visited:
+                continue
+            for subtype, supertypes in self.classes.items():
+                if current_type in supertypes and subtype not in subtypes and subtype != class_name:
+                    subtypes.add(subtype)
+                    for s in supertypes:
+                        if s in subtypes:
+                          subtypes.remove(s)
+                    to_visit.append(subtype)
+            visited.append(current_type)
+        return subtypes
 
 ################################################
 # util

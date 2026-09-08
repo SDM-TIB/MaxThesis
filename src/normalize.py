@@ -147,7 +147,7 @@ if __name__ == '__main__':
         parseOntology(ontology_path, o, prefix)
 
         #new normalzation
-        normalize(g, o, NS, "ex", True, True, True, True, kg_name, constraints_folder)
+        normalize(g, o, NS, "ex", True, True, True, True, kg_name, constraints_folder, bnode_name="Blank_Node")
 
 
         # Print execution time

@@ -2,10 +2,10 @@ from Util.Classes import Path, Rule, P_map, IncidenceList, Ontology, is_literal_
 from Util.Util import is_valid_comp, is_literal, derivable, literal_type
 from rdflib import Graph, BNode, URIRef, Literal
 from rdflib.namespace import RDF
-
+import re
 
 """checks wether a triple is correctly covered by given ontology."""
-def fits_ontology(triple, ontology:Ontology, kg:Graph, prefix, type_predicate:URIRef=RDF.type):
+def fits_ontology(triple, ontology:Ontology, kg:Graph, prefix, type_predicate:URIRef=RDF.type, prefix_dict=None):
 
     def check_entity(entity, allowed_types, on:Ontology, kg:Graph, prefix:str):
         entity_types = {removePrefix(str(t), prefix) for t in kg.objects(subject=URIRef(f"{prefix}{entity}"), predicate=type_predicate)}
@@ -26,6 +26,9 @@ def fits_ontology(triple, ontology:Ontology, kg:Graph, prefix, type_predicate:UR
     subject = removePrefix(s, prefix)
     predicate = removePrefix(p, prefix)
     object = removePrefix(o, prefix)
+    if prefix_dict and any(str(p).startswith(pre) for pre in prefix_dict.items()):
+        # assume triples as true that use universal properties e.g. rdfs:label, focus on integrity of KG towards the given ontology
+        return True
 
     if is_literal_comp(predicate):
         if type(s) == Literal and type(o) == Literal and s.datatype == o.datatype:
@@ -77,3 +80,6 @@ def fits_ontology(triple, ontology:Ontology, kg:Graph, prefix, type_predicate:UR
     # check subject
     return check_entity(subject, types_d, ontology, kg, prefix)
 
+def is_valid_uri_component(s):
+    pattern = r'^[A-Za-z0-9\-._~]*$'
+    return bool(re.match(pattern, s))
