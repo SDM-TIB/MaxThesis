@@ -39,7 +39,7 @@
                                            rdfs:label "Band"@en .
 
 <http://example.org/Solo_Artist> rdf:type rdfs:Class ;
-                                           rdfs:subClassOf <http://example.org/Person> ;
+                                           rdfs:subClassOf <http://example.org/Person> , <http://example.org/Artist> ;
                                            rdfs:label "Solo_Artist"@en .
 
 

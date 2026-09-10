@@ -152,16 +152,19 @@ normalizes a given KG into 2NF-KG according to the definition presented for VANI
 """
 def normalize_nf2(kg:Graph, on:Ontology, trace_graph:Graph, prefix:Namespace, abbr, prefix_dict):
     # 1. identify ambiguous properties
+
+    property_dict = {}
+
     current_properties = set(on.properties.keys())
     for p in current_properties:
-        sub_domains = set(on.properties[p][0])
-        sub_ranges = set(on.properties[p][1])
-        print(sub_domains)
-        for d in  on.properties[p][0]:
-            sub_domains.update(on.get_all_subtypes(d)) 
-        for d in  on.properties[p][1]:
-            sub_ranges.update(on.get_all_subtypes(d))
-        # TODO: there is a mistake here, only the leaves of the class hierarchy are important here
+        current_domain = on.properties[p][0]
+        current_range = on.properties[p][1]
+        sub_domains = set(current_domain)
+        sub_ranges = set(current_range)
+        for d in  current_domain:
+            sub_domains.update(on.get_final_subtypes(d)) 
+        for d in  current_range:
+            sub_ranges.update(on.get_final_subtypes(d))
 
         # still 1. and also: 2. create new unambigous versions (adapt/"normalize" ontology?); only rename where needed
 
@@ -171,22 +174,32 @@ def normalize_nf2(kg:Graph, on:Ontology, trace_graph:Graph, prefix:Namespace, ab
         ld = len(sub_domains)
         lr = len(sub_ranges)
 
-        print(on.get_all_subtypes("owl:Thing"))
+        print(on.get_final_subtypes("Band"))
 
-        if ld > 1 and lr > 1:
-            for i in range(ld):
-                for j in range(lr):
-                    pass
-        elif ld > 1:
-        # only rename with domain type
-            for i in range(ld):
-                pass
-        elif lr > 1:
-        # only rename with range type
-            for i in range(lr):
-                pass
+        # TODO if zero and current domain range is >1
 
-        # 3. for every ambiguous property instance, replace by unambiguous version in KG, create traces
+        if ld == 1 and on.properties[p][0] != set(sub_domains) or lr == 1 and on.properties[p][1] != set(sub_ranges): 
+            on.removeProperty(p)
+            on.addProperty(str(prefix), p, sub_domains, sub_ranges)
+
+        if ld > 1 and lr == 1:
+                property_dict[p] = []
+                for r in sub_ranges:
+                    property_dict[p].append((f"{p}{r}", set(sub_domains),set(r)))
+        elif ld == 1 and lr > 1:
+                property_dict[p].append(p)
+                for d in sub_domains:
+                    property_dict[p].append((f"{d}{p}", set(d), set(sub_ranges)))
+        elif ld > 1 and lr > 1:
+                property_dict[p].append(p)
+                for d in sub_domains:
+                    for r in sub_ranges:
+                        property_dict[p].append((f"{d}{p}{r}", set(d), set(r)))
+
+    print(property_dict)
+    # update ontology, create traces
+
+    # 3. for every ambiguous property instance, replace by unambiguous version in KG, create traces
 
 
 
