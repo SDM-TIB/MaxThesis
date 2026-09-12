@@ -106,7 +106,6 @@ if __name__ == '__main__':
             os.makedirs(logs_dir)
 
         # Set up logging with file output and rotation
-        #MAX: whats rotation?
         log_level = 'INFO'  # Default to INFO level
         timestamp = time.strftime('%Y%m%d-%H%M%S')
         log_file = os.path.join(logs_dir, f'symbolic_predictions_{timestamp}.log')

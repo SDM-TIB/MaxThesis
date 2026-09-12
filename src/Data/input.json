@@ -1,9 +1,9 @@
 {
-"KG": "musicKG",
+"KG": "musicKG-test-normalization",
 "prefix": "http://example.org/",
-"rules_file": "musicKG.csv",
-"rdf_file": "musicKG.nt",
-"constraints_folder": "musicKG",
+"rules_file": "musicKG-test-normalization.csv",
+"rdf_file": "musicKG-test-normalization.nt",
+"constraints_folder": "musicKG-test-normalization",
 "ontology_file": "musicKGOntology.ttl",
 "max_body_length": "",
 "example_set_size": "",
