@@ -5,6 +5,7 @@ import time
 from Util.Classes import Ontology, IncidenceList, abbreviate, removePrefix
 from Util.NormalizationUtil import fits_ontology, is_valid_uri_component
 from itertools import count
+from collections import defaultdict
 
 
 def normalize(kg:Graph, on:Ontology, prefix, abbr, nf1, nf2, nf3, nf4, kg_name, constraint_folder=None, bnode_name=None):
@@ -259,12 +260,48 @@ def normalize_nf2(kg:Graph, on:Ontology, trace_graph:Graph,  ontology_trace_grap
 normalizes a given KG into 3NF-KG according to the definition presented for VANILLA in https://doi.org/10.1016/j.knosys.2025.113939 .
 """
 def normalize_nf3(kg:Graph, on:Ontology, trace_graph:Graph,  ontology_trace_graph:IncidenceList, prefix:Namespace, abbr, prefix_dict):
-    trace_graph.add(prefix["nf3-transformation"], RDF.type, PROV.Activity)
-    trace_graph.add(prefix["nf3-transformation"], RDF.type, prefix["NF3-transformation"])
 
-    violations = set()
-    for s,p,o in kg:
-        pass
+    trace_graph.add((prefix["nf3-transformation"], RDF.type, PROV.Activity))
+    trace_graph.add((prefix["nf3-transformation"], RDF.type, prefix["NF3-transformation"]))
+
+       # (s, p) und (p, o) zählen
+    sp_count = defaultdict(int)
+    po_count = defaultdict(int)
+    p_candidates = set()
+    
+    # Schritt 1: Zählen der (s, p) und (p, o)
+    for s, p, o in kg:
+        sp_count[(s, p)] += 1
+        po_count[(p, o)] += 1
+
+    # Schritt 2: Kandidaten ermitteln
+    p_to_rename = set()
+    # Sammle Prädikate, die mehrfach mit gleichem Subjekt oder gleichem Objekt auftreten
+    for (s, p), count in sp_count.items():
+        if count > 1:
+            p_to_rename.add(p)
+    for (p, o), count in po_count.items():
+        if count > 1:
+            p_to_rename.add(p)
+    
+    # Schritt 3: Umbenennen
+    triples_to_modify = []
+    for s, p, o in kg:
+        if p in p_to_rename:
+            triples_to_modify.append((s, p, o))
+    
+    # Wir arbeiten mit Kopie, da wir während des Iterierens den Graphen verändern!
+    for s, p, o in triples_to_modify:
+        kg.remove((s, p, o))
+        # Neuen Prädikatsnamen generieren (Beispiel: einfach "_mod" anhängen)
+        if isinstance(p, URIRef):
+            new_p = URIRef(str(p) + "_mod")
+        else:
+            new_p = p  # Bei Literalen o.Ä.: keine Änderung
+        kg.add((s, new_p, o))
+        # Im Trace-Graph dokumentieren
+        trace_graph.add((prefix["nf3-transformation"], PROV.used, p))
+        trace_graph.add((prefix["nf3-transformation"], PROV.generated, new_p))
 
 """
 normalizes a given KG into 4NF-KG according to the definition presented for VANILLA in https://doi.org/10.1016/j.knosys.2025.113939 .
