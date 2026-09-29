@@ -624,7 +624,6 @@ class Ontology:
                 if type(super) == str:
                     self.classes[classname].add(super) 
 
-
     def addProperty(self, prefix, p, d=None, r=None):
         if d == None:
             d = set()
@@ -676,6 +675,10 @@ class Ontology:
             subtypes.add(class_name)
         return subtypes
 
+    def ttl(self):
+        pass
+        # TODO
+        
 ################################################
 # util
 ################################################
@@ -688,7 +691,7 @@ def addPrefix(element:str, prefix:str):
     return f"{prefix}{element}"
 """remove prefix from element"""
 def removePrefix(element:str, prefix:str):
-    return element.removeprefix("<").removeprefix(f"{prefix}").removesuffix(">")
+    return element.removeprefix("<").removeprefix(prefix).removesuffix(">")
 
 """checks if predicate is a literral comparison"""
 def is_literal_comp(p):
@@ -702,7 +705,7 @@ def abbreviate(item:str, abbr, prefix_dict:dict):
             if item.startswith("<<"):
                 return item
             if not item.startswith(("http://", "https://", "ftp://")) and not item.__contains__(":"):
-                return f"{abbr}:{item} "
+                return f"{abbr}:{item}"
             for k,v in prefix_dict.items():
                 if item.startswith(k):
                     return f"{v}:{item[len(k):]}"

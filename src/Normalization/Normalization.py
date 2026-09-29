@@ -56,8 +56,9 @@ def normalize(kg:Graph, on:Ontology, prefix, abbr, nf1, nf2, nf3, nf4, kg_name, 
         print(kg.serialize())
     if nf2:
       normalize_nf2(kg, on, trace_graph, ontology_trace_graph, prefix, abbr, prefix_dict)
-    # if nf3:
-    #     normalize_nf3()
+      print(on)
+    if nf3:
+      normalize_nf3(kg, on, trace_graph, ontology_trace_graph, prefix, abbr, prefix_dict)
     # if nf4:
     #     normalize_nf4()
 
@@ -68,6 +69,7 @@ def normalize(kg:Graph, on:Ontology, prefix, abbr, nf1, nf2, nf3, nf4, kg_name, 
     os.makedirs(output_dir, exist_ok=True)
     output_file = f"{output_dir}/Normalized_{kg_name}.nt"
     trace_file = f"{output_dir}/Traces_{kg_name}.nt"
+    on_trace_file = f"{output_dir}/Traces_{kg_name}Ontology.nt"
     
     print(f"Saving normalized KG to {output_file}...")
     kg.serialize(destination=output_file, format='nt')
@@ -75,9 +77,14 @@ def normalize(kg:Graph, on:Ontology, prefix, abbr, nf1, nf2, nf3, nf4, kg_name, 
     print(f"Saving normalization-traces to {trace_file}...")
     trace_graph.ttl(trace_file, prefix_dict, "ex")
 
+    print(f"Saving ontology-traces to {on_trace_file}...")
+    trace_graph.ttl(trace_file, prefix_dict, "ex")
+
+    # TODO output normalized ontology
+
 """
-normalizes a given KG into 1NF-KG according to the definition presented for VANILLA in https://doi.org/10.1016/j.knosys.2025.113939 .
-renames blank nodes into unique entities, preferably by leveraging an existing label or the blank nodes type(s).
+normalizes a given KG into 1NF-KG according to the definition presented in https://doi.org/10.1016/j.knosys.2025.113939 .
+renames blank nodes into unique entities, preferably by leveraging an existing label or the blank node's type(s).
 """
 def normalize_nf1(kg:Graph, trace_graph:IncidenceList, prefix:Namespace, abbr, prefix_dict, bnode_name):
 
@@ -151,7 +158,10 @@ def normalize_nf1(kg:Graph, trace_graph:IncidenceList, prefix:Namespace, abbr, p
 
 
 """
-normalizes a given KG into 2NF-KG according to the definition presented for VANILLA in https://doi.org/10.1016/j.knosys.2025.113939 .
+normalizes a given KG into 2NF-KG according to the definition presented in https://doi.org/10.1016/j.knosys.2025.113939 .
+
+Every property with two or more domain/range types is split into most granular versions. 
+The ontology and all KG-triples with those properties are updated. 
 """
 def normalize_nf2(kg:Graph, on:Ontology, trace_graph:Graph,  ontology_trace_graph:IncidenceList, prefix:Namespace, abbr, prefix_dict):
 
@@ -238,6 +248,7 @@ def normalize_nf2(kg:Graph, on:Ontology, trace_graph:Graph,  ontology_trace_grap
             continue
         triple_dict[(s,p,o)] = find_new_property(s,o,kg,property_dict[p_name], prefix)
     print(triple_dict)
+    
     # remove all keys of triple_dict, add all (s, value, o)
     for t, new_props in triple_dict.items():
         s,p,o = t
@@ -257,54 +268,86 @@ def normalize_nf2(kg:Graph, on:Ontology, trace_graph:Graph,  ontology_trace_grap
 
 
 """
-normalizes a given KG into 3NF-KG according to the definition presented for VANILLA in https://doi.org/10.1016/j.knosys.2025.113939 .
+normalizes a given KG into 3NF-KG according to the definition presented in https://doi.org/10.1016/j.knosys.2025.113939 .
 """
 def normalize_nf3(kg:Graph, on:Ontology, trace_graph:Graph,  ontology_trace_graph:IncidenceList, prefix:Namespace, abbr, prefix_dict):
+    
 
-    trace_graph.add((prefix["nf3-transformation"], RDF.type, PROV.Activity))
-    trace_graph.add((prefix["nf3-transformation"], RDF.type, prefix["NF3-transformation"]))
 
-       # (s, p) und (p, o) zählen
+    trace_graph.add(prefix["nf3-transformation"], RDF.type, PROV.Activity)
+    trace_graph.add(prefix["nf3-transformation"], RDF.type, prefix["NF3-transformation"])
+
+    # setup
     sp_count = defaultdict(int)
     po_count = defaultdict(int)
-    p_candidates = set()
     
-    # Schritt 1: Zählen der (s, p) und (p, o)
+    # 1. count appearances of same s,p or p,o
     for s, p, o in kg:
         sp_count[(s, p)] += 1
         po_count[(p, o)] += 1
 
-    # Schritt 2: Kandidaten ermitteln
-    p_to_rename = set()
-    # Sammle Prädikate, die mehrfach mit gleichem Subjekt oder gleichem Objekt auftreten
+    # 2. count instances of s,p and p,o
+    s_p_to_rename = set()
+    p_o_to_rename = set()
     for (s, p), count in sp_count.items():
         if count > 1:
-            p_to_rename.add(p)
+            s_p_to_rename.add((s,p))
     for (p, o), count in po_count.items():
         if count > 1:
-            p_to_rename.add(p)
+            p_o_to_rename.add((p,o))
     
-    # Schritt 3: Umbenennen
-    triples_to_modify = []
-    for s, p, o in kg:
-        if p in p_to_rename:
-            triples_to_modify.append((s, p, o))
-    
-    # Wir arbeiten mit Kopie, da wir während des Iterierens den Graphen verändern!
-    for s, p, o in triples_to_modify:
-        kg.remove((s, p, o))
-        # Neuen Prädikatsnamen generieren (Beispiel: einfach "_mod" anhängen)
-        if isinstance(p, URIRef):
-            new_p = URIRef(str(p) + "_mod")
+    # 3. rename and trace
+    triples_to_add = []
+    triples_to_remove = []
+
+    def nf3_rename_and_trace(s,p,o,new_p):
+        new_triple = (s,prefix[new_p],o)
+        embedded_new_triple = f"<<{abbreviate(s, abbr, prefix_dict)}, {abbreviate(new_p, abbr, prefix_dict)}, {abbreviate(o, abbr, prefix_dict)}>>"
+        old_triple = (s, p, o)
+        triples_to_remove.append(old_triple)
+        triples_to_add.append(new_triple)
+        embedded_old_triple = f"<<{abbreviate(s, abbr, prefix_dict)}, {abbreviate(p, abbr, prefix_dict)}, {abbreviate(o, abbr, prefix_dict)}>>"
+
+        trace_graph.add(embedded_old_triple, RDF.type, "http://www.w3.org/ns/rdf-star#triple")
+        trace_graph.add(embedded_old_triple, PROV.wasInvalidatedBy, prefix["nf3-transformation"])
+
+        trace_graph.add(embedded_new_triple, RDF.type, "http://www.w3.org/ns/rdf-star#triple")
+        trace_graph.add(embedded_new_triple, PROV.wasGeneratedBy, prefix["nf3-transformation"])
+        trace_graph.add(embedded_new_triple, PROV.wasDerivedFrom, embedded_old_triple)
+
+        short_p = removePrefix(abbreviate(p,abbr, prefix_dict),f"{abbr}:")
+        if short_p == "rdf:type":
+            on.addProperty(str(prefix), new_p, {"rdfs:Class"}, {"rdfs:Class"})
         else:
-            new_p = p  # Bei Literalen o.Ä.: keine Änderung
-        kg.add((s, new_p, o))
-        # Im Trace-Graph dokumentieren
-        trace_graph.add((prefix["nf3-transformation"], PROV.used, p))
-        trace_graph.add((prefix["nf3-transformation"], PROV.generated, new_p))
+            on.addProperty(str(prefix), new_p, on.properties[short_p][0], on.properties[short_p][1])
+        ontology_trace_graph.add(new_p, PROV.wasDerivedFrom, abbreviate(p,abbr,prefix_dict))
+        ontology_trace_graph.add(new_p, PROV.wasGeneratedBy, prefix["nf3-transformation"])
+
+    for s, p, o in kg:
+        if  (s,p) in s_p_to_rename:
+            stripped_p = abbreviate(p, abbr, prefix_dict).split(":")[1]
+            stripped_o = abbreviate(o, abbr, prefix_dict).split(":")[1]
+            if  (p,o) in p_o_to_rename:
+                stripped_s = abbreviate(s, abbr, prefix_dict).split(":")[1]
+                new_p = f"{stripped_s}_{stripped_p}_{stripped_o}"
+            else:
+                new_p = f"{stripped_p}_{stripped_o}"
+            nf3_rename_and_trace(s,p,o,new_p)
+        elif  (p,o) in p_o_to_rename:
+            stripped_s = abbreviate(s, abbr, prefix_dict).split(":")[1]
+            stripped_p = abbreviate(p, abbr, prefix_dict).split(":")[1]
+            new_p = f"{stripped_s}_{stripped_p}"
+            nf3_rename_and_trace(s,p,o,new_p)
+
+    # 4. update KG
+    for triple in triples_to_remove:
+        kg.remove(triple)
+
+    for triple in triples_to_add:
+        kg.add(triple)
 
 """
-normalizes a given KG into 4NF-KG according to the definition presented for VANILLA in https://doi.org/10.1016/j.knosys.2025.113939 .
+normalizes a given KG into 4NF-KG according to the definition presented in https://doi.org/10.1016/j.knosys.2025.113939 .
 """
 def normalize_nf4(kg:Graph, on:Ontology, trace_graph:Graph,  ontology_trace_graph:IncidenceList, prefix:Namespace, abbr, prefix_dict):
 
