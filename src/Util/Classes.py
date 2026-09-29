@@ -675,9 +675,34 @@ class Ontology:
             subtypes.add(class_name)
         return subtypes
 
-    def ttl(self):
-        pass
+    def ttl(self, file, prefix_dict, abbr):
+        out = ""
+        for pre, ab in prefix_dict.items():
+            out += f"@prefix {ab}: <{pre}> .\n"
+        out += "\n"
+
         # TODO
+        # add all classes and their subclasses
+        out += "##########\n# Classes\n##########\n"
+        for c in self.classes.keys():
+            pc = c if c.__contains__(":") else f"{abbr}:{c}"
+            out += f"{pc} rdf:type rdfs:Class "
+
+            first_super = True
+            for super in self.classes[c]:
+                psuper = super if super.__contains__(":") else f"{abbr}:{super}"
+                if first_super:
+                    first_super = False
+                    out += f";\n\trdfs:subClassOf {psuper}"
+                else:
+                    out += f",\n\t\t{psuper} "
+            out += ".\n"
+
+        # add all properties and their domain and range
+        out += "##########\n# Properties\n##########\n"
+        
+
+
         
 ################################################
 # util
