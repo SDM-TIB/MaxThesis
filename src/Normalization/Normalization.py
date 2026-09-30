@@ -8,7 +8,7 @@ from itertools import count
 from collections import defaultdict
 
 
-def normalize(kg:Graph, on:Ontology, prefix, abbr, nf1, nf2, nf3, nf4, kg_name, constraint_folder=None, bnode_name=None):
+def normalize(kg:Graph, on:Ontology, prefix, abbr, nf1, nf2, nf3, nf4, kg_name, val_results=None, constraint_folder=None, bnode_name=None):
     # check inputs
     if bnode_name and type(bnode_name) != str:
         ValueError("bnode_name must be a string.")
@@ -16,6 +16,8 @@ def normalize(kg:Graph, on:Ontology, prefix, abbr, nf1, nf2, nf3, nf4, kg_name, 
         ValueError("bnode_name must be conform with RFC 3986.")
     if nf4 and constraint_folder == None:
         ValueError("Please provide a constraint folder for 4KG-NF transformation.")
+    if nf4 and val_results == None:
+        ValueError("No vaslidation results provided, 4KG-NF transformation is not possible.")
 
 
     # setup common prefixes and extend ontology for normalization-traces
@@ -49,18 +51,15 @@ def normalize(kg:Graph, on:Ontology, prefix, abbr, nf1, nf2, nf3, nf4, kg_name, 
             trace_graph.add(embedded_triple, RDF.type, "http://www.w3.org/ns/rdf-star#triple")
             trace_graph.add(embedded_triple, PROV.wasInvalidatedBy, prefix['ontology-validation'])
 
-    print(kg.serialize())
     #nf2 = False
     if nf1:
         normalize_nf1(kg, trace_graph, prefix, abbr, prefix_dict, bnode_name)
-        print(kg.serialize())
     if nf2:
       normalize_nf2(kg, on, trace_graph, ontology_trace_graph, prefix, abbr, prefix_dict)
-      print(on)
     if nf3:
       normalize_nf3(kg, on, trace_graph, ontology_trace_graph, prefix, abbr, prefix_dict)
     # if nf4:
-    #     normalize_nf4()
+    #     normalize_nf4(kg, on, trace_graph, ontology_trace_graph, prefix, abbr, prefix_dict, f"{constraint_folder}_{kg_name}")
 
 
     
@@ -174,8 +173,6 @@ def normalize_nf2(kg:Graph, on:Ontology, trace_graph:Graph,  ontology_trace_grap
         out = []
         types_s =  set(kg.objects(s, RDF.type))
         types_o =  set(kg.objects(o, RDF.type))
-        if s == prefix["Band1"]:
-            print(types_s)
         for new_p,d,r in candidates:
             if prefix[d] in types_s and prefix[r] in types_o:
                 out.append(new_p)
@@ -228,7 +225,6 @@ def normalize_nf2(kg:Graph, on:Ontology, trace_graph:Graph,  ontology_trace_grap
                     for r in sub_ranges:
                         property_dict[p].append((f"{d}_{p}_{r}", d, r))
 
-    print(property_dict)
     # update ontology, create traces
 
 
@@ -251,20 +247,17 @@ def normalize_nf2(kg:Graph, on:Ontology, trace_graph:Graph,  ontology_trace_grap
         if p_name not in property_dict:
             continue
         triple_dict[(s,p,o)] = find_new_property(s,o,kg,property_dict[p_name], prefix)
-    print(triple_dict)
     
     # remove all keys of triple_dict, add all (s, value, o)
     for t, new_props in triple_dict.items():
         s,p,o = t
         kg.remove(t)
-        print(f"remove {t}\n")
         embedded_old_triple = f"<<{abbreviate(s, abbr, prefix_dict)}, {abbreviate(p, abbr, prefix_dict)}, {abbreviate(o, abbr, prefix_dict)}>>"
         trace_graph.add(embedded_old_triple, PROV.wasInvalidatedBy, nf2_activity)
         trace_graph.add(embedded_old_triple, RDF.type, "http://www.w3.org/ns/rdf-star#triple")
 
         for new_prop in new_props:
             kg.add((s,prefix[new_prop],o))
-            print(f"add {(s,prefix[new_prop],o)}\n")
             embedded_new_triple = f"<<{abbreviate(s, abbr, prefix_dict)}, {abbreviate(new_prop, abbr, prefix_dict)}, {abbreviate(o, abbr, prefix_dict)}>>"
             trace_graph.add(embedded_new_triple, RDF.type, "http://www.w3.org/ns/rdf-star#triple")
             trace_graph.add(embedded_new_triple, PROV.wasDerivedFrom, embedded_old_triple)
@@ -353,7 +346,8 @@ def normalize_nf3(kg:Graph, on:Ontology, trace_graph:Graph,  ontology_trace_grap
 """
 normalizes a given KG into 4NF-KG according to the definition presented in https://doi.org/10.1016/j.knosys.2025.113939 .
 """
-def normalize_nf4(kg:Graph, on:Ontology, trace_graph:Graph,  ontology_trace_graph:IncidenceList, prefix:Namespace, abbr, prefix_dict):
+def normalize_nf4(kg:Graph, on:Ontology, trace_graph:Graph,  ontology_trace_graph:IncidenceList, prefix:Namespace, abbr, prefix_dict, val_results):
+
 
     # TODO one instance of NF4-transformation per constraint
     trace_graph.add(prefix["nf4-transformation"], RDF.type, PROV.Activity)

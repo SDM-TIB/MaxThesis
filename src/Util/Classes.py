@@ -80,7 +80,7 @@ class IncidenceList:
                 for pair in self.edges[edge]:
                     if pair[0] == node:
 
-                        #print subject
+                        #  subject
                         if first_subject:
                             first_subject = False
                             # if 
