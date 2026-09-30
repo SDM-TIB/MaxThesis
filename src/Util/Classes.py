@@ -84,16 +84,16 @@ class IncidenceList:
                         if first_subject:
                             first_subject = False
                             # if 
-                            block += f"{abbreviate(node, abbr, prefix_dict)}\t"
+                            block += f"{abbreviate(node, abbr, prefix_dict)} "
 
                         # write predicate
                         if first_predicate:
                             if first_triple:
                                 first_triple = False
                             else:
-                                block += '\t' * ceil(len(node)/4+0.1)
+                                block += '\t'
                             first_predicate = False
-                            block += f"{abbreviate(edge, abbr, prefix_dict)}\t"
+                            block += f"{abbreviate(edge, abbr, prefix_dict)} "
                          
 
                         # print object and comma
@@ -104,7 +104,7 @@ class IncidenceList:
                     block = block[:-2] + " ;\n"
                     pass # remove last , and print semicolon
             if block and block[len(block)-2] == ";":
-                block = block[:-2] + " . \n"
+                block = block[:-2] + " . \n\n"
                 pass # remove last ; and print dot
             out += block
 
@@ -675,13 +675,24 @@ class Ontology:
             subtypes.add(class_name)
         return subtypes
 
+    """  checks if literal_type can be derived from t according to the Ontology's hierachy."""
+    def derivable(self, literal_type, t):
+        if literal_type == t:
+            return True
+        hierarchy = self.literal_hierarchy
+        if t in hierarchy:
+            for st in hierarchy[t]:
+                if self.derivable(literal_type, st):
+                    return True
+
+        return False
+
     def ttl(self, file, prefix_dict, abbr):
         out = ""
         for pre, ab in prefix_dict.items():
             out += f"@prefix {ab}: <{pre}> .\n"
         out += "\n"
 
-        # TODO
         # add all classes and their subclasses
         out += "##########\n# Classes\n##########\n"
         for c in self.classes.keys():
@@ -693,15 +704,45 @@ class Ontology:
                 psuper = super if super.__contains__(":") else f"{abbr}:{super}"
                 if first_super:
                     first_super = False
-                    out += f";\n\trdfs:subClassOf {psuper}"
+                    out += f";\n\trdfs:subClassOf {psuper} "
                 else:
                     out += f",\n\t\t{psuper} "
-            out += ".\n"
+            out += ".\n\n"
 
         # add all properties and their domain and range
         out += "##########\n# Properties\n##########\n"
-        
+        for p in self.properties.keys():
+            pp = p if p.__contains__(":") else f"{abbr}:{p}"
+            p_type = "DatatypeProperty" if self.derivable(next(iter(self.properties[p][1])), "anyType")  else "ObjectProperty"
+            out += f"{pp} rdf:type rdf:Property, owl:{p_type} "
 
+            domain = self.properties[p][0]
+            range = self.properties[p][1]
+            first_domain = True
+            for d in domain:
+                pd = d if d.__contains__(":") else f"{abbr}:{d}"
+                if first_domain:
+                    first_domain = False
+                    out += f";\n\trdfs:domain {pd} "
+                else:
+                    out += f",\n\t\t {pd} "
+
+            if not range:
+                out += ".\n"
+
+            first_range = True
+            for r in domain:
+                pr = r if r.__contains__(":") else f"{abbr}:{r}"
+                if first_range:
+                    first_range = False
+                    out += f";\n\trdfs:range {pr} "
+                else:
+                    out += f",\n\t\t {pr} "
+            out += ".\n\n"
+
+
+            with open(file, mode="w") as f:
+                f.write(out)
 
         
 ################################################

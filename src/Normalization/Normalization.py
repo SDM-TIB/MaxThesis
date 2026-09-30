@@ -70,6 +70,7 @@ def normalize(kg:Graph, on:Ontology, prefix, abbr, nf1, nf2, nf3, nf4, kg_name, 
     output_file = f"{output_dir}/Normalized_{kg_name}.nt"
     trace_file = f"{output_dir}/Traces_{kg_name}.nt"
     on_trace_file = f"{output_dir}/Traces_{kg_name}Ontology.nt"
+    on_output_file = f"{output_dir}/Normalized_{kg_name}Ontology"
     
     print(f"Saving normalized KG to {output_file}...")
     kg.serialize(destination=output_file, format='nt')
@@ -77,8 +78,11 @@ def normalize(kg:Graph, on:Ontology, prefix, abbr, nf1, nf2, nf3, nf4, kg_name, 
     print(f"Saving normalization-traces to {trace_file}...")
     trace_graph.ttl(trace_file, prefix_dict, "ex")
 
+    print(f"Saving normalized ontology to {on_output_file}...")
+    on.ttl(on_output_file, prefix_dict, "ex")
+
     print(f"Saving ontology-traces to {on_trace_file}...")
-    trace_graph.ttl(trace_file, prefix_dict, "ex")
+    ontology_trace_graph.ttl(on_trace_file, prefix_dict, "ex")
 
     # TODO output normalized ontology
 
