@@ -141,7 +141,7 @@ if __name__ == '__main__':
         # Validate SHACL constraints
         print("\nValidating results...")
         val_results = travshacl(g, constraints_folder, kg_name)
-
+        print("START\n",val_results, "\nEND")
         o = Ontology()
         parseOntology(ontology_path, o, prefix)
 
