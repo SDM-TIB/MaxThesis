@@ -205,8 +205,6 @@ def mine_rules_for_target_predicate(g:set, v:set, pmap:P_map, kg:IncidenceList, 
   
     paths = {Path((s, p , o), IncidenceList()) for s,p,o in g}
 
-    # TODO call expand rule here, duplicate code
-
     for path in paths:
         expand_fun(rule_dict, path, kg, ontology, pmap, type_predicate, onto_safe)
 
@@ -307,7 +305,7 @@ def expand_path_closed_rule(rule_dict:dict, path:Path, kg:IncidenceList, ontolog
 
     for p in preds:
         # don't want to traverse type triples or negative triples
-        if pmap.original_pred(p) == type_predicate or p in pmap.neg_predicate_mappings:
+        if pmap.original_pred(p) == type_predicate or p in pmap.neg_predicate_mappings.keys():
             continue
 
 
