@@ -1,4 +1,4 @@
-{
+    {
 "KG": "musicKG-test-normalization",
 "prefix": "http://example.org/",
 "rules_file": "musicKG-test-normalization.csv",

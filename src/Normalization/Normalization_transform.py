@@ -248,12 +248,9 @@ def transform_triple(triple: Tuple[URIRef, URIRef, URIRef],
     for pattern in patterns:
         if pattern.in_filter and orig_pred_str and orig_pred_str == removePrefix(pattern.predicate, prefix):
             # Check if this specific object value is mentioned in the constraint
-            #print(f"\n transform triple filter pattern: {pattern} object is {pattern.object} and obj {obj}")
             if pattern.object is None or pattern.object == obj:
                 matching_filter_pattern = pattern
                 
-                # original: no_prefix = "NO_" if not matching_filter_pattern.is_not_exists else ""
-                # MAX
                 no_prefix = "NO_" if not matching_filter_pattern.is_not_exists else ""
                 entity_name = str(obj).split('/')[-1]
 

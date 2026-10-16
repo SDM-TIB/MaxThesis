@@ -7,32 +7,6 @@ import numpy as np
 # Classes
 ###############################################
 
-"""daatype to hold the normalization traces for normalizing aspecific violation/anomaly-instance"""
-class Trace:
-    def __init__(self, main_action=None, removed_triples=None, added_triples=None):
-        if main_action == None:
-            pass
-        if removed_triples == None:
-            pass
-        if added_triples == None:
-            pass
-        self.main_action = main_action
-        self.removed_triples = removed_triples
-        self.added_triples = added_triples
-
-
-"""datatype to hold traces for a whole normalization step over a graph."""
-class NormalizationTraces:
-    def __init__(self, header=None, traces=None):
-        if header == None:
-            pass
-        if traces == None:
-            pass
-        self.header = header
-        self.traces = traces
-
-
-
 """incidence list represemting a graph"""
 class IncidenceList:
     def __init__(self, edges=None, nodes=None):
@@ -95,8 +69,6 @@ class IncidenceList:
                             neighbors.add(pair[0])
         return neighbors
     
-
-
 
 """class that holds all information on predicate mappings for a kg and specific target"""
 class P_map:
@@ -802,6 +774,7 @@ class Ontology:
 
         self.classes = classes
         self.properties = properties
+        self.graph = IncidenceList()
 
         # hierarchy from https://www.w3.org/TR/xmlschema11-2/type-hierarchy-201104.longdesc.html
         self.literal_hierarchy =  {

@@ -7,6 +7,7 @@ import sys
 from Normalization.Validation import travshacl
 from Normalization.Normalization_transform import transform
 from Normalization.Normalization import *
+from Normalization.Negative_triples import get_negative_triples
 from Util.Util import parseGraph, parseOntology
 from Util.Classes import IncidenceList, Ontology
 import logging
@@ -134,6 +135,7 @@ if __name__ == '__main__':
 
         NS = Namespace(prefix)
         g = Graph()
+        # TODO make abbr input
         g.bind("ex", NS)
         g.bind("xsd","http://www.w3.org/2001/XMLSchema/")
         g.parse(rdf_path, format='nt')
@@ -141,12 +143,13 @@ if __name__ == '__main__':
         # Validate SHACL constraints
         print("\nValidating results...")
         val_results = travshacl(g, constraints_folder, kg_name)
-        print("START\n",val_results, "\nEND")
         o = Ontology()
         parseOntology(ontology_path, o, prefix)
 
+        negative_triple_dict = get_negative_triples(g, constraints_folder, NS, kg_name)
+
         #new normalzation
-        normalize(g, o, NS, "ex", True, True, True, True, kg_name, constraints_folder, bnode_name="Blank_Node")
+        normalize(g, o, NS, "ex", True, True, True, True, kg_name, bnode_name="Blank_Node", negative_triple_dict=negative_triple_dict)
 
 
         # Print execution time
@@ -162,3 +165,19 @@ if __name__ == '__main__':
             pass
             # logger.error(error_msg, exc_info=True)  # Logs the full traceback
         raise
+
+
+#     {
+# "KG": "musicKG-test-normalization",
+# "prefix": "http://example.org/",
+# "rules_file": "musicKG-test-normalization.csv",
+# "rdf_file": "musicKG-test-normalization.nt",
+# "constraints_folder": "musicKG-test-normalization",
+# "ontology_file": "musicKGOntology.ttl",
+# "max_body_length": "",
+# "example_set_size": "",
+# "type_predicate": "",
+# "alpha": "",
+# "mine_negative_rules": "",
+# "onto-valid": "ef"
+# }
