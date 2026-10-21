@@ -26,6 +26,11 @@ def normalize(kg:Graph, on:Ontology, prefix, abbr, nf1, nf2, nf3, nf4, kg_name, 
         ValueError("bnode_name must be conform with RFC 3986.")
     if nf4 and negative_triple_dict == None:
         Warning("No negative_triple_dict provided, nothing to be done for NF4.")
+    nf1_log = None
+    nf2_log = None
+    nf3_log = None
+    nf4_log = None
+    onto_valid_log = 0
 
 
     # setup common prefixes and extend ontology for normalization-traces
@@ -52,26 +57,22 @@ def normalize(kg:Graph, on:Ontology, prefix, abbr, nf1, nf2, nf3, nf4, kg_name, 
         if not fits_ontology((s,p,o), on, kg, prefix, prefix_dict=prefix_dict):
             # remove triple from kg
             kg.remove((s,p,o))
-
+            onto_valid_log += 1
 
             # trace graph: note that triple was removed
             embedded_triple = embed_triple((s,p,o), abbr, prefix_dict)
             trace_graph.add(embedded_triple, RDF.type, "http://www.w3.org/ns/rdf-star#triple")
             trace_graph.add(embedded_triple, PROV.wasInvalidatedBy, prefix['ontology-validation'])
 
-
-    if nf4:
-        # TODO collect faulty triples according to constraints, add to val_results dict
-        pass
-
+    # TODO handle whitespaces in string objects during predicate object transformations
     if nf1:
-        normalize_nf1(kg, trace_graph, prefix, abbr, prefix_dict, bnode_name)
+        nf1_log = normalize_nf1(kg, trace_graph, prefix, abbr, prefix_dict, bnode_name)
     if nf2:
-        normalize_nf2(kg, trace_graph, ontology_trace_graph, prefix, abbr, prefix_dict, on)
+        nf2_log = normalize_nf2(kg, trace_graph, ontology_trace_graph, prefix, abbr, prefix_dict, on)
     if nf3:
-        normalize_nf3(kg, trace_graph, ontology_trace_graph, prefix, abbr, prefix_dict, on)
+        nf3_log = normalize_nf3(kg, trace_graph, ontology_trace_graph, prefix, abbr, prefix_dict, on)
     if nf4:
-        normalize_nf4(kg, trace_graph, ontology_trace_graph, prefix, abbr, prefix_dict, negative_triple_dict, on)
+        nf4_log = normalize_nf4(kg, trace_graph, ontology_trace_graph, prefix, abbr, prefix_dict, negative_triple_dict, on)
 
 
     
@@ -95,8 +96,7 @@ def normalize(kg:Graph, on:Ontology, prefix, abbr, nf1, nf2, nf3, nf4, kg_name, 
     print(f"Saving ontology-traces to {on_trace_file}...")
     ontology_trace_graph.ttl(on_trace_file, prefix_dict, "ex")
 
-    # TODO output normalized ontology
-
+    return onto_valid_log, nf1_log, nf2_log, nf3_log, nf4_log
 """
 normalizes a given KG into 1NF-KG according to the definition presented in https://doi.org/10.1016/j.knosys.2025.113939 .
 renames blank nodes into unique entities, preferably by leveraging an existing label or the blank node's type(s).
@@ -170,7 +170,7 @@ def normalize_nf1(kg:Graph, trace_graph:IncidenceList, prefix:Namespace, abbr, p
         if type(o) == BNode and s != o:
             o in handled or not handle_bnode(o, kg, trace_graph, prefix, abbr, prefix_dict, bnode_name) and handled.add(o)
     
-
+    return len(handled)
 
 """
 normalizes a given KG into 2NF-KG according to the definition presented in https://doi.org/10.1016/j.knosys.2025.113939 .
@@ -276,14 +276,14 @@ def normalize_nf2(kg:Graph, trace_graph:IncidenceList,  ontology_trace_graph:Inc
             trace_graph.add(embedded_new_triple, PROV.wasDerivedFrom, embedded_old_triple)
             trace_graph.add(embedded_new_triple, PROV.wasGeneratedBy, nf2_activity)
 
-
+    return len(triple_dict)
 """
 normalizes a given KG into 3NF-KG according to the definition presented in https://doi.org/10.1016/j.knosys.2025.113939 .
 """
 def normalize_nf3(kg:Graph, trace_graph:IncidenceList,  ontology_trace_graph:IncidenceList, prefix:Namespace, abbr, prefix_dict, on:Ontology=None):
-    # note: nf3 is always nf 2, so it is possible to skip nf2-function and facilitate nf2 
-    # using this function if we do not want to rely on an ontology
-    # downside: no traces of nf 2 violations
+    #    note: nf3 is always nf 2, so it is possible to skip nf2-function and facilitate nf2 
+    #    using this function if we do not want to rely on an ontology
+    #    downside: no traces of nf 2 violations
 
 
     trace_graph.add(prefix["nf3-transformation"], RDF.type, PROV.Activity)
@@ -361,6 +361,7 @@ def normalize_nf3(kg:Graph, trace_graph:IncidenceList,  ontology_trace_graph:Inc
     for triple in triples_to_add:
         kg.add(triple)
 
+    return len(triples_to_remove)
 """
 normalizes a given KG into 4NF-KG according to the definition presented in https://doi.org/10.1016/j.knosys.2025.113939 .
 """
@@ -429,10 +430,10 @@ def normalize_nf4(kg:Graph, trace_graph:IncidenceList,  ontology_trace_graph:Inc
                 for t in triples_to_negate:
                     embedded_old_triple = embed_triple(t, abbr, prefix_dict)
                     p_name, p_prefix = remove_prefix_with_dict(t[1], prefix_dict)
-                    new_triple = (t[0],URIRef(f"{p_prefix}NO_{p_name}"), t[2])
+                    o_name, o_prefix = remove_prefix_with_dict(t[2], prefix_dict)
+                    new_triple = (t[0],URIRef(f"{p_prefix}NO_{p_name}"),URIRef(f"{o_prefix}NO_{o_name}"))
                     kg.remove(t)
                     kg.add(new_triple)
-                    # TODO transform o too?
                     embedded_new_triple = embed_triple(new_triple, abbr, prefix_dict)
                     trace_graph.add(embedded_old_triple, PROV.wasInvalidatedBy, activity)
                     trace_graph.add(embedded_old_triple, RDF.type, "http://www.w3.org/ns/rdf-star#triple")
@@ -440,4 +441,4 @@ def normalize_nf4(kg:Graph, trace_graph:IncidenceList,  ontology_trace_graph:Inc
                     trace_graph.add(embedded_new_triple, PROV.wasGeneratedBy, activity)
                     trace_graph.add(embedded_new_triple, PROV.wasDerivedFrom, embedded_old_triple)
 
-        # iterate over triples to negate, create traces
+    return len(triples_to_negate)

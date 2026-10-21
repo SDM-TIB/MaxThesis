@@ -206,8 +206,8 @@ def transform_predicate_with_object(kg: Graph, prefix) -> Tuple[Graph, Dict[str,
         # Create new predicate by combining original predicate with object value
         p_str = str(p)
         new_pred_str = f"{p_str}_{obj_value}"
-        new_pred = URIRef(new_pred_str)
-
+        new_pred = URIRef(new_pred_str.replace(" ","_"))
+        print(new_pred)
         # Store mapping from new predicate to original predicate
         predicate_mapping[removePrefix(new_pred_str, prefix)] = removePrefix(p_str, prefix)
 

@@ -11,6 +11,8 @@ from Normalization.Negative_triples import get_negative_triples
 from Util.Util import parseGraph, parseOntology
 from Util.Classes import IncidenceList, Ontology
 import logging
+from main import delete_existing_result
+
 
 def initialize(input_config):
     """
@@ -22,13 +24,22 @@ def initialize(input_config):
         input_config (str): The path to the configuration file in JSON format.
 
     Returns:
-
+        tuple: A tuple containing the following elements in order:
+            - prefix (str): The prefix specified in the configuration file.
+            - rules (str): Path to the rules file.
+            - rdf (str): Path to the RDF file.
+            - path (str): Path to the knowledge graph (KG) directory.
+            - predictions_folder (str): Path to the predictions folder.
+            - constraints (str): Path to the constraints folder.
+            - kg (str): Name of the knowledge graph (KG).
+            - pca_threshold (float): PCA threshold value from the configuration file.
     """
     print(f"Reading configuration from {input_config}")
     with open(input_config, "r") as input_file_descriptor:
         input_data = json.load(input_file_descriptor)
 
     prefix = input_data['prefix']
+    abbr = input_data['prefix-abbreviation']
     kg_name = input_data['KG']
     kg_path = os.path.join('Data', 'KG', input_data['KG'])
     rules_path = os.path.join('Data', 'Rules', input_data['rules_file'])
@@ -58,8 +69,9 @@ def initialize(input_config):
 
     onto_valid = True if input_data["onto-valid"] else False
 
-    logger.info(f"Configuration loaded:\n "
+    logger.info(f"Configuration loaded:\n"
           f"- Prefix: {prefix}\n"
+          f"- Prefix-abbreviation: {abbr}\n"
           f"- Rules file: {rules_path}\n"
           f"- RDF file: {rdf_path}\n"
           f"- Predictions folder: {predictions_folder}\n"
@@ -70,23 +82,7 @@ def initialize(input_config):
           f"- alpha: {alpha}\n"
           f"- mining {"negative" if negative_rules else "positive"} rules\n"
     )
-    return prefix, rules_path, rdf_path, kg_path, ontology_path, predictions_folder, constraints_folder, kg_name, max_depth, set_size, type_predicate, alpha, negative_rules, onto_valid
-
-def delete_existing_result(pfad):
-    if os.path.exists(pfad) and os.path.isdir(pfad):
-        i = True
-        while i:
-            user_input = input(f"\nThere already exists a result folder for this knowledge graph at '{pfad}'. Do you want to delete it and resume? (y/n) ").strip().lower()
-            
-            if user_input == 'y':
-                shutil.rmtree(pfad)
-                print("The result folder was deleted. Proceeding...\n")
-                i = False
-            elif user_input == 'n':
-                print("The result folder was kept. Cancelling...\n")
-                sys.exit()
-            else:
-                print("Invalid entry, try again.")
+    return prefix, abbr, rules_path, rdf_path, kg_path, ontology_path, predictions_folder, constraints_folder, kg_name, max_depth, set_size, type_predicate, alpha, negative_rules, onto_valid
 
 
 if __name__ == '__main__':
@@ -99,7 +95,7 @@ if __name__ == '__main__':
         start_time = time.time()
 
         # Initialize configuration
-        input_config = './Data/input.json'
+        input_config = './Data/input_normalization.json'
 
         # Create logs directory if it doesn't exist
         logs_dir = 'logs'
@@ -109,7 +105,7 @@ if __name__ == '__main__':
         # Set up logging with file output and rotation
         log_level = 'INFO'  # Default to INFO level
         timestamp = time.strftime('%Y%m%d-%H%M%S')
-        log_file = os.path.join(logs_dir, f'symbolic_predictions_{timestamp}.log')
+        log_file = os.path.join(logs_dir, f'normalization_{timestamp}.log')
 
         # Configure logging to write to both console and file
         logging.basicConfig(
@@ -117,13 +113,12 @@ if __name__ == '__main__':
             format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
             handlers=[
                 logging.FileHandler(log_file),
-                logging.StreamHandler()  # This sends output to console too
             ]
         )
         logger = logging.getLogger(__name__)
 
         #Initializaing from the input.json file
-        prefix, rules_path, rdf_path, kg_path, ontology_path, predictions_folder, constraints_folder, kg_name, max_depth, set_size, type_predicate, alpha, negative_rules, onto_valid = initialize(input_config)
+        prefix, abbr, rules_path, rdf_path, kg_path, ontology_path, predictions_folder, constraints_folder, kg_name, max_depth, set_size, type_predicate, alpha, negative_rules, onto_valid = initialize(input_config)
 
 
         #delete result folder
@@ -135,49 +130,56 @@ if __name__ == '__main__':
 
         NS = Namespace(prefix)
         g = Graph()
-        # TODO make abbr input
-        g.bind("ex", NS)
+        g.bind(abbr, NS)
         g.bind("xsd","http://www.w3.org/2001/XMLSchema/")
-        g.parse(rdf_path, format='nt')
 
-        # Validate SHACL constraints
-        print("\nValidating results...")
-        val_results = travshacl(g, constraints_folder, kg_name)
+        # parse inputs
+        parse_start = time.time()
+        g.parse(rdf_path, format='nt')
         o = Ontology()
         parseOntology(ontology_path, o, prefix)
 
-        negative_triple_dict = get_negative_triples(g, constraints_folder, NS, kg_name)
+        # Validate SHACL constraints
+        validation_start = time.time()
+        print("\nValidating results...")
+        val_results = travshacl(g, constraints_folder, kg_name)
+        negative_triple_dict = get_negative_triples(g, constraints_folder, kg_name)
 
-        #new normalzation
-        normalize(g, o, NS, "ex", True, True, True, True, kg_name, bnode_name="Blank_Node", negative_triple_dict=negative_triple_dict)
-
+        #normalzation with traces
+        normalize_start = time.time()
+        onto_valid_log, nf1_log, nf2_log, nf3_log, nf4_log =normalize(g, o, NS, "ex", True, True, True, True, kg_name, bnode_name="Blank_Node", negative_triple_dict=negative_triple_dict)
 
         # Print execution time
         end_time = time.time()
-        # print(f"\nTime to parse data: {time_start_mining - time_start_parse} s\nTime for rule mining (incl. example generation):{end_time-time_start_mining} s")
-        print(f"\nTotal execution time: {end_time - start_time - (user_input_end_time - user_input_start_time):.2f} seconds")
-        print("Process completed successfully!")
+        parse_time = validation_start - parse_start
+        validation_time = normalize_start - validation_start
+        normalize_time = end_time - normalize_start
+        time_total = end_time - start_time - (user_input_end_time - user_input_start_time)
+        print(f"\nTime to parse data: {parse_time} s")
+        print(f"\nTime to validate constraints: {validation_time} s")
+        print(f"\nTime to normalize KG: {normalize_time} s")
+        print(f"\nTotal execution time: {time_total} s")
+        print(f"\nNORMALIZATION INFO:\n\tOntology validation removed {onto_valid_log} triples.")
+        print(f"\tNF1: {nf1_log} violation{"s" if nf1_log > 1 else ""}")
+        print(f"\tNF2: {nf2_log} violation{"s" if nf2_log > 1 else ""}")
+        print(f"\tNF3: {nf3_log} violation{"s" if nf3_log > 1 else ""}")
+        print(f"\tNF4: {nf4_log} violation{"s" if nf4_log > 1 else ""}")
 
+        log_data = {"runtime": time_total, 
+                    "parse_time": parse_time, 
+                    "validation_time": validation_time, 
+                    "normalization_time": normalize_time, 
+                    "Ontology_validation_triples_removed": onto_valid_log, 
+                    "NF1_triples_invalidated": nf1_log,
+                    "NF2_triples_invalidated": nf2_log,
+                    "NF3_triples_invalidated": nf3_log,
+                    "NF4_triples_invalidated": nf4_log
+                    }
+        logger.info(json.dumps(log_data, indent=4))
+        logger.info("Process completed successfully!")
     except Exception as e:
         error_msg = f"Error occurred during execution: {str(e)}"
         print(f"\n{error_msg}")
         if 'logger' in locals():
-            pass
-            # logger.error(error_msg, exc_info=True)  # Logs the full traceback
+            logger.error(error_msg, exc_info=True)  # Logs the full traceback
         raise
-
-
-#     {
-# "KG": "musicKG-test-normalization",
-# "prefix": "http://example.org/",
-# "rules_file": "musicKG-test-normalization.csv",
-# "rdf_file": "musicKG-test-normalization.nt",
-# "constraints_folder": "musicKG-test-normalization",
-# "ontology_file": "musicKGOntology.ttl",
-# "max_body_length": "",
-# "example_set_size": "",
-# "type_predicate": "",
-# "alpha": "",
-# "mine_negative_rules": "",
-# "onto-valid": "ef"
-# }

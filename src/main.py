@@ -41,6 +41,7 @@ def initialize(input_config):
         input_data = json.load(input_file_descriptor)
 
     prefix = input_data['prefix']
+    abbr = input_data['prefix-abbreviation']
     kg_name = input_data['KG']
     kg_path = os.path.join('Data', 'KG', input_data['KG'])
     rules_path = os.path.join('Data', 'Rules', input_data['rules_file'])
@@ -72,6 +73,7 @@ def initialize(input_config):
 
     logger.info(f"Configuration loaded:\n "
           f"- Prefix: {prefix}\n"
+          f"- Prefix-abbreviation: {abbr}\n"
           f"- Rules file: {rules_path}\n"
           f"- RDF file: {rdf_path}\n"
           f"- Predictions folder: {predictions_folder}\n"
@@ -82,7 +84,7 @@ def initialize(input_config):
           f"- alpha: {alpha}\n"
           f"- mining {"negative" if negative_rules else "positive"} rules\n"
     )
-    return prefix, rules_path, rdf_path, kg_path, ontology_path, predictions_folder, constraints_folder, kg_name, max_depth, set_size, type_predicate, alpha, negative_rules, onto_valid
+    return prefix, abbr, rules_path, rdf_path, kg_path, ontology_path, predictions_folder, constraints_folder, kg_name, max_depth, set_size, type_predicate, alpha, negative_rules, onto_valid
 
 def delete_existing_result(pfad):
     if os.path.exists(pfad) and os.path.isdir(pfad):
@@ -111,7 +113,7 @@ if __name__ == '__main__':
         start_time = time.time()
 
         # Initialize configuration
-        input_config = './Data/input.json'
+        input_config = './Data/input_rule_mining.json'
 
         # Create logs directory if it doesn't exist
         logs_dir = 'logs'
@@ -136,7 +138,7 @@ if __name__ == '__main__':
         logger = logging.getLogger(__name__)
 
         #Initializaing from the input.json file
-        prefix, rules_path, rdf_path, kg_path, ontology_path, predictions_folder, constraints_folder, kg_name, max_depth, set_size, type_predicate, alpha, negative_rules, onto_valid = initialize(input_config)
+        prefix, abbr, rules_path, rdf_path, kg_path, ontology_path, predictions_folder, constraints_folder, kg_name, max_depth, set_size, type_predicate, alpha, negative_rules, onto_valid = initialize(input_config)
 
 
         #delete result folder

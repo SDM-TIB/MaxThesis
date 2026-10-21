@@ -110,22 +110,7 @@ def process_validation_report(report_file: str) -> List[Tuple[str, str]]:
     return violations
 
 
-def get_negative_triples(kg: Graph, constraints_folder: str, prefix,  kg_name: str = None) -> Tuple[Graph, str]:
-    """
-    Transforms a given knowledge graph (KG) based on a series of predicate-object transformations,
-    SHACL constraints, and violation reports. The transformation involves modifying triples in the graph as
-    pre defined patterns and saving the results to the appropriate output files.
-
-    Args:
-        kg: The input RDF graph to be transformed.
-        kg_name: The name associated with the KG. If not provided, it is derived from the current directory.
-
-    Returns:
-        Graph: The final transformed RDF graph after applying all transformations.
-
-    Raises:
-        Exception: If any error occurs during the transformation process, it is raised for troubleshooting.
-    """
+def get_negative_triples(kg: Graph, constraints_folder: str,  kg_name: str = None) -> Tuple[Graph, str]:
 
     try:
         # If kg_name is not provided, try to determine it from current directory

@@ -8,9 +8,8 @@ exS:FatherWithChildConstraint a sh:NodeShape ;
             WHERE {
                 $this <http://FrenchRoyalty.org/child> ?child .
                 ?child <http://FrenchRoyalty.org/mother> ?mother .
-                FILTER EXISTS {
-                    $this <http://FrenchRoyalty.org/spouse> ?mother .
-                }
+                $this <http://FrenchRoyalty.org/spouse> ?mother . # negate
+                
             }
 """ ] ;
     sh:targetClass ex:Person .

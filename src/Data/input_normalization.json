@@ -1,6 +1,7 @@
     {
 "KG": "musicKG-test-normalization",
 "prefix": "http://example.org/",
+"prefix-abbreviation":"ex",
 "rules_file": "musicKG-test-normalization.csv",
 "rdf_file": "musicKG-test-normalization.nt",
 "constraints_folder": "musicKG-test-normalization",
