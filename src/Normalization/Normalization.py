@@ -2,23 +2,10 @@ from rdflib import Graph, BNode, Literal, URIRef, Namespace
 from rdflib.namespace import RDFS, PROV, RDF, XSD
 import os
 import time
-from Util.Classes import Ontology, IncidenceList, abbreviate, removePrefix
-from Util.NormalizationUtil import fits_ontology, is_valid_uri_component
+from Util.Classes import Ontology, IncidenceList, abbreviate, removePrefix, full_uri
+from Util.NormalizationUtil import *
 from itertools import count
 from collections import defaultdict
-
-
-
-
-
-# _:b1 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://example.org/Band> .
-# _:b1 <http://example.org/hasAlbum> <http://example.org/The_Royal_Scam> .
-# _:b2 <http://www.w3.org/2000/01/rdf-schema#label> "cool 70s band"^^<http://www.w3.org/2001/XMLSchema#string> .
-# _:b2 <http://example.org/collaboratedWith> <http://example.org/Larry_Carlton> .
-# <http://example.org/Larry_Carlton> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://example.org/Solo_Artist> .
-# _:b3 <http://example.org/hasAlbum> <http://example.org/Volcanic> .
-# <http://example.org/Foreigner> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://example.org/Artist> .
-# <http://example.org/Foreigner> <http://example.org/hasAlbum> <http://example.org/Foreigner-4> .
 
 
 
@@ -26,6 +13,10 @@ from collections import defaultdict
 def embed_triple(triple, abbr, prefix_dict):
     s,p,o = triple
     return f"<<{abbreviate(s, abbr, prefix_dict)}, {abbreviate(p, abbr, prefix_dict)}, {abbreviate(o, abbr, prefix_dict)}>>"
+
+def debed_triple(triple:str, prefix_dict:dict):
+    uris = triple.removeprefix("<<").removesuffix(">>").split(",")
+    return (URIRef(full_uri((uris[0].strip()), prefix_dict)), URIRef(full_uri(uris[1].strip(), prefix_dict)), URIRef(full_uri(uris[2].strip(), prefix_dict)))
 
 def normalize(kg:Graph, on:Ontology, prefix, abbr, nf1, nf2, nf3, nf4, kg_name, bnode_name=None, negative_triple_dict=None):
     # check inputs
@@ -375,7 +366,7 @@ normalizes a given KG into 4NF-KG according to the definition presented in https
 """
 def normalize_nf4(kg:Graph, trace_graph:IncidenceList,  ontology_trace_graph:IncidenceList, prefix:Namespace, abbr, prefix_dict, negative_triple_dict, on:Ontology=None):
     """finds version of a triple from the original KG at current normalization state of KG."""
-    def update_triple(triple, kg:Graph, trace_graph:IncidenceList):
+    def update_triple(triple, kg:Graph, trace_graph:IncidenceList, prefix_dict):
         # check if triple still up to date
         if triple in kg:
             return {triple}
@@ -383,49 +374,70 @@ def normalize_nf4(kg:Graph, trace_graph:IncidenceList,  ontology_trace_graph:Inc
         # triple has been invalidated by NF 1-3
 
         # note: this is somewhat unsophisticated
-        # we know that after nf3 a triple will be changed at most three times, so we are following traces by 3 levels
+        # we know that after nf3 a triple will be changed at most three times, so we are following traces for 3 levels
         # TODO handle trace graph as IncidenceList not rdflib Graph
         out = set()
         start_embedded_triple = embed_triple(triple,abbr,prefix_dict)
         lvl1_embedded_triples = set()
-        for s,_,_ in trace_graph.triples((None, PROV.wasDerivedFrom, start_embedded_triple)):
-            lvl1_embedded_triples.add(s)
+
+        for s,o in trace_graph.edges[PROV.wasDerivedFrom]:
+            if o == start_embedded_triple:
+                lvl1_embedded_triples.add(s)
+
+
         if not lvl1_embedded_triples:
             # triple is gone and has no successors
             return None
         
         for current_t in lvl1_embedded_triples:
-            if current_t in kg:
+            cur = debed_triple(current_t, prefix_dict)
+            if cur in kg:
                 # current_t exists, therefore no successors
-                out.add(current_t)
+                out.add((cur))
                 continue
             # check for successors
             lvl2_embedded_triples = set()
-            for s,_,_ in trace_graph.triples((None, PROV.wasDerivedFrom, current_t)):
-                lvl2_embedded_triples.add(s)
+
+            for s,o in trace_graph.edges[PROV.wasDerivedFrom]:
+                if o == current_t:
+                    lvl2_embedded_triples.add(s)
 
             for current_t in lvl2_embedded_triples:
-                if current_t in kg:
-                    out.add(current_t)
+                cur = debed_triple(current_t, prefix_dict)
+                if cur in kg:
+                    out.add(cur)
                     continue
-                lvl3_embedded_triples = set()
-                for s,_,_ in trace_graph.triples((None, PROV.wasDerivedFrom, current_t)):
-                    # reached last lvl, everything here has to bwe in kg: if is for safety but should be redundant
-                    if s in kg:
-                        out.add(s)
+
+                for s,o in trace_graph.edges[PROV.wasDerivedFrom]:
+                    if o == current_t:
+                        # reached last lvl, everything here has to bwe in kg: if is for safety but should be redundant
+                        ds = debed_triple(s, prefix_dict)
+                        if ds in kg:
+                            out.add(ds)
+        return out
                 
 
 
-    print(negative_triple_dict)
     for constraint in negative_triple_dict.keys():
         # go through all constraint-shapes
-        name = removePrefix(constraint, prefix)
-        trace_graph.add(prefix[f"nf4-transformation-{name}"], RDF.type, PROV.Activity)
-        trace_graph.add(prefix[f"nf4-transformation-{name}"], RDF.type, prefix["NF4-transformation"])
+        activity = f"nf4-transformation-{removePrefix(constraint, prefix)}"
+        trace_graph.add(prefix[activity], RDF.type, PROV.Activity)
+        trace_graph.add(prefix[activity], RDF.type, prefix["NF4-transformation"])
         for triple in negative_triple_dict[constraint]:
-            triples_to_negate = update_triple(triple,kg,trace_graph)
-            print(triples_to_negate)
+            triples_to_negate = update_triple(triple,kg,trace_graph, prefix_dict)
             if triples_to_negate:
                 for t in triples_to_negate:
-                    pass# TODO
+                    embedded_old_triple = embed_triple(t, abbr, prefix_dict)
+                    p_name, p_prefix = remove_prefix_with_dict(t[1], prefix_dict)
+                    new_triple = (t[0],URIRef(f"{p_prefix}NO_{p_name}"), t[2])
+                    kg.remove(t)
+                    kg.add(new_triple)
+                    # TODO transform o too?
+                    embedded_new_triple = embed_triple(new_triple, abbr, prefix_dict)
+                    trace_graph.add(embedded_old_triple, PROV.wasInvalidatedBy, activity)
+                    trace_graph.add(embedded_old_triple, RDF.type, "http://www.w3.org/ns/rdf-star#triple")
+                    trace_graph.add(embedded_new_triple, RDF.type, "http://www.w3.org/ns/rdf-star#triple")
+                    trace_graph.add(embedded_new_triple, PROV.wasGeneratedBy, activity)
+                    trace_graph.add(embedded_new_triple, PROV.wasDerivedFrom, embedded_old_triple)
+
         # iterate over triples to negate, create traces

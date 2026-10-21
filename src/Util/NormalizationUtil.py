@@ -83,3 +83,13 @@ def fits_ontology(triple, ontology:Ontology, kg:Graph, prefix, type_predicate:UR
 def is_valid_uri_component(s):
     pattern = r'^[A-Za-z0-9\-._~]*$'
     return bool(re.match(pattern, s))
+
+def remove_prefix_with_dict(element:str, prefix_dict):
+    e = element.removeprefix("<").removesuffix(">")
+    for prefix in prefix_dict.keys():
+        if e.startswith(prefix):
+            return e.removeprefix(prefix), prefix    
+    for abbr in prefix_dict.values():
+        if e.startswith(abbr):
+            return e.removeprefix(abbr), abbr
+    return element, ""

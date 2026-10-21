@@ -759,6 +759,7 @@ def addPrefix(element:str, prefix:str):
 def removePrefix(element:str, prefix:str):
     return element.removeprefix("<").removeprefix(prefix).removesuffix(">")
 
+
 """checks if predicate is a literral comparison"""
 def is_literal_comp(p):
     if p == "=" or p=="<":
@@ -776,3 +777,10 @@ def abbreviate(item:str, abbr, prefix_dict:dict):
                 if item.startswith(k):
                     return f"{v}:{item[len(k):]}"
             return item
+
+def full_uri(item:str, prefix_dict:dict):
+    if not item.__contains__(":"):
+        return item
+    l  = item.split(":")
+    l[0] = list(prefix_dict.keys())[list(prefix_dict.values()).index(l[0])]
+    return "".join(l)

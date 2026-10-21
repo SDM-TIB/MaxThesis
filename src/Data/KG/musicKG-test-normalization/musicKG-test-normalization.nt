@@ -12,3 +12,11 @@
 <http://example.org/Nothing_Like_The_Sun> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://example.org/Album> .
 <http://example.org/Helter_Skelter> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://example.org/Song> .
 <http://example.org/The_Royal_Scam> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://example.org/Album> .
+_:b1 <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://example.org/Band> .
+_:b1 <http://example.org/hasAlbum> <http://example.org/The_Royal_Scam> .
+_:b2 <http://www.w3.org/2000/01/rdf-schema#label> "cool 70s band"^^<http://www.w3.org/2001/XMLSchema#string> .
+_:b2 <http://example.org/collaboratedWith> <http://example.org/Larry_Carlton> .
+<http://example.org/Larry_Carlton> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://example.org/Solo_Artist> .
+_:b3 <http://example.org/hasAlbum> <http://example.org/Volcanic> .
+<http://example.org/Foreigner> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://example.org/Artist> .
+<http://example.org/Foreigner> <http://example.org/hasAlbum> <http://example.org/Foreigner-4> .
