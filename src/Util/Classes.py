@@ -1,5 +1,7 @@
 from hashlib import sha256
 from math import ceil
+from rdflib import BNode, Graph, Literal
+from collections import defaultdict
 
 ###############################################
 # Classes
@@ -36,14 +38,14 @@ class IncidenceList:
             self.delete(l)
         del self.nodes[n]
 
-    def add(self, x, l, y):
-        self.addNode(x, {l})
-        self.addNode(y, {l})
-        if not l in self.edges:
-            self.edges[l] = {(x,y)}
+    def add(self, s, p, o):
+        self.addNode(s, {p})
+        self.addNode(o, {p})
+        if not p in self.edges:
+            self.edges[p] = {(s,o)}
         else:
-            if not (x,y) in self.edges[l]:
-                self.edges[l].add((x,y))
+            if not (s,o) in self.edges[p]:
+                self.edges[p].add((s,o))
         
     def delete(self, l):
         del self.edges[l]
@@ -84,7 +86,7 @@ class IncidenceList:
                         if first_subject:
                             first_subject = False
                             # if 
-                            block += f"{abbreviate(node, abbr, prefix_dict)} "
+                            block += f"{node} "
 
                         # write predicate
                         if first_predicate:
@@ -93,11 +95,11 @@ class IncidenceList:
                             else:
                                 block += '\t'
                             first_predicate = False
-                            block += f"{abbreviate(edge, abbr, prefix_dict)} "
+                            block += f"{edge} "
                          
 
                         # print object and comma
-                        block += f"{abbreviate(pair[1], abbr, prefix_dict)}, "
+                        block += f"{pair[1]}, "
 
 
                 if block and block[len(block)-2] == ",":
@@ -108,10 +110,9 @@ class IncidenceList:
                 pass # remove last ; and print dot
             out += block
 
-            with open(file, mode="w") as f:
-                f.write(out)
-        # TODO: output the graph in ttl star format to provided file
-    
+        with open(file, mode="w") as f:
+            f.write(out)
+            
 """class that holds all information on predicate mappings for a kg and specific target"""
 class P_map:
     def __init__(self, target, predicates, neg_predicates, predicate_mappings, neg_predicate_mappings):
@@ -580,6 +581,7 @@ class Ontology:
 
         self.classes = classes
         self.properties = properties
+        self.graph = Graph()
 
         # hierarchy from https://www.w3.org/TR/xmlschema11-2/type-hierarchy-201104.longdesc.html
         self.literal_hierarchy =  {
@@ -731,7 +733,7 @@ class Ontology:
                 out += ".\n"
 
             first_range = True
-            for r in domain:
+            for r in range:
                 pr = r if r.__contains__(":") else f"{abbr}:{r}"
                 if first_range:
                     first_range = False
@@ -744,7 +746,53 @@ class Ontology:
             with open(file, mode="w") as f:
                 f.write(out)
 
-        
+"""represents a graph containing embedded triples (rdf*). Optimized for fast ttl-serialization."""
+# TODO actually optimize
+class TraceGraph:
+    def __init__(self, subjects=None):
+           if subjects == None:
+               subjects = {}
+           self.subjects = subjects
+           self.edges = {}
+
+    def __repr__(self):
+        return f"Graph:\nedges: {self.edges},\nsubjects: {self.subjects}.\n"
+
+
+    def add(self, s, p, o):
+        if not s in self.subjects:
+            self.subjects[s] = {(p, o)}
+        else:
+            self.subjects[s].update({(p, o)}) 
+        if p == "prov:wasDerivedFrom" or p == "wasDerivedFrom":
+            if not p in self.edges:
+                self.edges[p] = {(s,o)}
+            else:
+                self.edges[p].update({(s,o)})
+
+    
+    def ttl(self, file, prefix_dict, abbr):
+        out = ""
+        for k,v in prefix_dict.items():
+            out += f"@prefix {v}: <{k}> .\n"
+        out += "\n"
+        with open(file, mode="w") as f:
+            for s in self.subjects:
+                out += s
+                out += " "
+                first_predicate = True
+                for p,o in self.subjects[s]:       
+                    if first_predicate:
+                        out += f"{p} {o}"
+                        first_predicate = False
+                    else:
+                        out += f";\n\t{p} {o}" 
+                out += " .\n\n"
+
+                if len(out) > 100000:
+                    f.write(out)
+                    out = ""
+            f.write(out)     
 ################################################
 # util
 ################################################
@@ -768,19 +816,25 @@ def is_literal_comp(p):
 
 
 """abbreviates an item if it uses a known prefix"""
-def abbreviate(item:str, abbr, prefix_dict:dict):
+def abbreviate(item, abbr, prefix_dict:dict):
+            if type(item) == Literal:
+                if item.datatype:
+                    return f"\"{item}\"^^{abbreviate(item.datatype, abbr, prefix_dict)}"
+                return f"\"{item}\"^^xsd:anyType"
             if item.startswith("<<"):
                 return item
-            if not item.startswith(("http://", "https://", "ftp://")) and not item.__contains__(":"):
+            if not item.__contains__(":"):
                 return f"{abbr}:{item}"
             for k,v in prefix_dict.items():
                 if item.startswith(k):
                     return f"{v}:{item[len(k):]}"
             return item
 
-def full_uri(item:str, prefix_dict:dict):
-    if not item.__contains__(":"):
+def full_uri(item:str, prefix_dict:dict, prefix:str=""):
+    if type(item) == BNode:
         return item
+    if not item.__contains__(":"):
+        return f"{prefix}{item}"
     l  = item.split(":")
     l[0] = list(prefix_dict.keys())[list(prefix_dict.values()).index(l[0])]
     return "".join(l)

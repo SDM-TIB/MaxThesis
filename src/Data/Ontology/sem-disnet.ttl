@@ -1,0 +1,730 @@
+@prefix disnet: <https://w3id.org/sem-disnet/ontology#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix vann: <http://purl.org/vocab/vann/> .
+@prefix prov: <http://www.w3.org/ns/prov#> .
+
+<https://w3id.org/sem-disnet/ontology> a owl:Ontology ;
+    dcterms:title "SEM-DISNET ontology"@en ;
+    dcterms:description "Ontology of SEM-DISNET, the knowledge graph built from the DISNET biolayer, drugslayer and phenolayer. Classes and properties follow the SEM-DISNET ER diagram; external terms are used as alignments (rdfs:subClassOf)."@en ;
+    dcterms:creator "Andrea Álvarez Pérez" , <https://orcid.org/0000-0002-9182-0295> ;
+    dcterms:created "2026-10-08"^^xsd:date ;
+    owl:versionInfo "1.1" ;
+    owl:versionIRI <https://w3id.org/sem-disnet/ontology/1.1> ;
+    prov:wasDerivedFrom <https://w3id.org/eboca/sem-disnet> ;
+    vann:preferredNamespacePrefix "disnet" ;
+    vann:preferredNamespaceUri "https://w3id.org/sem-disnet/ontology#" .
+
+dcterms:title a owl:AnnotationProperty .
+dcterms:description a owl:AnnotationProperty .
+dcterms:creator a owl:AnnotationProperty .
+dcterms:created a owl:AnnotationProperty .
+vann:preferredNamespacePrefix a owl:AnnotationProperty .
+vann:preferredNamespaceUri a owl:AnnotationProperty .
+prov:wasDerivedFrom a owl:AnnotationProperty .
+
+#################################################################
+#    Classes
+#################################################################
+
+disnet:Disease a owl:Class ;
+    rdfs:label "disease"@en ;
+    rdfs:comment "A disease, disorder or finding identified by a UMLS CUI, merged from the DISNET biolayer and drugslayer."@en ;
+    rdfs:isDefinedBy <https://w3id.org/sem-disnet/ontology> ;
+    rdfs:subClassOf <http://purl.obolibrary.org/obo/NCIT_C7057> .
+
+disnet:Gene a owl:Class ;
+    rdfs:label "gene"@en ;
+    rdfs:comment "A gene identified by its NCBI (Entrez) Gene ID, with its genomic location and its DisGeNET specificity and pleiotropy indexes."@en ;
+    rdfs:isDefinedBy <https://w3id.org/sem-disnet/ontology> ;
+    rdfs:subClassOf <http://purl.obolibrary.org/obo/NCIT_C16612> .
+
+disnet:Organism a owl:Class ;
+    rdfs:label "organism"@en ;
+    rdfs:comment "An organism identified by its NCBI Taxonomy ID."@en ;
+    rdfs:isDefinedBy <https://w3id.org/sem-disnet/ontology> ;
+    rdfs:subClassOf <http://purl.obolibrary.org/obo/NCIT_C14250> .
+
+disnet:Orpha a owl:Class ;
+    rdfs:label "Orphanet entry"@en ;
+    rdfs:comment "A rare disease entry of Orphanet, identified by its ORPHAcode."@en ;
+    rdfs:isDefinedBy <https://w3id.org/sem-disnet/ontology> ;
+    rdfs:subClassOf <http://purl.obolibrary.org/obo/NCIT_C4873> .
+
+disnet:Pathway a owl:Class ;
+    rdfs:label "pathway"@en ;
+    rdfs:comment "A biological pathway from WikiPathways."@en ;
+    rdfs:isDefinedBy <https://w3id.org/sem-disnet/ontology> ;
+    rdfs:subClassOf <http://vocabularies.wikipathways.org/wp#Pathway> .
+
+disnet:Protein a owl:Class ;
+    rdfs:label "protein"@en ;
+    rdfs:comment "A protein identified by its UniProt accession."@en ;
+    rdfs:isDefinedBy <https://w3id.org/sem-disnet/ontology> ;
+    rdfs:subClassOf <http://purl.obolibrary.org/obo/NCIT_C17021> .
+
+disnet:ProteinClass a owl:Class ;
+    rdfs:label "protein class"@en ;
+    rdfs:comment "A PANTHER protein class that groups proteins by function."@en ;
+    rdfs:isDefinedBy <https://w3id.org/sem-disnet/ontology> .
+
+disnet:DiseaseClass a owl:Class ;
+    rdfs:label "disease class"@en ;
+    rdfs:comment "A disease category from HPO, Disease Ontology or MeSH that groups diseases."@en ;
+    rdfs:isDefinedBy <https://w3id.org/sem-disnet/ontology> .
+
+disnet:SemanticType a owl:Class ;
+    rdfs:label "semantic type"@en ;
+    rdfs:comment "A UMLS semantic type that categorises a disease concept."@en ;
+    rdfs:isDefinedBy <https://w3id.org/sem-disnet/ontology> ;
+    rdfs:subClassOf <http://purl.obolibrary.org/obo/NCIT_C42732> .
+
+disnet:Variant a owl:Class ;
+    rdfs:label "variant"@en ;
+    rdfs:comment "A genetic variant identified by its dbSNP rsID."@en ;
+    rdfs:isDefinedBy <https://w3id.org/sem-disnet/ontology> ;
+    rdfs:subClassOf <http://purl.obolibrary.org/obo/SO_0001060> .
+
+disnet:RNA a owl:Class ;
+    rdfs:label "RNA"@en ;
+    rdfs:comment "A non-coding RNA (miRNA, lncRNA or circRNA) identified by its ID within an RNA category."@en ;
+    rdfs:isDefinedBy <https://w3id.org/sem-disnet/ontology> ;
+    rdfs:subClassOf <http://purl.obolibrary.org/obo/NCIT_C26549> .
+
+disnet:PrevalenceClass a owl:Class ;
+    rdfs:label "prevalence class"@en ;
+    rdfs:comment "A prevalence range defined by Orphanet (e.g. 1-9 / 1 000 000)."@en ;
+    rdfs:isDefinedBy <https://w3id.org/sem-disnet/ontology> .
+
+disnet:Prevalence a owl:Class ;
+    rdfs:label "prevalence"@en ;
+    rdfs:comment "The prevalence of an Orphanet rare disease in a geographic area, expressed as a prevalence class."@en ;
+    rdfs:isDefinedBy <https://w3id.org/sem-disnet/ontology> ;
+    rdfs:subClassOf <http://purl.obolibrary.org/obo/NCIT_C17010> .
+
+disnet:DiseaseMarker a owl:Class ;
+    rdfs:label "disease marker"@en ;
+    rdfs:comment "A biomarker measured for a disease, with its concentration and sample type. Weak entity: it only exists together with its disease."@en ;
+    rdfs:isDefinedBy <https://w3id.org/sem-disnet/ontology> ;
+    rdfs:subClassOf <http://purl.obolibrary.org/obo/NCIT_C18329> .
+
+disnet:DiseaseGeneAssociation a owl:Class ;
+    rdfs:label "disease–gene association"@en ;
+    rdfs:comment "An association between a disease and a gene from DisGeNET, with its score and its SIO association type."@en ;
+    rdfs:isDefinedBy <https://w3id.org/sem-disnet/ontology> ;
+    rdfs:subClassOf <http://semanticscience.org/resource/SIO_000983> .
+
+disnet:DiseaseVariantAssociation a owl:Class ;
+    rdfs:label "disease–variant association"@en ;
+    rdfs:comment "An association between a disease and a genetic variant from DisGeNET, with its score."@en ;
+    rdfs:isDefinedBy <https://w3id.org/sem-disnet/ontology> .
+
+disnet:DiseaseRnaAssociation a owl:Class ;
+    rdfs:label "disease–RNA association"@en ;
+    rdfs:comment "An association between a disease and an RNA, with its causality and evidence type."@en ;
+    rdfs:isDefinedBy <https://w3id.org/sem-disnet/ontology> .
+
+disnet:PPI a owl:Class ;
+    rdfs:label "protein–protein interaction"@en ;
+    rdfs:comment "A physical interaction between two proteins, or of a protein with itself. Symmetric: both proteins play the same role."@en ;
+    rdfs:isDefinedBy <https://w3id.org/sem-disnet/ontology> ;
+    rdfs:subClassOf <http://purl.obolibrary.org/obo/NCIT_C18469> .
+
+disnet:Drug a owl:Class ;
+    rdfs:label "drug"@en ;
+    rdfs:comment "A drug or chemical compound identified by its ChEMBL ID."@en ;
+    rdfs:isDefinedBy <https://w3id.org/sem-disnet/ontology> ;
+    rdfs:subClassOf <http://rdf.ebi.ac.uk/terms/chembl#Substance> .
+
+disnet:Target a owl:Class ;
+    rdfs:label "target"@en ;
+    rdfs:comment "A molecular drug target identified by its ChEMBL ID (single protein, complex, family or nucleic acid)."@en ;
+    rdfs:isDefinedBy <https://w3id.org/sem-disnet/ontology> ;
+    rdfs:subClassOf <http://rdf.ebi.ac.uk/terms/chembl#Target> .
+
+disnet:DrugTargetAssociation a owl:Class ;
+    rdfs:label "drug–target association"@en ;
+    rdfs:comment "The action of a drug on a target, described by its action type (e.g. inhibitor, agonist)."@en ;
+    rdfs:isDefinedBy <https://w3id.org/sem-disnet/ontology> ;
+    rdfs:subClassOf <http://rdf.ebi.ac.uk/terms/chembl#Mechanism> .
+
+disnet:DrugDiseaseAssociation a owl:Class ;
+    rdfs:label "drug–disease association"@en ;
+    rdfs:comment "An association between a drug and a disease from CTD, with the original MeSH or OMIM term of the source record."@en ;
+    rdfs:isDefinedBy <https://w3id.org/sem-disnet/ontology> ;
+    rdfs:subClassOf <http://bio2rdf.org/ctd_vocabulary:Chemical-Disease-Association> .
+
+disnet:DrugDiseaseTherapeutic a owl:Class ;
+    rdfs:label "therapeutic drug–disease association"@en ;
+    rdfs:comment "A drug–disease association where the drug is a known or potential treatment of the disease (CTD direct evidence 'T')."@en ;
+    rdfs:isDefinedBy <https://w3id.org/sem-disnet/ontology> ;
+    rdfs:subClassOf disnet:DrugDiseaseAssociation .
+
+disnet:DrugDiseaseMarker a owl:Class ;
+    rdfs:label "marker drug–disease association"@en ;
+    rdfs:comment "A drug–disease association where the drug is a marker of the disease or plays a role in its etiology (CTD direct evidence 'M')."@en ;
+    rdfs:isDefinedBy <https://w3id.org/sem-disnet/ontology> ;
+    rdfs:subClassOf disnet:DrugDiseaseAssociation .
+
+disnet:DrugDiseaseInferred a owl:Class ;
+    rdfs:label "inferred drug–disease association"@en ;
+    rdfs:comment "A drug–disease association inferred by CTD through shared genes, without direct evidence. It carries an inference score."@en ;
+    rdfs:isDefinedBy <https://w3id.org/sem-disnet/ontology> ;
+    rdfs:subClassOf disnet:DrugDiseaseAssociation .
+
+disnet:DrugPhenotypeAssociation a owl:Class ;
+    rdfs:label "drug–phenotype association"@en ;
+    rdfs:comment "An association between a drug and a phenotype, either as an indication or as a side effect, with its score."@en ;
+    rdfs:isDefinedBy <https://w3id.org/sem-disnet/ontology> .
+
+disnet:DrugPhenotypeIndication a owl:Class ;
+    rdfs:label "drug indication"@en ;
+    rdfs:comment "A drug–phenotype association where the phenotype is an indication of the drug."@en ;
+    rdfs:isDefinedBy <https://w3id.org/sem-disnet/ontology> ;
+    rdfs:subClassOf <http://rdf.ebi.ac.uk/terms/chembl#DrugIndication> ;
+    rdfs:subClassOf disnet:DrugPhenotypeAssociation .
+
+disnet:DrugPhenotypeSideEffect a owl:Class ;
+    rdfs:label "drug side effect"@en ;
+    rdfs:comment "A drug–phenotype association where the phenotype is a side effect of the drug."@en ;
+    rdfs:isDefinedBy <https://w3id.org/sem-disnet/ontology> ;
+    rdfs:subClassOf <http://purl.bioontology.org/ontology/SNOMEDCT/62014003> ;
+    rdfs:subClassOf disnet:DrugPhenotypeAssociation .
+
+disnet:Phenotype a owl:Class ;
+    rdfs:label "phenotype"@en ;
+    rdfs:comment "A clinical phenotype, symptom or drug effect identified by a UMLS CUI, merged from the phenolayer symptoms and the drugslayer phenotype effects."@en ;
+    rdfs:isDefinedBy <https://w3id.org/sem-disnet/ontology> .
+
+disnet:DisnetDisease a owl:Class ;
+    rdfs:label "DISNET disease"@en ;
+    rdfs:comment "A disease of the DISNET phenolayer, identified by an internal DISNET ID and extracted from medical texts. Synonyms are kept as skos:altLabel."@en ;
+    rdfs:isDefinedBy <https://w3id.org/sem-disnet/ontology> .
+
+disnet:DiseaseMapping a owl:Class ;
+    rdfs:label "disease mapping"@en ;
+    rdfs:comment "A mapping between a DISNET disease and a Disease (UMLS CUI), with the vocabularies that support it."@en ;
+    rdfs:isDefinedBy <https://w3id.org/sem-disnet/ontology> .
+
+disnet:DiseasePhenotypeAssociation a owl:Class ;
+    rdfs:label "disease–phenotype association"@en ;
+    rdfs:comment "An association between a DISNET disease and a phenotype extracted from Mayo Clinic and Wikipedia texts, with one score per source."@en ;
+    rdfs:isDefinedBy <https://w3id.org/sem-disnet/ontology> .
+
+# Disjoint and total specialisation of disnet:DrugDiseaseAssociation
+disnet:DrugDiseaseAssociation owl:disjointUnionOf ( disnet:DrugDiseaseTherapeutic disnet:DrugDiseaseMarker disnet:DrugDiseaseInferred ) .
+
+# Disjoint and total specialisation of disnet:DrugPhenotypeAssociation
+disnet:DrugPhenotypeAssociation owl:disjointUnionOf ( disnet:DrugPhenotypeIndication disnet:DrugPhenotypeSideEffect ) .
+
+# External classes used as alignments
+<http://bio2rdf.org/ctd_vocabulary:Chemical-Disease-Association> a owl:Class ;
+    rdfs:label "A CTD association between a chemical and a disease"@en .
+<http://purl.bioontology.org/ontology/SNOMEDCT/62014003> a owl:Class ;
+    rdfs:label "Adverse reaction to drug"@en .
+<http://purl.obolibrary.org/obo/NCIT_C14250> a owl:Class ;
+    rdfs:label "Organism"@en .
+<http://purl.obolibrary.org/obo/NCIT_C16612> a owl:Class ;
+    rdfs:label "Gene"@en .
+<http://purl.obolibrary.org/obo/NCIT_C17010> a owl:Class ;
+    rdfs:label "Prevalence"@en .
+<http://purl.obolibrary.org/obo/NCIT_C17021> a owl:Class ;
+    rdfs:label "Protein"@en .
+<http://purl.obolibrary.org/obo/NCIT_C18329> a owl:Class ;
+    rdfs:label "Disease Marker"@en .
+<http://purl.obolibrary.org/obo/NCIT_C18469> a owl:Class ;
+    rdfs:label "Protein-Protein Interaction"@en .
+<http://purl.obolibrary.org/obo/NCIT_C26549> a owl:Class ;
+    rdfs:label "Untranslated RNA"@en .
+<http://purl.obolibrary.org/obo/NCIT_C42732> a owl:Class ;
+    rdfs:label "Semantic_Type"@en .
+<http://purl.obolibrary.org/obo/NCIT_C4873> a owl:Class ;
+    rdfs:label "Rare Disorder"@en .
+<http://purl.obolibrary.org/obo/NCIT_C7057> a owl:Class ;
+    rdfs:label "Disease, Disorder or Finding"@en .
+<http://purl.obolibrary.org/obo/SO_0001060> a owl:Class ;
+    rdfs:label "sequence_variant"@en .
+<http://rdf.ebi.ac.uk/terms/chembl#DrugIndication> a owl:Class ;
+    rdfs:label "ChEMBL Drug Indication Class"@en .
+<http://rdf.ebi.ac.uk/terms/chembl#Mechanism> a owl:Class ;
+    rdfs:label "ChEMBL Mechanism Class"@en .
+<http://rdf.ebi.ac.uk/terms/chembl#Substance> a owl:Class ;
+    rdfs:label "ChEMBL Substance Class"@en .
+<http://rdf.ebi.ac.uk/terms/chembl#Target> a owl:Class ;
+    rdfs:label "ChEMBL Target Class"@en .
+<http://semanticscience.org/resource/SIO_000983> a owl:Class ;
+    rdfs:label "gene-disease association"@en .
+<http://vocabularies.wikipathways.org/wp#Pathway> a owl:Class ;
+    rdfs:label "Pathway"@en .
+
+#################################################################
+#    Object properties
+#################################################################
+
+disnet:dda_has_disease a owl:ObjectProperty ;
+    rdfs:label "drug–disease association has disease"@en ;
+    rdfs:comment "Relates a drug–disease association to its disease."@en ;
+    rdfs:isDefinedBy <https://w3id.org/sem-disnet/ontology> ;
+    rdfs:domain disnet:DrugDiseaseAssociation ;
+    rdfs:range disnet:Disease .
+
+disnet:dda_has_drug a owl:ObjectProperty ;
+    rdfs:label "drug–disease association has drug"@en ;
+    rdfs:comment "Relates a drug–disease association to its drug."@en ;
+    rdfs:isDefinedBy <https://w3id.org/sem-disnet/ontology> ;
+    rdfs:domain disnet:DrugDiseaseAssociation ;
+    rdfs:range disnet:Drug .
+
+disnet:dda_has_sourceCode a owl:ObjectProperty ;
+    rdfs:label "drug–disease association has source disease code"@en ;
+    rdfs:comment "Links a drug–disease association to the original MeSH or OMIM term used by the source record (CTD)."@en ;
+    rdfs:isDefinedBy <https://w3id.org/sem-disnet/ontology> ;
+    rdfs:domain disnet:DrugDiseaseAssociation .
+
+disnet:disease_has_orpha a owl:ObjectProperty ;
+    rdfs:label "disease has Orphanet entry"@en ;
+    rdfs:comment "Relates a disease to an Orphanet rare disease entry."@en ;
+    rdfs:isDefinedBy <https://w3id.org/sem-disnet/ontology> ;
+    rdfs:domain disnet:Disease ;
+    rdfs:range disnet:Orpha .
+
+disnet:disease_has_semType a owl:ObjectProperty ;
+    rdfs:label "disease has semantic type"@en ;
+    rdfs:comment "Relates a disease to its UMLS semantic type."@en ;
+    rdfs:isDefinedBy <https://w3id.org/sem-disnet/ontology> ;
+    rdfs:domain disnet:Disease ;
+    rdfs:range disnet:SemanticType .
+
+disnet:disease_inClass_disClass a owl:ObjectProperty ;
+    rdfs:label "disease in disease class"@en ;
+    rdfs:comment "Relates a disease to a disease class it belongs to."@en ;
+    rdfs:isDefinedBy <https://w3id.org/sem-disnet/ontology> ;
+    rdfs:domain disnet:Disease ;
+    rdfs:range disnet:DiseaseClass .
+
+disnet:dpa_has_drug a owl:ObjectProperty ;
+    rdfs:label "drug–phenotype association has drug"@en ;
+    rdfs:comment "Relates a drug–phenotype association to its drug."@en ;
+    rdfs:isDefinedBy <https://w3id.org/sem-disnet/ontology> ;
+    rdfs:domain disnet:DrugPhenotypeAssociation ;
+    rdfs:range disnet:Drug .
+
+disnet:dpa_has_phenotype a owl:ObjectProperty ;
+    rdfs:label "drug–phenotype association has phenotype"@en ;
+    rdfs:comment "Relates a drug–phenotype association to its phenotype."@en ;
+    rdfs:isDefinedBy <https://w3id.org/sem-disnet/ontology> ;
+    rdfs:domain disnet:DrugPhenotypeAssociation ;
+    rdfs:range disnet:Phenotype .
+
+disnet:dpha_has_disnetDisease a owl:ObjectProperty ;
+    rdfs:label "disease–phenotype association has DISNET disease"@en ;
+    rdfs:comment "Relates a disease–phenotype association to its DISNET disease."@en ;
+    rdfs:isDefinedBy <https://w3id.org/sem-disnet/ontology> ;
+    rdfs:domain disnet:DiseasePhenotypeAssociation ;
+    rdfs:range disnet:DisnetDisease .
+
+disnet:dpha_has_phenotype a owl:ObjectProperty ;
+    rdfs:label "disease–phenotype association has phenotype"@en ;
+    rdfs:comment "Relates a disease–phenotype association to its phenotype."@en ;
+    rdfs:isDefinedBy <https://w3id.org/sem-disnet/ontology> ;
+    rdfs:domain disnet:DiseasePhenotypeAssociation ;
+    rdfs:range disnet:Phenotype .
+
+disnet:dra_has_disease a owl:ObjectProperty ;
+    rdfs:label "disease–RNA association has disease"@en ;
+    rdfs:comment "Relates a disease–RNA association to its disease."@en ;
+    rdfs:isDefinedBy <https://w3id.org/sem-disnet/ontology> ;
+    rdfs:domain disnet:DiseaseRnaAssociation ;
+    rdfs:range disnet:Disease .
+
+disnet:dra_has_rna a owl:ObjectProperty ;
+    rdfs:label "disease–RNA association has RNA"@en ;
+    rdfs:comment "Relates a disease–RNA association to its RNA."@en ;
+    rdfs:isDefinedBy <https://w3id.org/sem-disnet/ontology> ;
+    rdfs:domain disnet:DiseaseRnaAssociation ;
+    rdfs:range disnet:RNA .
+
+disnet:dta_has_drug a owl:ObjectProperty ;
+    rdfs:label "drug–target association has drug"@en ;
+    rdfs:comment "Relates a drug–target association to its drug."@en ;
+    rdfs:isDefinedBy <https://w3id.org/sem-disnet/ontology> ;
+    rdfs:domain disnet:DrugTargetAssociation ;
+    rdfs:range disnet:Drug .
+
+disnet:dta_has_target a owl:ObjectProperty ;
+    rdfs:label "drug–target association has target"@en ;
+    rdfs:comment "Relates a drug–target association to its target."@en ;
+    rdfs:isDefinedBy <https://w3id.org/sem-disnet/ontology> ;
+    rdfs:domain disnet:DrugTargetAssociation ;
+    rdfs:range disnet:Target .
+
+disnet:dva_has_disease a owl:ObjectProperty ;
+    rdfs:label "disease–variant association has disease"@en ;
+    rdfs:comment "Relates a disease–variant association to its disease."@en ;
+    rdfs:isDefinedBy <https://w3id.org/sem-disnet/ontology> ;
+    rdfs:domain disnet:DiseaseVariantAssociation ;
+    rdfs:range disnet:Disease .
+
+disnet:dva_has_variant a owl:ObjectProperty ;
+    rdfs:label "disease–variant association has variant"@en ;
+    rdfs:comment "Relates a disease–variant association to its variant."@en ;
+    rdfs:isDefinedBy <https://w3id.org/sem-disnet/ontology> ;
+    rdfs:domain disnet:DiseaseVariantAssociation ;
+    rdfs:range disnet:Variant .
+
+disnet:gda_has_disease a owl:ObjectProperty ;
+    rdfs:label "disease–gene association has disease"@en ;
+    rdfs:comment "Relates a disease–gene association to its disease."@en ;
+    rdfs:isDefinedBy <https://w3id.org/sem-disnet/ontology> ;
+    rdfs:domain disnet:DiseaseGeneAssociation ;
+    rdfs:range disnet:Disease .
+
+disnet:gda_has_gene a owl:ObjectProperty ;
+    rdfs:label "disease–gene association has gene"@en ;
+    rdfs:comment "Relates a disease–gene association to its gene."@en ;
+    rdfs:isDefinedBy <https://w3id.org/sem-disnet/ontology> ;
+    rdfs:domain disnet:DiseaseGeneAssociation ;
+    rdfs:range disnet:Gene .
+
+disnet:gene_encodes_protein a owl:ObjectProperty ;
+    rdfs:label "gene encodes protein"@en ;
+    rdfs:comment "Relates a gene to a protein it encodes."@en ;
+    rdfs:isDefinedBy <https://w3id.org/sem-disnet/ontology> ;
+    rdfs:domain disnet:Gene ;
+    rdfs:range disnet:Protein .
+
+disnet:gene_has_variant a owl:ObjectProperty ;
+    rdfs:label "gene has variant"@en ;
+    rdfs:comment "Relates a gene to a genetic variant mapped to it."@en ;
+    rdfs:isDefinedBy <https://w3id.org/sem-disnet/ontology> ;
+    rdfs:domain disnet:Gene ;
+    rdfs:range disnet:Variant .
+
+disnet:gene_in_pathway a owl:ObjectProperty ;
+    rdfs:label "gene in pathway"@en ;
+    rdfs:comment "Relates a gene to a pathway it participates in."@en ;
+    rdfs:isDefinedBy <https://w3id.org/sem-disnet/ontology> ;
+    rdfs:domain disnet:Gene ;
+    rdfs:range disnet:Pathway .
+
+disnet:gene_in_taxon a owl:ObjectProperty ;
+    rdfs:label "gene in organism"@en ;
+    rdfs:comment "Relates a gene to the organism it belongs to."@en ;
+    rdfs:isDefinedBy <https://w3id.org/sem-disnet/ontology> ;
+    rdfs:domain disnet:Gene ;
+    rdfs:range disnet:Organism .
+
+disnet:mapping_has_disease a owl:ObjectProperty ;
+    rdfs:label "disease mapping has disease"@en ;
+    rdfs:comment "Relates a disease mapping to the Disease (UMLS CUI) it maps to."@en ;
+    rdfs:isDefinedBy <https://w3id.org/sem-disnet/ontology> ;
+    rdfs:domain disnet:DiseaseMapping ;
+    rdfs:range disnet:Disease .
+
+disnet:mapping_has_disnetDisease a owl:ObjectProperty ;
+    rdfs:label "disease mapping has DISNET disease"@en ;
+    rdfs:comment "Relates a disease mapping to the DISNET disease it maps from."@en ;
+    rdfs:isDefinedBy <https://w3id.org/sem-disnet/ontology> ;
+    rdfs:domain disnet:DiseaseMapping ;
+    rdfs:range disnet:DisnetDisease .
+
+disnet:marker_of_disease a owl:ObjectProperty ;
+    rdfs:label "disease marker of disease"@en ;
+    rdfs:comment "Relates a disease marker to the disease it is measured for (identifying relationship)."@en ;
+    rdfs:isDefinedBy <https://w3id.org/sem-disnet/ontology> ;
+    rdfs:domain disnet:DiseaseMarker ;
+    rdfs:range disnet:Disease .
+
+disnet:ppi_has_protein a owl:ObjectProperty ;
+    rdfs:label "PPI has protein"@en ;
+    rdfs:comment "Relates a protein–protein interaction to each of the interacting proteins (one value for homodimers)."@en ;
+    rdfs:isDefinedBy <https://w3id.org/sem-disnet/ontology> ;
+    rdfs:domain disnet:PPI ;
+    rdfs:range disnet:Protein .
+
+disnet:prev_has_prevClass a owl:ObjectProperty ;
+    rdfs:label "prevalence has prevalence class"@en ;
+    rdfs:comment "Relates a prevalence record to its Orphanet prevalence range."@en ;
+    rdfs:isDefinedBy <https://w3id.org/sem-disnet/ontology> ;
+    rdfs:domain disnet:Prevalence ;
+    rdfs:range disnet:PrevalenceClass .
+
+disnet:prev_of_orpha a owl:ObjectProperty ;
+    rdfs:label "prevalence of Orphanet entry"@en ;
+    rdfs:comment "Relates a prevalence record to the Orphanet entry it describes."@en ;
+    rdfs:isDefinedBy <https://w3id.org/sem-disnet/ontology> ;
+    rdfs:domain disnet:Prevalence ;
+    rdfs:range disnet:Orpha .
+
+disnet:protein_inClass_protClass a owl:ObjectProperty ;
+    rdfs:label "protein in protein class"@en ;
+    rdfs:comment "Relates a protein to a PANTHER protein class it belongs to."@en ;
+    rdfs:isDefinedBy <https://w3id.org/sem-disnet/ontology> ;
+    rdfs:domain disnet:Protein ;
+    rdfs:range disnet:ProteinClass .
+
+disnet:protein_in_taxon a owl:ObjectProperty ;
+    rdfs:label "protein in organism"@en ;
+    rdfs:comment "Relates a protein to the organism it belongs to."@en ;
+    rdfs:isDefinedBy <https://w3id.org/sem-disnet/ontology> ;
+    rdfs:domain disnet:Protein ;
+    rdfs:range disnet:Organism .
+
+disnet:target_in_taxon a owl:ObjectProperty ;
+    rdfs:label "target in organism"@en ;
+    rdfs:comment "Relates a target to the organism it belongs to."@en ;
+    rdfs:isDefinedBy <https://w3id.org/sem-disnet/ontology> ;
+    rdfs:domain disnet:Target ;
+    rdfs:range disnet:Organism .
+
+#################################################################
+#    Datatype properties
+#################################################################
+
+disnet:dda_inferredScore a owl:DatatypeProperty ;
+    rdfs:label "drug–disease association inferred score"@en ;
+    rdfs:comment "CTD inference score of an inferred drug–disease association. Checked: filled in all 1,057,573 inferred rows and in no T or M row."@en ;
+    rdfs:isDefinedBy <https://w3id.org/sem-disnet/ontology> ;
+    rdfs:domain disnet:DrugDiseaseInferred ;
+    rdfs:range xsd:decimal .
+
+disnet:disClass_vocabulary a owl:DatatypeProperty ;
+    rdfs:label "disease class vocabulary"@en ;
+    rdfs:comment "Vocabulary the disease class comes from (HPO, DO or MeSH)."@en ;
+    rdfs:isDefinedBy <https://w3id.org/sem-disnet/ontology> ;
+    rdfs:domain disnet:DiseaseClass ;
+    rdfs:range xsd:string .
+
+disnet:disease_ddfType a owl:DatatypeProperty ;
+    rdfs:label "disease DDF type"@en ;
+    rdfs:comment "DisGeNET entity type of the concept: disease, group, phenotype or virus. Only for biolayer diseases."@en ;
+    rdfs:isDefinedBy <https://w3id.org/sem-disnet/ontology> ;
+    rdfs:domain disnet:Disease ;
+    rdfs:range xsd:string .
+
+disnet:dpa_score a owl:DatatypeProperty ;
+    rdfs:label "drug–phenotype association score"@en ;
+    rdfs:comment "Score of the drug–phenotype association given by the drugslayer."@en ;
+    rdfs:isDefinedBy <https://w3id.org/sem-disnet/ontology> ;
+    rdfs:domain disnet:DrugPhenotypeAssociation ;
+    rdfs:range xsd:decimal .
+
+disnet:dpha_mayoScore a owl:DatatypeProperty ;
+    rdfs:label "disease–phenotype association Mayo Clinic score"@en ;
+    rdfs:comment "Score of the disease–phenotype association in the Mayo Clinic texts."@en ;
+    rdfs:isDefinedBy <https://w3id.org/sem-disnet/ontology> ;
+    rdfs:domain disnet:DiseasePhenotypeAssociation ;
+    rdfs:range xsd:decimal .
+
+disnet:dpha_wikiScore a owl:DatatypeProperty ;
+    rdfs:label "disease–phenotype association Wikipedia score"@en ;
+    rdfs:comment "Score of the disease–phenotype association in the Wikipedia texts."@en ;
+    rdfs:isDefinedBy <https://w3id.org/sem-disnet/ontology> ;
+    rdfs:domain disnet:DiseasePhenotypeAssociation ;
+    rdfs:range xsd:decimal .
+
+disnet:dra_causality a owl:DatatypeProperty ;
+    rdfs:label "disease–RNA association causality"@en ;
+    rdfs:comment "Whether the RNA is causal for the disease (yes / no)."@en ;
+    rdfs:isDefinedBy <https://w3id.org/sem-disnet/ontology> ;
+    rdfs:domain disnet:DiseaseRnaAssociation ;
+    rdfs:range xsd:string .
+
+disnet:dra_evidenceType a owl:DatatypeProperty ;
+    rdfs:label "disease–RNA association evidence type"@en ;
+    rdfs:comment "Type of evidence supporting the disease–RNA association (e.g. genetics_GWAS)."@en ;
+    rdfs:isDefinedBy <https://w3id.org/sem-disnet/ontology> ;
+    rdfs:domain disnet:DiseaseRnaAssociation ;
+    rdfs:range xsd:string .
+
+disnet:drug_atcCode a owl:DatatypeProperty ;
+    rdfs:label "drug ATC code"@en ;
+    rdfs:comment "Anatomical Therapeutic Chemical (ATC) classification code of the drug. Multi-valued."@en ;
+    rdfs:isDefinedBy <https://w3id.org/sem-disnet/ontology> ;
+    rdfs:domain disnet:Drug ;
+    rdfs:range xsd:string .
+
+disnet:drug_inchiKey a owl:DatatypeProperty ;
+    rdfs:label "drug InChIKey"@en ;
+    rdfs:comment "Standard InChIKey of the compound."@en ;
+    rdfs:isDefinedBy <https://w3id.org/sem-disnet/ontology> ;
+    rdfs:domain disnet:Drug ;
+    rdfs:range xsd:string .
+
+disnet:drug_molecularType a owl:DatatypeProperty ;
+    rdfs:label "drug molecular type"@en ;
+    rdfs:comment "Molecular type of the drug (e.g. Small molecule, Antibody)."@en ;
+    rdfs:isDefinedBy <https://w3id.org/sem-disnet/ontology> ;
+    rdfs:domain disnet:Drug ;
+    rdfs:range xsd:string .
+
+disnet:dta_actionType a owl:DatatypeProperty ;
+    rdfs:label "drug–target association action type"@en ;
+    rdfs:comment "Type of action of the drug on the target (e.g. INHIBITOR, AGONIST). Absent when the source does not report it."@en ;
+    rdfs:isDefinedBy <https://w3id.org/sem-disnet/ontology> ;
+    rdfs:domain disnet:DrugTargetAssociation ;
+    rdfs:range xsd:string .
+
+disnet:dva_score a owl:DatatypeProperty ;
+    rdfs:label "disease–variant association score"@en ;
+    rdfs:comment "DisGeNET score of the disease–variant association."@en ;
+    rdfs:isDefinedBy <https://w3id.org/sem-disnet/ontology> ;
+    rdfs:domain disnet:DiseaseVariantAssociation ;
+    rdfs:range xsd:decimal .
+
+disnet:gda_score a owl:DatatypeProperty ;
+    rdfs:label "disease–gene association score"@en ;
+    rdfs:comment "DisGeNET score of the disease–gene association."@en ;
+    rdfs:isDefinedBy <https://w3id.org/sem-disnet/ontology> ;
+    rdfs:domain disnet:DiseaseGeneAssociation ;
+    rdfs:range xsd:decimal .
+
+disnet:gene_chromosomeVersion a owl:DatatypeProperty ;
+    rdfs:label "gene chromosome version"@en ;
+    rdfs:comment "Accession and version of the chromosome sequence where the gene is located."@en ;
+    rdfs:isDefinedBy <https://w3id.org/sem-disnet/ontology> ;
+    rdfs:domain disnet:Gene ;
+    rdfs:range xsd:string .
+
+disnet:gene_dpi a owl:DatatypeProperty ;
+    rdfs:label "gene DPI"@en ;
+    rdfs:comment "DisGeNET Disease Pleiotropy Index (DPI) of the gene."@en ;
+    rdfs:isDefinedBy <https://w3id.org/sem-disnet/ontology> ;
+    rdfs:domain disnet:Gene ;
+    rdfs:range xsd:decimal .
+
+disnet:gene_dsi a owl:DatatypeProperty ;
+    rdfs:label "gene DSI"@en ;
+    rdfs:comment "DisGeNET Disease Specificity Index (DSI) of the gene."@en ;
+    rdfs:isDefinedBy <https://w3id.org/sem-disnet/ontology> ;
+    rdfs:domain disnet:Gene ;
+    rdfs:range xsd:decimal .
+
+disnet:gene_seqEnd a owl:DatatypeProperty ;
+    rdfs:label "gene sequence end"@en ;
+    rdfs:comment "End position of the gene on the chromosome."@en ;
+    rdfs:isDefinedBy <https://w3id.org/sem-disnet/ontology> ;
+    rdfs:domain disnet:Gene ;
+    rdfs:range xsd:integer .
+
+disnet:gene_seqStart a owl:DatatypeProperty ;
+    rdfs:label "gene sequence start"@en ;
+    rdfs:comment "Start position of the gene on the chromosome."@en ;
+    rdfs:isDefinedBy <https://w3id.org/sem-disnet/ontology> ;
+    rdfs:domain disnet:Gene ;
+    rdfs:range xsd:integer .
+
+disnet:gene_strand a owl:DatatypeProperty ;
+    rdfs:label "gene strand"@en ;
+    rdfs:comment "DNA strand of the gene (1 or -1)."@en ;
+    rdfs:isDefinedBy <https://w3id.org/sem-disnet/ontology> ;
+    rdfs:domain disnet:Gene ;
+    rdfs:range xsd:integer .
+
+disnet:gene_symbol a owl:DatatypeProperty ;
+    rdfs:label "gene symbol"@en ;
+    rdfs:comment "Official symbol of the gene."@en ;
+    rdfs:isDefinedBy <https://w3id.org/sem-disnet/ontology> ;
+    rdfs:domain disnet:Gene ;
+    rdfs:range xsd:string .
+
+disnet:mapping_vocabulary a owl:DatatypeProperty ;
+    rdfs:label "disease mapping vocabulary"@en ;
+    rdfs:comment "Vocabulary through which the DISNET disease was mapped to the UMLS CUI (e.g. MeSH, OMIM, SNOMEDCT). Multi-valued."@en ;
+    rdfs:isDefinedBy <https://w3id.org/sem-disnet/ontology> ;
+    rdfs:domain disnet:DiseaseMapping ;
+    rdfs:range xsd:string .
+
+disnet:marker_concentration a owl:DatatypeProperty ;
+    rdfs:label "disease marker concentration"@en ;
+    rdfs:comment "Concentration of the marker as free text (mean, range and unit)."@en ;
+    rdfs:isDefinedBy <https://w3id.org/sem-disnet/ontology> ;
+    rdfs:domain disnet:DiseaseMarker ;
+    rdfs:range xsd:string .
+
+disnet:marker_name a owl:DatatypeProperty ;
+    rdfs:label "disease marker name"@en ;
+    rdfs:comment "Name of the biomarker."@en ;
+    rdfs:isDefinedBy <https://w3id.org/sem-disnet/ontology> ;
+    rdfs:domain disnet:DiseaseMarker ;
+    rdfs:range xsd:string .
+
+disnet:marker_sample a owl:DatatypeProperty ;
+    rdfs:label "disease marker sample"@en ;
+    rdfs:comment "Type of sample where the marker was measured (e.g. blood, urine)."@en ;
+    rdfs:isDefinedBy <https://w3id.org/sem-disnet/ontology> ;
+    rdfs:domain disnet:DiseaseMarker ;
+    rdfs:range xsd:string .
+
+disnet:ppi_quality a owl:DatatypeProperty ;
+    rdfs:label "PPI quality"@en ;
+    rdfs:comment "Quality level of the interaction evidence (GOLD or SILVER)."@en ;
+    rdfs:isDefinedBy <https://w3id.org/sem-disnet/ontology> ;
+    rdfs:domain disnet:PPI ;
+    rdfs:range xsd:string .
+
+disnet:prev_geo a owl:DatatypeProperty ;
+    rdfs:label "prevalence area"@en ;
+    rdfs:comment "Geographic area of the prevalence estimate."@en ;
+    rdfs:isDefinedBy <https://w3id.org/sem-disnet/ontology> ;
+    rdfs:domain disnet:Prevalence ;
+    rdfs:range xsd:string .
+
+disnet:rna_category a owl:DatatypeProperty ;
+    rdfs:label "RNA category"@en ;
+    rdfs:comment "Category of the RNA: miRNA, lncRNA or circRNA."@en ;
+    rdfs:isDefinedBy <https://w3id.org/sem-disnet/ontology> ;
+    rdfs:domain disnet:RNA ;
+    rdfs:range xsd:string .
+
+disnet:semType_abbreviation a owl:DatatypeProperty ;
+    rdfs:label "semantic type abbreviation"@en ;
+    rdfs:comment "Abbreviation of the UMLS semantic type (e.g. dsyn)."@en ;
+    rdfs:isDefinedBy <https://w3id.org/sem-disnet/ontology> ;
+    rdfs:domain disnet:SemanticType ;
+    rdfs:range xsd:string .
+
+disnet:target_type a owl:DatatypeProperty ;
+    rdfs:label "target type"@en ;
+    rdfs:comment "ChEMBL target type (e.g. SINGLE PROTEIN, PROTEIN COMPLEX)."@en ;
+    rdfs:isDefinedBy <https://w3id.org/sem-disnet/ontology> ;
+    rdfs:domain disnet:Target ;
+    rdfs:range xsd:string .
+
+disnet:variant_chromosome a owl:DatatypeProperty ;
+    rdfs:label "variant chromosome"@en ;
+    rdfs:comment "Chromosome where the variant is located."@en ;
+    rdfs:isDefinedBy <https://w3id.org/sem-disnet/ontology> ;
+    rdfs:domain disnet:Variant ;
+    rdfs:range xsd:string .
+
+disnet:variant_consequence a owl:DatatypeProperty ;
+    rdfs:label "variant consequence"@en ;
+    rdfs:comment "Predicted consequence of the variant (e.g. missense variant)."@en ;
+    rdfs:isDefinedBy <https://w3id.org/sem-disnet/ontology> ;
+    rdfs:domain disnet:Variant ;
+    rdfs:range xsd:string .
+
+disnet:variant_dpi a owl:DatatypeProperty ;
+    rdfs:label "variant DPI"@en ;
+    rdfs:comment "DisGeNET Disease Pleiotropy Index (DPI) of the variant."@en ;
+    rdfs:isDefinedBy <https://w3id.org/sem-disnet/ontology> ;
+    rdfs:domain disnet:Variant ;
+    rdfs:range xsd:decimal .
+
+disnet:variant_dsi a owl:DatatypeProperty ;
+    rdfs:label "variant DSI"@en ;
+    rdfs:comment "DisGeNET Disease Specificity Index (DSI) of the variant."@en ;
+    rdfs:isDefinedBy <https://w3id.org/sem-disnet/ontology> ;
+    rdfs:domain disnet:Variant ;
+    rdfs:range xsd:decimal .
+
+disnet:variant_position a owl:DatatypeProperty ;
+    rdfs:label "variant position"@en ;
+    rdfs:comment "Position of the variant on its chromosome."@en ;
+    rdfs:isDefinedBy <https://w3id.org/sem-disnet/ontology> ;
+    rdfs:domain disnet:Variant ;
+    rdfs:range xsd:integer .

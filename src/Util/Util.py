@@ -1,5 +1,5 @@
 import random
-from Util.Classes import Path, Rule, P_map, IncidenceList, Ontology, is_literal_comp
+from Util.Classes import Path, Rule, P_map, IncidenceList, Ontology, is_literal_comp, abbreviate
 
 ########################################
 # filling custom datastructures
@@ -14,10 +14,7 @@ def parseGraph(ntFilePath, graph:IncidenceList, prefix=""):
             graph.add(triple[0], triple[1], triple[2])
 
 """parse a .ttl ontology into Ontology Type"""
-def parseOntology(ontology_file:str, ontology:Ontology, prefix:str=""):
-
-
-
+def parseOntology(ontology_file:str, ontology:Ontology, prefix:str="", abbr=None, prefix_dict=None):
 
     """help function for parseOntology"""
     def checkForType(e):
@@ -50,25 +47,29 @@ def parseOntology(ontology_file:str, ontology:Ontology, prefix:str=""):
         return e.__contains__("domain")
 
     """help function for parseOntology"""
-    def extractName(e):
-        # e is whole uri
-        out = e
-        if e[0] == "<":
-            split = e.split("/")
-            out = split[len(split)-1]
-
-        # e uses prefix abbreviation
+    def extractName(e, abbr=None, prefix_dict=None):
+        # TODO improve, using abbreviate here is a bit wasteful
+        if prefix_dict and abbr:
+            out = abbreviate(e.removeprefix("<").removesuffix(">"),abbr, prefix_dict).removeprefix(f"{abbr}:")
         else:
-            split = e.split(":")
-            if split[len(split)-2] in ("rdf", "rdfs", "owl"):
-                out = f"{split[len(split)-2]}:{split[len(split)-1]}"
-
-            else:
+            # e is whole uri
+            out = e
+            if e[0] == "<":
+                split = e.split("/")
                 out = split[len(split)-1]
-        while out[len(out)-1] in (">",",",";"):
-            out = out[:-1]
+
+            # e uses prefix abbreviation
+            else:
+                split = e.split(":")
+                if split[len(split)-2] in ("rdf", "rdfs", "owl"):
+                    out = f"{split[len(split)-2]}:{split[len(split)-1]}"
+
+                else:
+                    out = split[len(split)-1]
+            while out[len(out)-1] in (">",",",";"):
+                out = out[:-1]
         return out
-        
+            
     """Handles a block(file segment until next '.' --> everything belonging to the last stated subject) from an ontology file, adds the extracted information to the given Ontology object"""
     def addOntologyBlock(block:list[str], ontology:Ontology, prefix):
         s = block[0]
@@ -170,14 +171,14 @@ def parseOntology(ontology_file:str, ontology:Ontology, prefix:str=""):
         if isClass:
             if super:
                 for sup in super:
-                    ontology.addClass(prefix, extractName(s), extractName(sup))
+                    ontology.addClass(prefix, extractName(s, abbr, prefix_dict), extractName(sup, abbr, prefix_dict))
             else:
-                ontology.addClass(prefix, extractName(s))
+                ontology.addClass(prefix, extractName(s, abbr, prefix_dict))
             
         if isProperty:
-            ontology.addProperty(prefix, extractName(s), {extractName(e) for e in domain}, {extractName(e) for e in range})
+            ontology.addProperty(prefix, extractName(s, abbr, prefix_dict), {extractName(e, abbr, prefix_dict) for e in domain}, {extractName(e, abbr, prefix_dict) for e in range})
 
-
+    ontology.graph.parse(ontology_file, format="turtle")
 
     with open(ontology_file, 'r', encoding='utf-8') as file:
         block_end = False
@@ -188,16 +189,27 @@ def parseOntology(ontology_file:str, ontology:Ontology, prefix:str=""):
                 # skip prefix declarations and comments
                 if r[0][0] == "@" or r[0][0] == "#":
                    continue
-
+                in_comment = False
+                comment = ""
                 for e in r:
-                    if e[len(e)-1] == ".":
+                    if in_comment:
+                        comment += e
+                        if e.__contains__("\""):
+                            in_comment = False
+                            block.append(comment)
+                        
+                    elif e[0] == "\"" and not e[1:].__contains__("\""):
+                        in_comment = True
+                        comment += e
+                        
+                    elif e[len(e)-1] == ".":
                         # all triples for current subject are finished
                         block_end = True
                         if len(e) > 1:
                             block.append(e[0:len(e)-1])
                         break
                     
-                    if e[len(e)-1] == ",":
+                    elif e[len(e)-1] == ",":
                         if len(e) > 1:
                             block.append(e[0:len(e)-1])
                         block.append(",")                    

@@ -8,11 +8,17 @@
 
 In ./Data/KG add a folder containing an .nt file with the same name as the folder.
 
-In src/Data/Constraints add a folder containing a .ttl file containing SHACL-constraints both with the same name as used before. If there are SPARQL querys in the constraints please use "$this" when referencing the target node. Also requires writing "SELECT ($this AS ?this)". This is needed for error free validation with TravSHACL.
+In src/Data/Constraints add a folder containing a .ttl file containing SHACL-constraints both with the same name as used before.
 
 In ./Data/Constraints add a .ttl file containing the ontology. Here the name doesn't matter.
 
-# input.json:
+# constraint structure
+
+If there are SPARQL querys in the constraints please use "$this" when referencing the target node. Also requires writing "SELECT ($this AS ?this)". This is needed for error free validation with TravSHACL. Any triple-pattern in the SPARQL-queries whoose instantiations are to be negated during normalization should be followed by a comment containing the word "negate".
+
+# input_rule_mining.json and input_normalization.json:
+
+For either normalizing or mining rules there is a json-file for inputs, both are structured as follows.
 
 "KG": name of KG
 
@@ -42,7 +48,7 @@ In ./Data/Constraints add a .ttl file containing the ontology. Here the name doe
 
 # example input
 
-use this as input.json for testing
+use this as either json input for testing
 
 {
 "KG": "musicKG",

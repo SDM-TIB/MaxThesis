@@ -1,14 +1,17 @@
+from rdflib import term
+
 from Util.Classes import Path, Rule, P_map, IncidenceList, Ontology, is_literal_comp, removePrefix
 from Util.Util import is_valid_comp, is_literal, derivable, literal_type
 from rdflib import Graph, BNode, URIRef, Literal
-from rdflib.namespace import RDF
+from rdflib.namespace import RDF, RDFS
 import re
 
 """checks wether a triple is correctly covered by given ontology."""
-def fits_ontology(triple, ontology:Ontology, kg:Graph, prefix, type_predicate:URIRef=RDF.type, prefix_dict=None):
-
+def fits_ontology(triple, ontology:Ontology, kg:Graph, prefix, type_predicate:URIRef=RDF.type):
     def check_entity(entity, allowed_types, on:Ontology, kg:Graph, prefix:str):
-        entity_types = {removePrefix(str(t), prefix) for t in kg.objects(subject=URIRef(f"{prefix}{entity}"), predicate=type_predicate)}
+        # this is wrong, entity can be blank node ort have other prefix
+        entity_name = URIRef(f"{prefix}{entity}") if not entity.__contains__(":") and not type(entity) == BNode else entity
+        entity_types = {removePrefix(str(t), prefix) for t in kg.objects(subject=entity_name, predicate=type_predicate)}
         if not entity_types:
             return False
 
@@ -23,11 +26,14 @@ def fits_ontology(triple, ontology:Ontology, kg:Graph, prefix, type_predicate:UR
         return True
 
     s, p, o = triple
-    subject = removePrefix(s, prefix)
+    subject = removePrefix(s, prefix) if not type(s) == BNode else s
     predicate = removePrefix(p, prefix)
-    object = removePrefix(o, prefix)
-    if prefix_dict and any(str(p).startswith(pre) for pre in prefix_dict.items()):
+    object = removePrefix(o, prefix) if not type(o) == BNode else o
+    accepted_properties = ["http://www.w3.org/ns/prov#", "prov", "http://www.w3.org/1999/02/22-rdf-syntax-ns#", "rdf", "http://www.w3.org/ns/rdf-star#", "rdf-star", "http://www.w3.org/2000/01/rdf-schema#", "rdfs", "http://www.w3.org/2002/07/owl#", "owl"]
+    if any(str(p).startswith(pre) for pre in accepted_properties):
         # assume triples as true that use universal properties e.g. rdfs:label, focus on integrity of KG towards the given ontology
+        # given that s and o have a type...
+        # TODO
         return True
 
     if is_literal_comp(predicate):
@@ -61,22 +67,26 @@ def fits_ontology(triple, ontology:Ontology, kg:Graph, prefix, type_predicate:UR
         return False
     types_d = domain_range[0]
     types_r = domain_range[1]
+
     if not types_r or not types_d:
         return False
 
-
     # check object
     if type(o) == Literal:
-        literal_t = removePrefix(o.datatype, "http://www.w3.org/2001/XMLSchema#")
-        for t in types_r:
-            if not derivable(literal_t, t, ontology.literal_hierarchy):
-                return False
+        # if not o.datatype assume anyType
+        if o.datatype:
+            literal_t = removePrefix(o.datatype, "http://www.w3.org/2001/XMLSchema#")
+            for t in types_r:
+                if not derivable(literal_t, t, ontology.literal_hierarchy):
+                    return False
     
     else:
         if not check_entity(object, types_r, ontology, kg, prefix):
+            
             return False
 
-
+    if o == term.URIRef('http://example.org/The_Royal_Scam'):
+        print(check_entity(subject, types_d, ontology, kg, prefix))
     # check subject
     return check_entity(subject, types_d, ontology, kg, prefix)
 

@@ -1,15 +1,14 @@
-    {
+{
 "KG": "musicKG-test-normalization",
 "prefix": "http://example.org/",
 "prefix-abbreviation":"ex",
-"rules_file": "musicKG-test-normalization.csv",
+"other_prefixes": {},
 "rdf_file": "musicKG-test-normalization.nt",
 "constraints_folder": "musicKG-test-normalization",
 "ontology_file": "musicKGOntology.ttl",
-"max_body_length": "",
-"example_set_size": "",
-"type_predicate": "",
-"alpha": "",
-"mine_negative_rules": "",
-"onto-valid": "ef"
+"onto-valid": "",
+"nf1": "",
+"nf2": "",
+"nf3": "",
+"nf4": ""
 }
