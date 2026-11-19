@@ -6,8 +6,6 @@
 
 fr:Person  a  rdfs:Class .
 fr:Binary  a  rdfs:Class .
-
-fr:Spouse rdfs:subClassOf fr:Person.
  
 fr:father a rdfs:Property , owl:ObjectProperty;
     rdfs:domain fr:Person ;
