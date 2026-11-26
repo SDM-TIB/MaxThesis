@@ -1,4 +1,4 @@
-@prefix ex: <http://FrenchRoyalty.org/> .
+@prefix fr: <http://FrenchRoyalty.org/> .
 @prefix exS: <http://FrenchRoyalty.org/shapes/> .
 @prefix sh: <http://www.w3.org/ns/shacl#> .
 
@@ -12,4 +12,4 @@ exS:FatherWithChildConstraint a sh:NodeShape ;
                 
             }
 """ ] ;
-    sh:targetClass ex:Person .
+    sh:targetClass fr:Person .

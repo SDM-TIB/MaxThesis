@@ -29,12 +29,22 @@ def fits_ontology(triple, ontology:Ontology, kg:Graph, prefix, type_predicate:UR
     subject = removePrefix(s, prefix) if not type(s) == BNode else s
     predicate = removePrefix(p, prefix)
     object = removePrefix(o, prefix) if not type(o) == BNode else o
-    accepted_properties = ["http://www.w3.org/ns/prov#", "prov", "http://www.w3.org/1999/02/22-rdf-syntax-ns#", "rdf", "http://www.w3.org/ns/rdf-star#", "rdf-star", "http://www.w3.org/2000/01/rdf-schema#", "rdfs", "http://www.w3.org/2002/07/owl#", "owl"]
-    if any(str(p).startswith(pre) for pre in accepted_properties):
+    accepted_namespaces = ["http://www.w3.org/ns/prov#", "prov", "http://www.w3.org/1999/02/22-rdf-syntax-ns#", "rdf", "http://www.w3.org/ns/rdf-star#", "rdf-star", "http://www.w3.org/2000/01/rdf-schema#", "rdfs", "http://www.w3.org/2002/07/owl#", "owl"]
+    if any(str(p).startswith(pre) for pre in accepted_namespaces):
         # assume triples as true that use universal properties e.g. rdfs:label, focus on integrity of KG towards the given ontology
         # given that s and o have a type...
-        # TODO
-        return True
+        print((s, RDF.type, None) in kg)
+        if (s, RDF.type, None) in kg:
+            if type(o) != Literal:
+                if (o, RDF.type, None) in kg:
+                    return True
+                else:
+                    print(s,p,o)
+                    return False
+            return True
+        else:
+            print(s,p,o)
+            return False
 
     if is_literal_comp(predicate):
         if type(s) == Literal and type(o) == Literal and s.datatype == o.datatype:

@@ -411,12 +411,25 @@ def normalize_nf3(kg:Graph, trace_graph:TraceGraph,  ontology_trace_graph:TraceG
             on_triples_to_add = []
             short_p = removePrefix(abbreviate(p,abbr, prefix_dict),f"{abbr}:")
             if short_p == "rdf:type":
-                # TODO is correct?
-                on.addProperty(str(prefix), new_p, {"rdfs:Class"}, {"rdfs:Class"})
+                # TODO sensibly find d and r
+                d = None
+                r = None
+                on.addProperty(str(prefix), new_p, d, r)
                 # TODO add statements for isproperty, domain, range
-                on.graph.add()
+                # on.graph.add()                
             else:
-                on.addProperty(str(prefix), new_p, on.properties[short_p][0], on.properties[short_p][1])
+                if short_p not in on.properties:
+                    # TODO sensibly find d and r
+                    d = None
+                    r = None
+                    on.addProperty(str(prefix), new_p, d, r)
+                    # TODO add statements for isproperty, domain, range
+                    # on.graph.add() 
+                else:
+                    on.addProperty(str(prefix), new_p, on.properties[short_p][0], on.properties[short_p][1])
+                    # TODO add statements for isproperty, domain, range
+                    # on.graph.add() 
+
                 for t in on.graph.triples((URIRef(p), None, None)):
                     new_t = (URIRef(full_uri(new_p, prefix_dict, prefix)), t[1],t[2])
                     on_triples_to_add.append(new_t)

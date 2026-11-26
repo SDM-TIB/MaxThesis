@@ -85,6 +85,21 @@ from main import delete_existing_result
 # }
 
 
+# {
+# "KG": "FrenchRoyalty-VANILLA",
+# "prefix": "http://FrenchRoyalty.org/",
+# "prefix-abbreviation":"fr",
+# "other_prefixes": {},
+# "rdf_file": "FrenchRoyalty-VANILLA.nt",
+# "constraints_folder": "FrenchRoyalty-VANILLA",
+# "ontology_file": "ontology_FrenchRoyalty.ttl",
+# "onto-valid": "F",
+# "nf1": "",
+# "nf2": "",
+# "nf3": "",
+# "nf4": ""
+# }
+
 def initialize(input_config):
     """
     Initializes the system using the configuration provided in the input file. It reads
